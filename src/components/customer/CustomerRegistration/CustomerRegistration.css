@@ -1,0 +1,45 @@
+.registration-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 20px 40px; 
+}
+  
+  .user-reg-img {
+    text-align: center;
+    margin-right: 20px;
+  }
+  
+  #animation-container {
+    width: 500px; 
+    height: 500px; 
+  }
+  
+  .owner-reg-form {
+    margin-left: 10%;
+    max-width: 400px;
+  }
+  
+  .ant-form-item {
+    margin-bottom: 16px;
+  }
+  
+  .ant-input,
+  .ant-select-selector,
+  .ant-input-password,
+  .ant-upload-list-picture-card-container {
+    height: 40px !important;
+  }
+  
+  .ant-input:focus,
+  .ant-input:hover,
+  .ant-select-selector:focus,
+  .ant-select-selector:hover,
+  .ant-input-password:focus,
+  .ant-input-password:hover,
+  .ant-upload-list-picture-card-container:focus,
+  .ant-upload-list-picture-card-container:hover {
+    border-color: #fdb940 !important;
+  }
+  

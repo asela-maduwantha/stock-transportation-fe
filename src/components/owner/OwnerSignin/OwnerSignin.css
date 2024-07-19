@@ -1,0 +1,45 @@
+/* SignIn.css */
+
+.signin-card {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    height: 90vh;
+  }
+  
+  .signin-form {
+    width: 25%;
+    padding: 20px;
+    height: 60vh;
+    text-align: center;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .ant-input:focus,
+  .ant-input:hover,
+  .ant-input-password .ant-input:focus,
+  .ant-input-password .ant-input:hover,
+  .ant-input-affix-wrapper:focus,
+  .ant-input-affix-wrapper:hover,
+  .ant-select-selector:focus,
+  .ant-select-selector:hover,
+  .ant-upload-list-picture-card-container:focus,
+  .ant-upload-list-picture-card-container:hover {
+    border-color: #fdb940 !important;}  
+  
+  .ant-btn-primary {
+    background-color: #fdb940;
+    border-color: #fdb940;
+  }
+  
+  .ant-btn-primary:hover,
+  .ant-btn-primary:focus {
+    background-color: #e6a423;
+    border-color: #e6a423;
+  }
+  
+
+  

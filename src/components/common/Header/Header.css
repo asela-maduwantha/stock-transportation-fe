@@ -1,0 +1,76 @@
+/* Header.css */
+
+.header {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  padding: 1rem 5rem 1rem ;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.logo img {
+  height: 40px; 
+}
+
+.navigation {
+  width: auto;
+  margin-left: 20%;
+  padding: 10px;
+  width: auto;
+  margin-right: 15%;
+}
+
+.navigation ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navigation ul li {
+  display: inline-block;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+.navigation ul li:last-child {
+  margin-right: 0;
+}
+
+.navigation ul li a {
+  text-decoration: none;
+  color: #333;
+  font-weight:light;
+  transition: color 0.3s ease;
+}
+
+.navigation ul li a:hover {
+  color: #fdb940;
+}
+
+.signin-container {
+  font-size: x-large;
+  color: #FFF;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.signin-container select {
+  padding: 5px;
+  border-radius: 5px;
+  margin-right: 10px;
+}
+
+.signin-container button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  background-color: #007bff;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.signin-container button:hover {
+  background-color: #0056b3;
+}
