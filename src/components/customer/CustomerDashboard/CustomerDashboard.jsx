@@ -1,7 +1,11 @@
 import React from 'react';
 import { Row, Col, Card, Statistic, Divider, Button } from 'antd';
 import { Bar } from 'react-chartjs-2';
+import { Chart, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { CheckCircleOutlined, CloseCircleOutlined, CarOutlined, UserOutlined } from '@ant-design/icons';
+
+// Register Chart.js components
+Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const CustomerDashboard = () => {
   const totalTrips = 25;

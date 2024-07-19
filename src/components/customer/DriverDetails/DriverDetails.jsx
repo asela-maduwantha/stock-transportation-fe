@@ -6,7 +6,7 @@ const { Meta } = Card;
 
 const DriverDetails = () => {
   // Sample data for Sri Lankan drivers (replace with actual data)
-  const [drivers, setDrivers] = useState([
+  const [drivers] = useState([
     {
       id: 1,
       name: 'Saman Perera',
@@ -63,7 +63,7 @@ const DriverDetails = () => {
       details: 'Nulla facilisi. Proin varius metus ut metus fermentum, at venenatis nunc efficitur. Sed posuere, turpis in malesuada.',
     },
   ]);
-  setDrivers(drivers)
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDriver, setSelectedDriver] = useState(null);
 

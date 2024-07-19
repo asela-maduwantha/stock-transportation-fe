@@ -2,6 +2,28 @@ import React from 'react';
 import { Card, Row, Col, Statistic } from 'antd';
 import { Line, Pie } from 'react-chartjs-2';
 import { UserOutlined, CarOutlined, AreaChartOutlined, DollarOutlined } from '@ant-design/icons';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+} from 'chart.js';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement
+);
 
 const VehicleOwnerDashboard = () => {
   const driverData = [
@@ -46,12 +68,14 @@ const VehicleOwnerDashboard = () => {
   const tripChartOptions = {
     scales: {
       x: {
+        type: 'category',
         title: {
           display: true,
           text: 'Date',
         },
       },
       y: {
+        type: 'linear',
         title: {
           display: true,
           text: 'Trips',

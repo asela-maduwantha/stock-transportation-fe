@@ -70,12 +70,11 @@ const dummyDrivers = [
 
 const OwnerVehicles = () => {
     const [vehicles, setVehicles] = useState(dummyVehicles);
-    const [drivers, setDrivers] = useState(dummyDrivers);
+    const [drivers] = useState(dummyDrivers); // Removed setDrivers
     const [selectedVehicle, setSelectedVehicle] = useState(null);
     const [assignDriverModalVisible, setAssignDriverModalVisible] = useState(false);
     const [editVehicleModalVisible, setEditVehicleModalVisible] = useState(false);
     const [selectedDriver, setSelectedDriver] = useState(null);
-    setDrivers(dummyDrivers)
 
     const showAssignDriverModal = (vehicle) => {
         setSelectedVehicle(vehicle);
@@ -107,7 +106,6 @@ const OwnerVehicles = () => {
     };
 
     const handleRemoveDriver = (vehicle) => {
-       
         const updatedVehicles = vehicles.map(v => {
             if (v.id === vehicle.id) {
                 return { ...v, driver: null, driverContact: null };
@@ -237,50 +235,47 @@ const OwnerVehicles = () => {
             >
                 <Form
                     layout="vertical"
-                    onFinish={handleEditVehicle}
                     initialValues={vehicleFormInitialValues}
+                    onFinish={handleEditVehicle}
                 >
                     <Form.Item
                         name="name"
                         label="Vehicle Name"
-                        rules={[{ required: true, message: 'Please enter vehicle name' }]}
+                        rules={[{ required: true, message: 'Please enter the vehicle name' }]}
                     >
                         <Input />
                     </Form.Item>
                     <Form.Item
                         name="type"
                         label="Vehicle Type"
-                        rules={[{ required: true, message: 'Please enter vehicle type' }]}
+                        rules={[{ required: true, message: 'Please enter the vehicle type' }]}
                     >
                         <Input />
                     </Form.Item>
                     <Form.Item
                         name="registrationNumber"
                         label="Registration Number"
-                        rules={[{ required: true, message: 'Please enter registration number' }]}
+                        rules={[{ required: true, message: 'Please enter the registration number' }]}
                     >
                         <Input />
                     </Form.Item>
                     <Form.Item
                         name="ownerName"
                         label="Owner Name"
-                        rules={[{ required: true, message: 'Please enter owner name' }]}
+                        rules={[{ required: true, message: 'Please enter the owner name' }]}
                     >
                         <Input />
                     </Form.Item>
                     <Form.Item
                         name="ownerContact"
                         label="Owner Contact"
-                        rules={[{ required: true, message: 'Please enter owner contact' }]}
+                        rules={[{ required: true, message: 'Please enter the owner contact' }]}
                     >
                         <Input />
                     </Form.Item>
                     <Form.Item>
-                        <Button key="cancel" onClick={handleCancelEditVehicle}>
-                            Cancel
-                        </Button>
-                        <Button key="submit" type="primary" htmlType="submit">
-                            Update
+                        <Button type="primary" htmlType="submit">
+                            Save Changes
                         </Button>
                     </Form.Item>
                 </Form>
