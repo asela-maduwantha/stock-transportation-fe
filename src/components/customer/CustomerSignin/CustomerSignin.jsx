@@ -1,21 +1,25 @@
-// CustomerSignin.js
 import React, { useState } from 'react';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
 import { Button, Input, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import httpService from '../../../services/httpService'
+import httpService from '../../../services/httpService';
 
 
 const CustomerSignin = () => {
-  const [email, setEmail] = useState('');
+  const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  const handleSignIn = async (email, password) => {
+  const handleSignIn = async () => {
+    if (!userName || !password) {
+      message.error('Please provide both username and password.');
+      return;
+    }
+
     try {
       const response = await httpService.post('/customer/signin', {
-        userName: email,
-        password: password,
+        userName,
+        password,
       });
 
       if (response.status === 200) {
@@ -25,7 +29,7 @@ const CustomerSignin = () => {
       }
     } catch (error) {
       if (error.response && error.response.status === 406) {
-        message.error('Invalid Email or Password');
+        message.error('Invalid Username or Password');
       } else {
         message.error('Error signing in. Please try again later.');
       }
@@ -40,14 +44,13 @@ const CustomerSignin = () => {
           <h1>Customer Signin</h1>
           <Input
             prefix={<MailOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
-            placeholder="E-mail"
+            placeholder="Username"
             size="large"
             style={{ marginBottom: '10%' }}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
           />
-          <Input
-            type="password"
+          <Input.Password
             prefix={<LockOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
             placeholder="Password"
             size="large"
@@ -59,7 +62,7 @@ const CustomerSignin = () => {
             type="primary"
             size="large"
             style={{ backgroundColor: '#fdb940', border: 'none', width: '80%', height: '50px' }}
-            onClick={() => handleSignIn(email, password)}
+            onClick={handleSignIn}
           >
             Sign In
           </Button>

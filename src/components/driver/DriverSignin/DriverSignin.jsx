@@ -1,4 +1,3 @@
-// DriverSignin.js
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
@@ -12,7 +11,7 @@ const DriverSignin = ({ onSignIn, title }) => {
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      const response = await httpService.post('/driver/signin', values); // Use httpService here
+      const response = await httpService.post('/driver/signin', values); 
       localStorage.setItem('driverId', response.data.id);
       message.success('Sign-in successful!');
       onSignIn();
@@ -41,7 +40,7 @@ const DriverSignin = ({ onSignIn, title }) => {
           >
             <Input
               prefix={<MailOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
-              placeholder="E-mail"
+              placeholder="Username"
               size="large"
               style={{ marginBottom: '10%' }}
             />
@@ -50,8 +49,7 @@ const DriverSignin = ({ onSignIn, title }) => {
             name="password"
             rules={[{ required: true, message: 'Please input your password!' }]}
           >
-            <Input
-              type="password"
+            <Input.Password
               prefix={<LockOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
               placeholder="Password"
               size="large"

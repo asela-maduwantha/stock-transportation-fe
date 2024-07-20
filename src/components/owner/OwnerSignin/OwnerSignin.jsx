@@ -12,7 +12,7 @@ const OwnerSignin = () => {
 
   const handleSignIn = async () => {
     if (!userName || !password) {
-      message.error('Please provide both email and password.');
+      message.error('Please provide both username and password.');
       return;
     }
 
@@ -34,7 +34,7 @@ const OwnerSignin = () => {
         <h1>Owner Signin</h1><br></br>
         <Input
           prefix={<MailOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
-          placeholder="E-mail"
+          placeholder="Username"
           size="large"
           style={{ marginBottom: '10%' }}
           value={userName}
