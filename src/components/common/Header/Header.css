@@ -1,46 +1,37 @@
-/* Header.css */
-
 .header {
   display: flex;
-  width: 100%;
+  justify-content: space-between;
   align-items: center;
-  padding: 1rem 5rem 1rem ;
+  padding: 1rem;
   background-color: #fff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .logo img {
-  height: 40px; 
+  height: 40px;
 }
 
 .navigation {
-  width: auto;
-  margin-left: 20%;
-  padding: 10px;
-  width: auto;
-  margin-right: 15%;
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
 }
 
 .navigation ul {
+  display: flex;
   list-style-type: none;
   margin: 0;
   padding: 0;
 }
 
 .navigation ul li {
-  display: inline-block;
-  margin-left: 20px;
-  margin-right: 20px;
-}
-
-.navigation ul li:last-child {
-  margin-right: 0;
+  margin: 0 10px;
 }
 
 .navigation ul li a {
   text-decoration: none;
   color: #333;
-  font-weight:light;
+  font-weight: light;
   transition: color 0.3s ease;
 }
 
@@ -49,15 +40,11 @@
 }
 
 .signin-container {
-  font-size: x-large;
-  color: #FFF;
-  padding: 10px;
-  cursor: pointer;
+  display: flex;
+  align-items: center;
 }
 
 .signin-container select {
-  padding: 5px;
-  border-radius: 5px;
   margin-right: 10px;
 }
 
@@ -73,4 +60,43 @@
 
 .signin-container button:hover {
   background-color: #0056b3;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .logo {
+    margin-bottom: 1rem;
+  }
+
+  .navigation ul {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .navigation ul li {
+    margin: 10px 0;
+  }
+
+  .signin-container {
+    flex-direction: column;
+  }
+
+  .signin-container select {
+    margin: 0 0 10px 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .navigation ul li {
+    margin: 5px 0;
+  }
+
+  .signin-container button {
+    width: 100%;
+  }
 }

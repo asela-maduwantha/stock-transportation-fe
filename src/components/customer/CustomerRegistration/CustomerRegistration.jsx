@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Form, Input, Button, Row, Col, Select, message } from 'antd';
 import { EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
-import axios from 'axios';
 import lottie from 'lottie-web';
 import './CustomerRegistration.css';
 import { useNavigate } from 'react-router-dom';
+import httpService from '../../../services/httpService';
 
 const { Option } = Select;
 
@@ -12,8 +12,8 @@ const CustomerRegistration = () => {
   const [form] = Form.useForm();
   const container = useRef(null);
   const lottieInstance = useRef(null);
-  const [emailAvailability, setEmailAvailability] = useState(true); 
-  const navigate = useNavigate()
+  const [emailAvailability, setEmailAvailability] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (container.current) {
@@ -22,10 +22,10 @@ const CustomerRegistration = () => {
         renderer: 'svg',
         loop: true,
         autoplay: true,
-        animationData: require('../../../assets/lotties/customer.json'), 
+        animationData: require('../../../assets/lotties/customer.json'),
       });
     }
-    
+
     return () => {
       if (lottieInstance.current) {
         lottieInstance.current.destroy();
@@ -35,24 +35,24 @@ const CustomerRegistration = () => {
 
   const checkEmailAvailability = async (email) => {
     try {
-      const response = await axios.get(`http://localhost:3000/customer/emailAvailability/${email}`);
-      setEmailAvailability(true); 
-      console.log(response.data)
+      const response = await httpService.get(`/customer/emailAvailability/${email}`);
+      setEmailAvailability(true);
+      console.log(response.data);
     } catch (error) {
-      if(error.response.status === 409){
-          message.error('Account Alredy Exist with this email')
+      if (error.response && error.response.status === 409) {
+        message.error('Account Already Exists with this email');
       }
       console.error('Error checking email availability:', error);
-      setEmailAvailability(false); 
+      setEmailAvailability(false);
     }
   };
 
   const onFinish = async (values) => {
     try {
-      await axios.post('http://localhost:3000/customer/createCustomer', values);
+      await httpService.post('/customer/createCustomer', values);
       message.success('Registration successful!');
-      navigate('/customer/dashboard')
-      form.resetFields(); 
+      navigate('/customer/dashboard');
+      form.resetFields();
     } catch (error) {
       message.error('Registration failed.');
       console.error('Error creating customer:', error);

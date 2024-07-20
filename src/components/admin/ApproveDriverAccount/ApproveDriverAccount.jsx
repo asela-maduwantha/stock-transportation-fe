@@ -1,7 +1,7 @@
-// ApproveDriverAccounts.js
 import React, { useEffect, useState } from 'react';
 import { Table, Button, Modal, Descriptions, message, Row, Col } from 'antd';
-import axios from 'axios';
+import httpService from '../../../services/httpService';
+
 
 const ApproveDriverAccounts = () => {
   const [data, setData] = useState([]);
@@ -16,8 +16,8 @@ const ApproveDriverAccounts = () => {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/admin/getTempDrivers');
-      const drivers = response.data.flatMap(owner => 
+      const response = await httpService.get('/admin/getTempDrivers');
+      const drivers = response.data.flatMap(owner =>
         owner.drivers.map(driver => ({ ...driver, owner }))
       );
       setData(drivers);
@@ -39,7 +39,7 @@ const ApproveDriverAccounts = () => {
 
   const handleApprove = async () => {
     try {
-      await axios.post(`http://localhost:3000/admin/acceptDriver/${selectedDriver.id}`);
+      await httpService.post(`/admin/acceptDriver/${selectedDriver.id}`);
       message.success('Driver approved successfully');
       setIsModalVisible(false);
       fetchData();
@@ -51,7 +51,7 @@ const ApproveDriverAccounts = () => {
 
   const handleReject = async () => {
     try {
-      await axios.post(`http://localhost:3000/admin/rejectDriver/${selectedDriver.id}`);
+      await httpService.post(`/admin/rejectDriver/${selectedDriver.id}`);
       message.success('Driver rejected successfully');
       setIsModalVisible(false);
       fetchData();
@@ -90,7 +90,7 @@ const ApproveDriverAccounts = () => {
     },
     {
       title: 'Address',
-      dataIndex: 'addres', 
+      dataIndex: 'address',
       key: 'address',
     },
     {
@@ -141,7 +141,7 @@ const ApproveDriverAccounts = () => {
                   <Descriptions.Item label="Last Name">{selectedDriver.lastName}</Descriptions.Item>
                   <Descriptions.Item label="Phone Number">{selectedDriver.phoneNumber}</Descriptions.Item>
                   <Descriptions.Item label="Email">{selectedDriver.email}</Descriptions.Item>
-                  <Descriptions.Item label="Address">{selectedDriver.addres}</Descriptions.Item>
+                  <Descriptions.Item label="Address">{selectedDriver.address}</Descriptions.Item>
                 </Descriptions>
               </Col>
               <Col span={12} style={{ textAlign: 'center' }}>

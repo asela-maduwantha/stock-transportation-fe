@@ -3,7 +3,7 @@ import { Card, Row, Col, Input, Pagination, Layout, Button, Checkbox, Typography
 import { CloseOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { GoogleMap, LoadScript, Autocomplete, DirectionsRenderer, Marker } from '@react-google-maps/api';
-import axios from 'axios';
+import httpService from '../../../services/httpService'
 
 const { Content, Sider } = Layout;
 const { Search } = Input;
@@ -124,7 +124,7 @@ const VehicleBooking = () => {
         }
 
         try {
-            const response = await axios.post('/api/bookings', {
+            const response = await httpService.post('/api/bookings', {
                 vehicle: vehicle.id,
                 pickupLocation: {
                     address: pickupLocation.address,
@@ -163,9 +163,9 @@ const VehicleBooking = () => {
         }
     };
 
-    const handleChat = (vehicle) => {
-        console.log(`Chat with ${vehicle.ownerName}`);
-    };
+    // const handleChat = (vehicle) => {
+    //     console.log(`Chat with ${vehicle.ownerName}`);
+    // };
 
     const calculatePrice = () => {
         if (!selectedVehicle || !distance) {
@@ -317,93 +317,54 @@ const VehicleBooking = () => {
                         <Button 
                             type="text" 
                             icon={<CloseOutlined />} 
-                            onClick={() => setSelectedVehicle(null)} 
-                            style={{ float: 'right', marginBottom: '16px' }}
+                            onClick={() => setSelectedVehicle(null)}
+                            style={{ marginBottom: 24 }}
                         />
-                        <div style={{ overflowY: 'auto', height: '100%' }}>
-                            <Card
-                                cover={<img alt={selectedVehicle.name} src={selectedVehicle.photo} style={{ objectFit: 'cover', height: 200 }} />}
-                                style={{ marginBottom: '16px' }}
-                            >
-                                <Card.Meta
-                                    title={<Title level={4}>{selectedVehicle.name}</Title>}
-                                    description={
-                                        <>
-                                            <p><strong>Type:</strong> {selectedVehicle.type}</p>
-                                            <p><strong>Registration:</strong> {selectedVehicle.registrationNumber}</p>
-                                            <p><strong>Owner:</strong> {selectedVehicle.ownerName}</p>
-                                            <p><strong>Owner Contact:</strong> {selectedVehicle.ownerContact}</p>
-                                            <p><strong>Driver:</strong> {selectedVehicle.driverName}</p>
-                                            <p><strong>Driver Contact:</strong> {selectedVehicle.driverContact}</p>
-                                        </>
-                                    }
-                                />
-                            </Card>
-                            <Autocomplete
-                                onLoad={onPickupLoad}
-                                onPlaceChanged={onPickupPlaceChanged}
-                            >
-                                <Input 
-                                    placeholder="Select Pickup Location" 
-                                    style={{ width: '100%', marginBottom: '16px' }}
-                                />
-                            </Autocomplete>
-                            <Autocomplete
-                                onLoad={onDropLoad}
-                                onPlaceChanged={onDropPlaceChanged}
-                            >
-                                <Input 
-                                    placeholder="Select Drop Location" 
-                                    style={{ width: '100%', marginBottom: '16px' }}
-                                />
-                            </Autocomplete>
-                            <Checkbox 
-                                checked={returnTrip} 
-                                onChange={(e) => setReturnTrip(e.target.checked)} 
-                                style={{ marginBottom: '16px' }}
-                            >
-                                Return Trip
-                            </Checkbox>
-                            <p><strong>Distance:</strong> {distance.toFixed(2)} km</p>
-                            <p><strong>Total Price:</strong> LKR {calculatePrice()}</p>
-                            <Button type="primary" onClick={showConfirmationModal} block style={{ marginBottom: '8px' }}>Confirm Booking</Button>
-                            <Button onClick={() => handleChat(selectedVehicle)} block>Chat with Owner</Button>
-                        </div>
-                    </Sider>
-                )}
-                <Modal
-                    title="Confirm Booking"
-                    visible={isModalVisible}
-                    onOk={handleOk}
-                    onCancel={handleCancel}
-                    width={800}
-                    footer={[
-                        <Button key="back" onClick={handleCancel}>
-                            Cancel
-                        </Button>,
-                        <Button key="submit" type="primary" onClick={handleOk}>
-                            Confirm Booking
-                        </Button>,
-                    ]}
-                >
-                    <p><strong>Vehicle:</strong> {selectedVehicle?.name}</p>
-                    <p><strong>Pickup Location:</strong> {pickupLocation?.address}</p>
-                    <p><strong>Drop Location:</strong> {dropLocation?.address}</p>
-                    <p><strong>Distance:</strong> {distance.toFixed(2)} km</p>
-                    <p><strong>Total Price:</strong> LKR {calculatePrice()}</p>
-                    <div style={{ height: '400px', width: '100%' }}>
-                        <GoogleMap
-                            mapContainerStyle={{ width: '100%', height: '100%' }}
-                            center={pickupLocation}
-                            zoom={10}
+                        <Title level={4}>{selectedVehicle.name}</Title>
+                        <p><strong>Type:</strong> {selectedVehicle.type}</p>
+                        <p><strong>Registration:</strong> {selectedVehicle.registrationNumber}</p>
+                        <p><strong>Owner:</strong> {selectedVehicle.ownerName}</p>
+                        <p><strong>Driver:</strong> {selectedVehicle.driverName}</p>
+                        <p><strong>Price per Km:</strong> ${selectedVehicle.pricePerKm}</p>
+                        <Autocomplete onLoad={onPickupLoad} onPlaceChanged={onPickupPlaceChanged}>
+                            <Input placeholder="Pickup Location" style={{ marginBottom: 16 }} />
+                        </Autocomplete>
+                        <Autocomplete onLoad={onDropLoad} onPlaceChanged={onDropPlaceChanged}>
+                            <Input placeholder="Drop Location" style={{ marginBottom: 16 }} />
+                        </Autocomplete>
+                        <Checkbox 
+                            checked={returnTrip} 
+                            onChange={(e) => setReturnTrip(e.target.checked)}
+                            style={{ marginBottom: 16 }}
                         >
-                            {pickupLocation && <Marker position={pickupLocation} />}
-                            {dropLocation && <Marker position={dropLocation} />}
+                            Return Trip
+                        </Checkbox>
+                        <GoogleMap
+                            mapContainerStyle={{ width: '100%', height: '300px', marginBottom: 16 }}
+                            center={pickupLocation || { lat: -34.397, lng: 150.644 }}
+                            zoom={8}
+                        >
+                            {pickupLocation && <Marker position={{ lat: pickupLocation.lat, lng: pickupLocation.lng }} />}
+                            {dropLocation && <Marker position={{ lat: dropLocation.lat, lng: dropLocation.lng }} />}
                             {directions && <DirectionsRenderer directions={directions} />}
                         </GoogleMap>
-                    </div>
-                </Modal>
+                        <p><strong>Distance:</strong> {distance.toFixed(2)} km</p>
+                        <p><strong>Total Price:</strong> ${calculatePrice()}</p>
+                        <Button type="primary" onClick={showConfirmationModal} block>Book Now</Button>
+                    </Sider>
+                )}
             </Layout>
+            <Modal
+                title="Confirm Booking"
+                visible={isModalVisible}
+                onOk={handleOk}
+                onCancel={handleCancel}
+            >
+                <p>Pickup Location: {pickupLocation ? pickupLocation.address : 'N/A'}</p>
+                <p>Drop Location: {dropLocation ? dropLocation.address : 'N/A'}</p>
+                <p>Distance: {distance.toFixed(2)} km</p>
+                <p>Total Price: ${calculatePrice()}</p>
+            </Modal>
         </LoadScript>
     );
 };
