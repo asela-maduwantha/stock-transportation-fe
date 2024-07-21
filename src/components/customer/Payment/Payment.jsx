@@ -70,7 +70,7 @@ const Payment = () => {
 
     return (
         <Elements stripe={stripePromise}>
-            <Row gutter={[16, 16]} justify="center" style={{ padding: '24px', width: '80%', margin: '0 auto' }}>
+            <Row gutter={[16, 16]} justify="center" style={{ padding: '24px', width: '100%', margin: '0 auto' }}>
                 <Col xs={24} md={12}>
                     <div style={{ backgroundColor: '#f0f2f5', padding: '24px', borderRadius: '8px', textAlign: 'center' }}>
                         <Title level={4}>Booking Summary</Title>
