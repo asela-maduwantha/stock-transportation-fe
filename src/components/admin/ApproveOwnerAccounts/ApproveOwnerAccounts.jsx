@@ -17,7 +17,7 @@ const ApproveOwnerAccounts = () => {
       setData(response.data);
     } catch (error) {
       console.error('Error fetching data:', error);
-      message.error('Error fetching owners');
+      message.error('No Owner requests');
     }
   };
 

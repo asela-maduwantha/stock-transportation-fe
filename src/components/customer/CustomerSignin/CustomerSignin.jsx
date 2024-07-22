@@ -14,6 +14,8 @@ const CustomerSignin = () => {
       const response = await httpService.post('/customer/signin', values);
       if (response.status === 200) {
         localStorage.setItem('customerId', response.data.customerId);
+        localStorage.setItem('token', response.data.access_token);
+
         message.success('Sign-in successful');
         navigate('/customer/dashboard');
       }

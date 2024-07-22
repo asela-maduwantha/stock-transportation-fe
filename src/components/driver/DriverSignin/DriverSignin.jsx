@@ -13,6 +13,7 @@ const DriverSignin = () => {
     try {
       const response = await httpService.post('/driver/signin', values);
       localStorage.setItem('driverId', response.data.id);
+      localStorage.setItem('token', response.data.access_token);
       message.success('Sign-in successful!');
       navigate('/driver/dashboard');
     } catch (error) {

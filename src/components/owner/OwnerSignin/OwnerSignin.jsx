@@ -19,6 +19,8 @@ const OwnerSignin = () => {
       const response = await httpService.post('/owner/signin', { userName, password });
       const { id } = response.data;
       localStorage.setItem('ownerId', id);
+      localStorage.setItem('token', response.data.access_token);
+
       message.success('Sign-in successful!');
       navigate('/owner/dashboard');
     } catch (error) {
