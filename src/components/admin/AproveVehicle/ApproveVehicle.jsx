@@ -65,24 +65,24 @@ const ApproveVehicle = () => {
     },
     {
       title: 'Vehicle Type',
-      dataIndex: 'type',
+      dataIndex: ['vehicles', '0', 'type'],
       key: 'type',
     },
     {
       title: 'Registration Number',
-      dataIndex: 'regNo',
+      dataIndex: ['vehicles', '0', 'regNo'],
       key: 'regNo',
     },
     {
       title: 'Preferred Area',
-      dataIndex: 'preferredArea',
+      dataIndex: ['vehicles', '0', 'preferredArea'],
       key: 'preferredArea',
     },
     {
       title: 'Capacity',
       dataIndex: 'capacity',
       key: 'capacity',
-      render: (text, record) => `${text} ${record.capacityUnit}`,
+      render: (_, record) => `${record.vehicles[0].capacity} ${record.vehicles[0].capacityUnit}`,
     },
     {
       title: 'Action',
