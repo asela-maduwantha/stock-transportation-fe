@@ -23,6 +23,22 @@ httpService.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Function to get sign-in path based on user role
+const getSignInPathByRole = (role) => {
+  switch (role) {
+    case 'admin':
+      return '/admin/signin';
+    case 'customer':
+      return '/customer/signin';
+    case 'owner':
+      return '/owner/signin';
+    case 'driver':
+      return '/driver/signin';
+    default:
+      return '/'; // Default redirect path
+  }
+};
+
 // Response interceptor for handling errors
 httpService.interceptors.response.use(
   (response) => response,
@@ -30,9 +46,12 @@ httpService.interceptors.response.use(
     if (error.response) {
       const { status, data, headers } = error.response;
       switch (status) {
-        case 401:
-          window.location = '/';
+        case 401: {
+          const userRole = localStorage.getItem('userRole');
+          const signInPath = getSignInPathByRole(userRole);
+          window.location = signInPath;
           break;
+        }
         case 307: {
           const redirectUrl = headers.location;
           if (redirectUrl) {

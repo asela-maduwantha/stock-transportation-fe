@@ -15,6 +15,7 @@ const CustomerSignin = () => {
       if (response.status === 200) {
         localStorage.setItem('customerId', response.data.customerId);
         localStorage.setItem('token', response.data.access_token);
+        localStorage.setItem('userRole', 'customer');
 
         message.success('Sign-in successful');
         navigate('/customer/dashboard');

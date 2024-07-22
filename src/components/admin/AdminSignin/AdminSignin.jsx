@@ -4,28 +4,29 @@ import { Button, Input, Form, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import httpService from '../../../services/httpService';
 
-const DriverSignin = () => {
+const AdminSignin = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      const response = await httpService.post('/driver/signin', values);
-      localStorage.setItem('driverId', response.data.id);
-      localStorage.setItem('token', response.data.access_token);
-      localStorage.setItem('userRole', 'driver');
-      message.success('Sign-in successful!');
-      navigate('/driver/dashboard');
-    } catch (error) {
-      if (error.response && error.response.status === 404) {
-        message.error('Driver not found.');
-      } else if (error.response && error.response.status === 406) {
-        message.error('Mismatched credentials.');
-      } else {
-        message.error('Sign-in failed.');
+      const response = await httpService.post('/admin/signin', values);
+      if (response.status === 200) {
+        localStorage.setItem('adminId', response.data.adminId);
+        localStorage.setItem('token', response.data.access_token);
+        localStorage.setItem('userRole', 'admin');
+
+        message.success('Sign-in successful');
+        navigate('/admin/dashboard');
       }
-      console.error(error);
+    } catch (error) {
+      if (error.response && error.response.status === 406) {
+        message.error('Invalid Username or Password');
+      } else {
+        message.error('Error signing in. Please try again later.');
+      }
+      console.error('Error signing in:', error);
     } finally {
       setLoading(false);
     }
@@ -78,7 +79,7 @@ const DriverSignin = () => {
     <div style={containerStyle}>
       <div style={cardStyle}>
         <div style={formStyle}>
-          <h1 style={titleStyle}>Driver Signin</h1>
+          <h1 style={titleStyle}>Admin Signin</h1>
           <Form onFinish={onFinish}>
             <Form.Item
               name="userName"
@@ -120,4 +121,4 @@ const DriverSignin = () => {
   );
 };
 
-export default DriverSignin;
+export default AdminSignin;

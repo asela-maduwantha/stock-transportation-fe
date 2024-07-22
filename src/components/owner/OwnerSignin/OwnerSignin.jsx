@@ -20,6 +20,7 @@ const OwnerSignin = () => {
       const { id } = response.data;
       localStorage.setItem('ownerId', id);
       localStorage.setItem('token', response.data.access_token);
+      localStorage.setItem('userRole', 'owner');
 
       message.success('Sign-in successful!');
       navigate('/owner/dashboard');

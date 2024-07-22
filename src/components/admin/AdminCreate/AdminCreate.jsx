@@ -1,31 +1,25 @@
 import React, { useState } from 'react';
-import { MailOutlined, LockOutlined } from '@ant-design/icons';
+import { MailOutlined, LockOutlined, UserOutlined } from '@ant-design/icons';
 import { Button, Input, Form, message } from 'antd';
-import { useNavigate } from 'react-router-dom';
 import httpService from '../../../services/httpService';
 
-const DriverSignin = () => {
+const AdminCreate = () => {
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      const response = await httpService.post('/driver/signin', values);
-      localStorage.setItem('driverId', response.data.id);
-      localStorage.setItem('token', response.data.access_token);
-      localStorage.setItem('userRole', 'driver');
-      message.success('Sign-in successful!');
-      navigate('/driver/dashboard');
-    } catch (error) {
-      if (error.response && error.response.status === 404) {
-        message.error('Driver not found.');
-      } else if (error.response && error.response.status === 406) {
-        message.error('Mismatched credentials.');
-      } else {
-        message.error('Sign-in failed.');
+      const response = await httpService.post('/admin/create', values);
+      if (response.status === 200) {
+        message.success('Admin successfully created');
       }
-      console.error(error);
+    } catch (error) {
+      if (error.response && error.response.status === 500) {
+        message.error('Internal server error');
+      } else {
+        message.error('Error creating admin. Please try again later.');
+      }
+      console.error('Error creating admin:', error);
     } finally {
       setLoading(false);
     }
@@ -78,15 +72,37 @@ const DriverSignin = () => {
     <div style={containerStyle}>
       <div style={cardStyle}>
         <div style={formStyle}>
-          <h1 style={titleStyle}>Driver Signin</h1>
+          <h1 style={titleStyle}>Create Admin</h1>
           <Form onFinish={onFinish}>
             <Form.Item
-              name="userName"
-              rules={[{ required: true, message: 'Please input your username!' }]}
+              name="firstName"
+              rules={[{ required: true, message: 'Please input your first name!' }]}
+            >
+              <Input
+                prefix={<UserOutlined style={iconStyle} />}
+                placeholder="First Name"
+                size="large"
+                style={inputStyle}
+              />
+            </Form.Item>
+            <Form.Item
+              name="lastName"
+              rules={[{ required: true, message: 'Please input your last name!' }]}
+            >
+              <Input
+                prefix={<UserOutlined style={iconStyle} />}
+                placeholder="Last Name"
+                size="large"
+                style={inputStyle}
+              />
+            </Form.Item>
+            <Form.Item
+              name="email"
+              rules={[{ required: true, message: 'Please input your email!' }]}
             >
               <Input
                 prefix={<MailOutlined style={iconStyle} />}
-                placeholder="Username"
+                placeholder="Email"
                 size="large"
                 style={inputStyle}
               />
@@ -110,7 +126,7 @@ const DriverSignin = () => {
                 style={buttonStyle}
                 loading={loading}
               >
-                Sign In
+                Create Admin
               </Button>
             </Form.Item>
           </Form>
@@ -120,4 +136,4 @@ const DriverSignin = () => {
   );
 };
 
-export default DriverSignin;
+export default AdminCreate;
