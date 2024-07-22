@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Table, Button, Modal, Descriptions, message, Row, Col } from 'antd';
 import httpService from '../../../services/httpService';
 
-
 const ApproveDriverAccounts = () => {
   const [data, setData] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -172,13 +171,12 @@ const ApproveDriverAccounts = () => {
             bodyStyle={{ maxHeight: '70vh', overflowY: 'auto' }}
           >
             <Row gutter={16}>
-              <Col span={12}>
+              <Col span={24}>
                 <Descriptions bordered column={1}>
                   <Descriptions.Item label="First Name">{selectedOwner.firstName}</Descriptions.Item>
                   <Descriptions.Item label="Last Name">{selectedOwner.lastName}</Descriptions.Item>
                   <Descriptions.Item label="Mobile Number">{selectedOwner.mobNumber}</Descriptions.Item>
                   <Descriptions.Item label="Email">{selectedOwner.email}</Descriptions.Item>
-                  <Descriptions.Item label="Address">{selectedOwner.address}</Descriptions.Item>
                 </Descriptions>
               </Col>
             </Row>
