@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Table, Button, Modal, Descriptions, message, Row, Col } from 'antd';
 import httpService from '../../../services/httpService';
 
-const ApproveDriverAccounts = () => {
-  const [data, setData] = useState([]);
+const ApproveDriverAccount = () => {
+  const [owners, setOwners] = useState([]);
+  const [drivers, setDrivers] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState(null);
 
@@ -14,10 +15,11 @@ const ApproveDriverAccounts = () => {
   const fetchData = async () => {
     try {
       const response = await httpService.get('/admin/getTempDrivers');
-      const drivers = response.data.flatMap(owner =>
+      setOwners(response.data);
+      const allDrivers = response.data.flatMap(owner =>
         owner.drivers.map(driver => ({ ...driver, owner }))
       );
-      setData(drivers);
+      setDrivers(allDrivers);
     } catch (error) {
       console.error('Error fetching data:', error);
       message.error('Error fetching drivers');
@@ -53,10 +55,37 @@ const ApproveDriverAccounts = () => {
     }
   };
 
+  const ownerColumns = [
+    {
+      title: 'No',
+      key: 'no',
+      render: (text, record, index) => index + 1,
+    },
+    {
+      title: 'First Name',
+      dataIndex: 'firstName',
+      key: 'firstName',
+    },
+    {
+      title: 'Last Name',
+      dataIndex: 'lastName',
+      key: 'lastName',
+    },
+    {
+      title: 'Email',
+      dataIndex: 'email',
+      key: 'email',
+    },
+    {
+      title: 'Mobile Number',
+      dataIndex: 'mobNumber',
+      key: 'mobNumber',
+    },
+  ];
+
   const driverColumns = [
     {
       title: 'No',
-      dataIndex: 'no',
       key: 'no',
       render: (text, record, index) => index + 1,
     },
@@ -82,7 +111,7 @@ const ApproveDriverAccounts = () => {
     },
     {
       title: 'Address',
-      dataIndex: 'address',
+      dataIndex: 'addres',
       key: 'address',
     },
     {
@@ -103,8 +132,12 @@ const ApproveDriverAccounts = () => {
   return (
     <center>
       <div style={{ paddingTop: '2%', width: '100%', paddingLeft: '2%' }}>
-        <h1>Driver Requests</h1><br />
-        <Table columns={driverColumns} dataSource={data} rowKey="id" />
+        <h1>Owner Details</h1>
+        <Table columns={ownerColumns} dataSource={owners} rowKey="id" />
+        
+        <h1>Driver Requests</h1>
+        <Table columns={driverColumns} dataSource={drivers} rowKey="id" />
+        
         {selectedDriver && (
           <Modal
             title="Driver Details"
@@ -121,7 +154,7 @@ const ApproveDriverAccounts = () => {
                   <Descriptions.Item label="Last Name">{selectedDriver.lastName}</Descriptions.Item>
                   <Descriptions.Item label="Phone Number">{selectedDriver.phoneNumber}</Descriptions.Item>
                   <Descriptions.Item label="Email">{selectedDriver.email}</Descriptions.Item>
-                  <Descriptions.Item label="Address">{selectedDriver.address}</Descriptions.Item>
+                  <Descriptions.Item label="Address">{selectedDriver.addres}</Descriptions.Item>
                   <Descriptions.Item label="Owner First Name">{selectedDriver.owner.firstName}</Descriptions.Item>
                   <Descriptions.Item label="Owner Last Name">{selectedDriver.owner.lastName}</Descriptions.Item>
                   <Descriptions.Item label="Owner Mobile Number">{selectedDriver.owner.mobNumber}</Descriptions.Item>
@@ -151,4 +184,4 @@ const ApproveDriverAccounts = () => {
   );
 };
 
-export default ApproveDriverAccounts;
+export default ApproveDriverAccount;
