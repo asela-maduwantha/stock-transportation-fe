@@ -2,14 +2,21 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Form, Input, Button, Upload, Select, message } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { storage } from '../../../config/firebaseconfig'; // Adjust the import path as needed
+import { storage } from '../../../config/firebaseconfig';
 import lottie from 'lottie-web';
 import './AddVehicle.css';
 import httpService from '../../../services/httpService';
 
 const { Option } = Select;
 
-const vehicleTypes = ["Lorry", "Van", "Car", "Truck", "Bus"];
+const vehicleTypes = [
+  { type: "Lorry", units: ["Ton", "Kg"] },
+  { type: "Van", units: ["Kg", "Liter"] },
+  { type: "Freezer", units: ["Kg", "Cubic Meter"] },
+  { type: "Tipper Truck", units: ["Ton", "Cubic Meter"] },
+  { type: "Container", units: ["Cubic Meter", "Feet"] }
+];
+
 const districts = [
   "Ampara", "Anuradhapura", "Badulla", "Batticaloa", "Colombo",
   "Galle", "Gampaha", "Hambantota", "Jaffna", "Kalutara",
@@ -22,8 +29,7 @@ const districts = [
 const AddVehicle = () => {
   const [form] = Form.useForm();
   const [uploading, setUploading] = useState(false);
-  // const [vehiclePhotoUrl, setVehiclePhotoUrl] = useState("");
-  // const [bookPhotoUrl, setBookPhotoUrl] = useState("");
+  const [capacityUnits, setCapacityUnits] = useState([]);
 
   const container = useRef(null);
   const lottieInstance = useRef(null);
@@ -75,13 +81,14 @@ const AddVehicle = () => {
       setUploading(true);
       try {
         const vehiclePhotoUrl = await uploadFile(vehiclePhoto[0].originFileObj, 'vehicles/photos');
+        let bookPhotoUrl;
         if (bookPhoto && bookPhoto[0] && bookPhoto[0].originFileObj) {
-          const bookPhotoUrl = await uploadFile(bookPhoto[0].originFileObj, 'vehicles/book-photos');
-          submitForm({ ...rest, vehiclePhotoUrl, bookPhotoUrl, ownerId });
-        } else {
-          submitForm({ ...rest, vehiclePhotoUrl, ownerId });
+          bookPhotoUrl = await uploadFile(bookPhoto[0].originFileObj, 'vehicles/book-photos');
         }
+        await submitForm({ ...rest, vehiclePhotoUrl, bookPhotoUrl, ownerId });
         setUploading(false);
+        message.success('Vehicle added successfully!');
+        form.resetFields();
       } catch (error) {
         message.error('File upload failed.');
         setUploading(false);
@@ -94,11 +101,18 @@ const AddVehicle = () => {
   const submitForm = async (data) => {
     try {
       await httpService.post('owner/createVehicle', data);
-      message.success('Vehicle added successfully!');
-      form.resetFields();
     } catch (error) {
       message.error('Vehicle addition failed.');
       console.error(error);
+      throw error;
+    }
+  };
+
+  const handleVehicleTypeChange = (value) => {
+    const vehicle = vehicleTypes.find(v => v.type === value);
+    if (vehicle) {
+      setCapacityUnits(vehicle.units);
+      form.setFieldsValue({ capacityUnit: vehicle.units[0] });
     }
   };
 
@@ -109,8 +123,8 @@ const AddVehicle = () => {
         <h2>Add a New Vehicle</h2>
         <Form form={form} layout="vertical" onFinish={onFinish}>
           <Form.Item name="type" rules={[{ required: true, message: 'Please select your vehicle type!' }]}>
-            <Select placeholder="Select Vehicle Type">
-              {vehicleTypes.map((type) => (
+            <Select placeholder="Select Vehicle Type" onChange={handleVehicleTypeChange}>
+              {vehicleTypes.map(({ type }) => (
                 <Option key={type} value={type}>{type}</Option>
               ))}
             </Select>
@@ -132,8 +146,12 @@ const AddVehicle = () => {
             <Input placeholder="Vehicle Capacity" />
           </Form.Item>
 
-          <Form.Item name="capacityUnit" rules={[{ required: true, message: 'Please input your vehicle capacity unit!' }]}>
-            <Input placeholder="Vehicle Capacity Unit" />
+          <Form.Item name="capacityUnit" rules={[{ required: true, message: 'Please select your vehicle capacity unit!' }]}>
+            <Select placeholder="Select Capacity Unit">
+              {capacityUnits.map(unit => (
+                <Option key={unit} value={unit}>{unit}</Option>
+              ))}
+            </Select>
           </Form.Item>
 
           <Form.Item name="vehiclePhoto" valuePropName="fileList" getValueFromEvent={(e) => Array.isArray(e) ? e : e && e.fileList} rules={[{ required: true, message: 'Please upload your vehicle photo!' }]}>

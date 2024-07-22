@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Form, Input, Button, Upload, message } from 'antd';
+import { Form, Input, Button, Upload, message, Checkbox } from 'antd';
 import { EyeInvisibleOutlined, EyeTwoTone, UploadOutlined } from '@ant-design/icons';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../../config/firebaseconfig'; // Adjust the import path as needed
@@ -85,20 +85,25 @@ const AddDriver = () => {
 
   const onFinish = async (values) => {
     const ownerId = localStorage.getItem('ownerId');
-    const { policeCertiUrl, ...rest } = values;
+    const { licenseUrl, policeCertiUrl, ...rest } = values;
 
-    if (policeCertiUrl && policeCertiUrl[0] && policeCertiUrl[0].originFileObj) {
-      setUploading(true);
-      try {
-        const policeCertificateUrl = await uploadFile(policeCertiUrl[0].originFileObj, 'policeCertificates');
-        submitForm({ ...rest, policeCertiUrl: policeCertificateUrl, ownerId });
-        setUploading(false);
-      } catch (error) {
-        message.error('File upload failed.');
-        setUploading(false);
+    let licenseUrlValue = '';
+    let policeCertificateUrl = '';
+
+    setUploading(true);
+    try {
+      if (licenseUrl && licenseUrl[0] && licenseUrl[0].originFileObj) {
+        licenseUrlValue = await uploadFile(licenseUrl[0].originFileObj, 'driverLicenses');
       }
-    } else {
-      message.error('Please upload the police certificate.');
+      if (policeCertiUrl && policeCertiUrl[0] && policeCertiUrl[0].originFileObj) {
+        policeCertificateUrl = await uploadFile(policeCertiUrl[0].originFileObj, 'policeCertificates');
+      }
+
+      submitForm({ ...rest, licenseUrl: licenseUrlValue, policeCertiUrl: policeCertificateUrl, ownerId });
+      setUploading(false);
+    } catch (error) {
+      message.error('File upload failed.');
+      setUploading(false);
     }
   };
 
@@ -209,6 +214,23 @@ const AddDriver = () => {
               placeholder="Confirm Password"
               iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
             />
+          </Form.Item>
+
+          <Form.Item
+            name="licenseUrl"
+            valuePropName="fileList"
+            getValueFromEvent={(e) => Array.isArray(e) ? e : e && e.fileList}
+          >
+            <Upload name="licenseUrl" listType="picture">
+              <Button icon={<UploadOutlined />}>Click to Upload Driver&apos;s License</Button>
+            </Upload>
+          </Form.Item>
+
+          <Form.Item
+            name="heavyVehicleLic"
+            valuePropName="checked"
+          >
+            <Checkbox>Heavy Vehicle License</Checkbox>
           </Form.Item>
 
           <Form.Item
