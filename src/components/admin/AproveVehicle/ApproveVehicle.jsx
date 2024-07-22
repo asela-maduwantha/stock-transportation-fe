@@ -28,7 +28,7 @@ const ApproveVehicle = () => {
 
   const handleApprove = async () => {
     try {
-      const vehicleId = selectedVehicle.vehicles[0].id;
+      const vehicleId = selectedVehicle.id;
       console.log(vehicleId);
       await httpService.post(`admin/acceptVehicle/${vehicleId}`);
       message.success('Vehicle approved successfully');
@@ -36,13 +36,13 @@ const ApproveVehicle = () => {
       fetchData();
     } catch (error) {
       console.error('Error approving vehicle:', error);
-      message.error(`Error approving vehicle: ${error.message}`);
+      message.error(`Error approving vehicle: ${error.response?.data || error.message}`);
     }
   };
-  
+
   const handleReject = async () => {
     try {
-      const vehicleId = selectedVehicle.vehicles[0].id;
+      const vehicleId = selectedVehicle.id;
       console.log(vehicleId);
       await httpService.post(`admin/rejectVehicle/${vehicleId}`);
       message.success('Vehicle rejected successfully');
@@ -50,9 +50,10 @@ const ApproveVehicle = () => {
       fetchData();
     } catch (error) {
       console.error('Error rejecting vehicle:', error);
-      message.error(`Error rejecting vehicle: ${error.message}`);
+      message.error(`Error rejecting vehicle: ${error.response?.data || error.message}`);
     }
   };
+
   const columns = [
     {
       title: 'No',
@@ -109,7 +110,7 @@ const ApproveVehicle = () => {
         <Table columns={columns} dataSource={data} rowKey="id" />
         {selectedVehicle && (
           <Modal
-            title="Vehicle Details"
+            title="Vehicle and Owner Details"
             visible={isModalVisible}
             onCancel={() => setIsModalVisible(false)}
             footer={null}
@@ -118,10 +119,12 @@ const ApproveVehicle = () => {
           >
             <Row gutter={16}>
               <Col span={12}>
-                <Descriptions bordered column={1}>
-                  <Descriptions.Item label="Driver Name">{`${selectedVehicle.firstName} ${selectedVehicle.lastName}`}</Descriptions.Item>
+                <Descriptions bordered column={1} title="Owner Information">
+                  <Descriptions.Item label="Owner Name">{`${selectedVehicle.firstName} ${selectedVehicle.lastName}`}</Descriptions.Item>
                   <Descriptions.Item label="Email">{selectedVehicle.email}</Descriptions.Item>
                   <Descriptions.Item label="Mobile Number">{selectedVehicle.mobNumber}</Descriptions.Item>
+                </Descriptions>
+                <Descriptions bordered column={1} title="Vehicle Information" style={{ marginTop: '20px' }}>
                   <Descriptions.Item label="Vehicle Type">{selectedVehicle.vehicles[0].type}</Descriptions.Item>
                   <Descriptions.Item label="Registration Number">{selectedVehicle.vehicles[0].regNo}</Descriptions.Item>
                   <Descriptions.Item label="Preferred Area">{selectedVehicle.vehicles[0].preferredArea}</Descriptions.Item>
@@ -129,11 +132,13 @@ const ApproveVehicle = () => {
                 </Descriptions>
               </Col>
               <Col span={12} style={{ textAlign: 'center' }}>
+                <h3>Vehicle Photo</h3>
                 <img
                   src={selectedVehicle.vehicles[0].photoUrl}
                   alt="Vehicle"
                   style={{ width: '90%', margin: '10px 0' }}
                 />
+                <h3>Vehicle Book Photo</h3>
                 <img
                   src={selectedVehicle.vehicles[0].vehicleBookUrl}
                   alt="Vehicle Book"
