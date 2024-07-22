@@ -1,30 +1,19 @@
-import React from 'react';
+// ProtectedRoute.js
+import React, { Suspense } from 'react';
 import PropTypes from 'prop-types';
 import { Navigate, Outlet } from 'react-router-dom';
+import { Spin } from 'antd';
 
-// Helper function to get the current user's token from local storage
-const getToken = () => {
-  return localStorage.getItem('authToken');
-};
+const getToken = () => localStorage.getItem('token');
+const getCurrentUserRole = () => localStorage.getItem('userRole');
 
-// Helper function to get the current user's role from local storage
-const getCurrentUserRole = () => {
-  return localStorage.getItem('userRole');
-};
-
-// Helper function to get the sign-in path based on user role
 const getSignInPathByRole = (role) => {
   switch (role) {
-    case 'admin':
-      return '/admin/signin';
-    case 'customer':
-      return '/customer/signin';
-    case 'owner':
-      return '/owner/signin';
-    case 'driver':
-      return '/driver/signin';
-    default:
-      return '/';
+    case 'admin': return '/admin/signin';
+    case 'customer': return '/customer/signin';
+    case 'owner': return '/owner/signin';
+    case 'driver': return '/driver/signin';
+    default: return '/';
   }
 };
 
@@ -42,9 +31,11 @@ const ProtectedRoute = ({ component: Component, allowedRoles }) => {
   }
 
   return (
-    <Component>
-      <Outlet />
-    </Component>
+    <Suspense fallback={<Spin size="large" />}>
+      <Component>
+        <Outlet />
+      </Component>
+    </Suspense>
   );
 };
 
