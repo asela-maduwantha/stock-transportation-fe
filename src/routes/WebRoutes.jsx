@@ -26,7 +26,7 @@ import VehicleOwnerDashboard from '../components/owner/VehicleOwnerDashboard/Veh
 import Payment from '../components/customer/Payment/Payment';
 import OwnerVehicles from '../components/owner/OwnerVehicels/OwnerVehicles';
 import PickupStock from '../components/driver/PickupStock/PickupStock';
-import Contact from '../components/common/Contact/Contact';
+import Contact from '../components/common/Contact/Conatct';
 import CustomerView from '../components/customer/CustomerView/CustomerView';
 import AdminCreate from '../components/admin/AdminCreate/AdminCreate';
 import AdminSignin from '../components/admin/AdminSignin/AdminSignin';
