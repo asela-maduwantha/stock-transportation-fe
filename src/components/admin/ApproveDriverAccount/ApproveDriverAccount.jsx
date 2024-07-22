@@ -2,9 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Table, Button, Modal, Descriptions, message, Row, Col } from 'antd';
 import httpService from '../../../services/httpService';
 
-const ApproveDriverAccount = () => {
-  const [owners, setOwners] = useState([]);
-  const [drivers, setDrivers] = useState([]);
+const ApproveDriverAccounts = () => {
+  const [data, setData] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState(null);
 
@@ -15,11 +14,10 @@ const ApproveDriverAccount = () => {
   const fetchData = async () => {
     try {
       const response = await httpService.get('/admin/getTempDrivers');
-      setOwners(response.data);
-      const allDrivers = response.data.flatMap(owner =>
+      const drivers = response.data.flatMap(owner =>
         owner.drivers.map(driver => ({ ...driver, owner }))
       );
-      setDrivers(allDrivers);
+      setData(drivers);
     } catch (error) {
       console.error('Error fetching data:', error);
       message.error('Error fetching drivers');
@@ -55,37 +53,10 @@ const ApproveDriverAccount = () => {
     }
   };
 
-  const ownerColumns = [
-    {
-      title: 'No',
-      key: 'no',
-      render: (text, record, index) => index + 1,
-    },
-    {
-      title: 'First Name',
-      dataIndex: 'firstName',
-      key: 'firstName',
-    },
-    {
-      title: 'Last Name',
-      dataIndex: 'lastName',
-      key: 'lastName',
-    },
-    {
-      title: 'Email',
-      dataIndex: 'email',
-      key: 'email',
-    },
-    {
-      title: 'Mobile Number',
-      dataIndex: 'mobNumber',
-      key: 'mobNumber',
-    },
-  ];
-
   const driverColumns = [
     {
       title: 'No',
+      dataIndex: 'no',
       key: 'no',
       render: (text, record, index) => index + 1,
     },
@@ -132,12 +103,8 @@ const ApproveDriverAccount = () => {
   return (
     <center>
       <div style={{ paddingTop: '2%', width: '100%', paddingLeft: '2%' }}>
-        <h1>Owner Details</h1>
-        <Table columns={ownerColumns} dataSource={owners} rowKey="id" />
-        
-        <h1>Driver Requests</h1>
-        <Table columns={driverColumns} dataSource={drivers} rowKey="id" />
-        
+        <h1>Driver Requests</h1><br />
+        <Table columns={driverColumns} dataSource={data} rowKey="id" />
         {selectedDriver && (
           <Modal
             title="Driver Details"
@@ -167,6 +134,11 @@ const ApproveDriverAccount = () => {
                   alt="Police Certificate"
                   style={{ width: '90%', margin: '10px 0' }}
                 />
+                <img
+                  src={selectedDriver.licenseUrl}
+                  alt="License"
+                  style={{ width: '90%', margin: '10px 0' }}
+                />
               </Col>
             </Row>
             <div style={{ textAlign: 'right', marginTop: '20px' }}>
@@ -184,4 +156,4 @@ const ApproveDriverAccount = () => {
   );
 };
 
-export default ApproveDriverAccount;
+export default ApproveDriverAccounts;
