@@ -62,9 +62,9 @@ const AddDriver = () => {
     }
   };
 
-  const uploadFile = (file, path) => {
+  const uploadFile = (file, path, fileName) => {
     return new Promise((resolve, reject) => {
-      const storageRef = ref(storage, `${path}/${file.name}`);
+      const storageRef = ref(storage, `${path}/${fileName}`);
       const uploadTask = uploadBytesResumable(storageRef, file);
 
       uploadTask.on(
@@ -85,21 +85,22 @@ const AddDriver = () => {
 
   const onFinish = async (values) => {
     const ownerId = localStorage.getItem('ownerId');
-    const { licenseUrl, policeCertiUrl, ...rest } = values;
+    const { licenseUrl, policeCertiUrl, firstName, lastName, ...rest } = values;
 
+    const fullName = `${firstName}_${lastName}`;
     let licenseUrlValue = '';
     let policeCertificateUrl = '';
 
     setUploading(true);
     try {
       if (licenseUrl && licenseUrl[0] && licenseUrl[0].originFileObj) {
-        licenseUrlValue = await uploadFile(licenseUrl[0].originFileObj, 'driverLicenses');
+        licenseUrlValue = await uploadFile(licenseUrl[0].originFileObj, 'driverLicenses', `${fullName}_license.jpg`);
       }
       if (policeCertiUrl && policeCertiUrl[0] && policeCertiUrl[0].originFileObj) {
-        policeCertificateUrl = await uploadFile(policeCertiUrl[0].originFileObj, 'policeCertificates');
+        policeCertificateUrl = await uploadFile(policeCertiUrl[0].originFileObj, 'policeCertificates', `${fullName}_police_certificate.jpg`);
       }
 
-      submitForm({ ...rest, licenseUrl: licenseUrlValue, policeCertiUrl: policeCertificateUrl, ownerId });
+      submitForm({ ...rest, firstName, lastName, licenseUrl: licenseUrlValue, policeCertiUrl: policeCertificateUrl, ownerId });
       setUploading(false);
     } catch (error) {
       message.error('File upload failed.');
