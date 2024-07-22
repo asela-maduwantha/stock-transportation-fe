@@ -33,18 +33,22 @@ httpService.interceptors.response.use(
         case 401:
           window.location = '/';
           break;
-        case 307:
+        case 307: {
           const redirectUrl = headers.location;
           if (redirectUrl) {
             window.location.href = redirectUrl;
           }
           break;
+        }
         case 409:
           message.error('Conflict: The resource already exists.');
           break;
-        case 404:
+        case 404: {
           const msg = data?.message || 'No Requests available.';
           return Promise.reject(msg);
+        }
+        default:
+          break;
       }
     } else {
       message.error('Network error. Please try again later.');
