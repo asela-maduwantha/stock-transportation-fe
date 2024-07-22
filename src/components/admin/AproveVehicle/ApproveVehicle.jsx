@@ -15,16 +15,16 @@ const ApproveVehicle = () => {
   const fetchData = async () => {
     try {
       const response = await httpService.get('admin/getTempVehicles');
-      const vehiclesData = response.data.reduce((acc, owner) => {
-        const ownerVehicles = owner.vehicles.map(vehicle => ({
+      const vehiclesData = response.data.flatMap(owner => 
+        owner.vehicles.map(vehicle => ({
           ...vehicle,
+          ownerId: owner.ownerid,
           ownerFirstName: owner.firstName,
           ownerLastName: owner.lastName,
           ownerEmail: owner.email,
           ownerMobNumber: owner.mobNumber,
-        }));
-        return [...acc, ...ownerVehicles];
-      }, []);
+        }))
+      );
       setData(vehiclesData);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -35,6 +35,7 @@ const ApproveVehicle = () => {
   const handleViewMore = (record) => {
     setSelectedVehicle(record);
     setSelectedOwner({
+      id: record.ownerId,
       firstName: record.ownerFirstName,
       lastName: record.ownerLastName,
       email: record.ownerEmail,
@@ -46,7 +47,8 @@ const ApproveVehicle = () => {
   const handleApprove = async () => {
     try {
       const vehicleId = selectedVehicle.id;
-      await httpService.post(`admin/acceptVehicle/${vehicleId}`);
+      const ownerId = selectedOwner.id;
+      await httpService.post(`admin/acceptVehicle/${ownerId}/${vehicleId}`);
       message.success('Vehicle approved successfully');
       setIsModalVisible(false);
       fetchData();
@@ -59,7 +61,8 @@ const ApproveVehicle = () => {
   const handleReject = async () => {
     try {
       const vehicleId = selectedVehicle.id;
-      await httpService.post(`admin/rejectVehicle/${vehicleId}`);
+      const ownerId = selectedOwner.id;
+      await httpService.post(`admin/rejectVehicle/${ownerId}/${vehicleId}`);
       message.success('Vehicle rejected successfully');
       setIsModalVisible(false);
       fetchData();
