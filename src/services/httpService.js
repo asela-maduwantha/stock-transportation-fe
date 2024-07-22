@@ -1,8 +1,7 @@
-// httpService.js
 import axios from 'axios';
 import { message } from 'antd';
 
-const baseURL = 'https://stocktrans.azurewebsites.net/';
+const baseURL = process.env.REACT_APP_API_BASE_URL || 'https://stocktrans.azurewebsites.net/';
 
 const httpService = axios.create({
   baseURL,
@@ -21,43 +20,32 @@ httpService.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // Response interceptor for handling errors
 httpService.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
     if (error.response) {
       const { status, data, headers } = error.response;
       switch (status) {
-        case 402: {
+        case 401:
           window.location = '/';
           break;
-        }
-        case 307: {
+        case 307:
           const redirectUrl = headers.location;
           if (redirectUrl) {
             window.location.href = redirectUrl;
           }
           break;
-        }
-        case 409: {
+        case 409:
           message.error('Conflict: The resource already exists.');
           break;
-        }
-        default: {
-          let msg = 'Cannot find the Server';
-          if (data && data.message) {
-            msg = data.message;
-          }
+        default:
+          const msg = data?.message || 'Cannot find the Server';
           message.error(msg);
           return Promise.reject(msg);
-        }
       }
     } else {
       message.error('Network error. Please try again later.');

@@ -33,8 +33,8 @@ const ApproveOwnerAccounts = () => {
       setIsModalVisible(false);
       fetchData();
     } catch (error) {
-      message.error('Error approving owner');
       console.error('Error approving owner:', error);
+      message.error('Error approving owner');
     }
   };
 
@@ -45,8 +45,8 @@ const ApproveOwnerAccounts = () => {
       setIsModalVisible(false);
       fetchData();
     } catch (error) {
-      message.error('Error rejecting owner');
       console.error('Error rejecting owner:', error);
+      message.error('Error rejecting owner');
     }
   };
 
