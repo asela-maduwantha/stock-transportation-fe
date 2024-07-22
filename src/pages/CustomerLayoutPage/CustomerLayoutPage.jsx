@@ -10,7 +10,7 @@ const CustomerLayoutPage = () => {
       <div className="admin-Header">
         <AdminHeader/>
       </div>
-      <div className="body" style={{display:'flex', flexDirection:'row', width:'100%'}}>
+      <div className="customer-body" style={{display:'flex', flexDirection:'row', width:'100%'}}>
         <div className="side-menu">
            <CustomerSidemenu/>
         </div>

@@ -21,7 +21,7 @@ const AdminHeader = () => {
       <div className="logout-container">
         <Button 
           type="primary" 
-          style={{ width: '100px', height:'40px', backgroundColor:'#fdb940', color:'#ffff', fontSize:'15px', fontWeight:'normal' }}
+          className="logout-btn"
           onClick={handleLogout} 
         >
           Logout

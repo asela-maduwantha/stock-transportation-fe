@@ -9,7 +9,7 @@ const DriverLayoutPage = () => {
     <div className="admin-Header">
       <AdminHeader/>
     </div>
-    <div className="body" style={{display:'flex', flexDirection:'row', width:'100%'}}>
+    <div className="driver-body" style={{display:'flex', flexDirection:'row', width:'100%'}}>
       <div className="side-menu">
          <DriverSideMenu/>
       </div>

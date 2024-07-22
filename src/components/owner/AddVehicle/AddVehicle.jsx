@@ -103,7 +103,7 @@ const AddVehicle = () => {
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '20px', width: '100%' }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '20px' }}>
       <div ref={container} id="animation-container" style={{ paddingLeft: '20px' }} />
       <div style={{ paddingRight: '20px', width: '30%' }}>
         <h2>Add a New Vehicle</h2>

@@ -9,7 +9,7 @@ const OwnerLayoutPage = () => {
         <div className="admin-Header">
         <AdminHeader/>
       </div>
-      <div className="body" style={{display:'flex', flexDirection:'row', width:'100%'}}>
+      <div className="owner-body" style={{display:'flex', flexDirection:'row', width:'100%'}}>
         <div className="side-menu">
             <OwnerSideMenu/>
         </div>
