@@ -48,7 +48,7 @@ const ApproveVehicle = () => {
     try {
       const vehicleId = selectedVehicle.id;
       const ownerId = selectedOwner.id;
-      await httpService.post(`admin/acceptVehicle/${ownerId}/${vehicleId}`);
+      await httpService.post(`admin/acceptVehicle/${vehicleId}`);
       message.success('Vehicle approved successfully');
       setIsModalVisible(false);
       fetchData();
@@ -62,7 +62,7 @@ const ApproveVehicle = () => {
     try {
       const vehicleId = selectedVehicle.id;
       const ownerId = selectedOwner.id;
-      await httpService.post(`admin/rejectVehicle/${ownerId}/${vehicleId}`);
+      await httpService.post(`admin/rejectVehicle/${vehicleId}`);
       message.success('Vehicle rejected successfully');
       setIsModalVisible(false);
       fetchData();
