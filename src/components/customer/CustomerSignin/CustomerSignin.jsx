@@ -3,7 +3,6 @@ import { MailOutlined, LockOutlined } from '@ant-design/icons';
 import { Button, Input, Form, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import httpService from '../../../services/httpService';
-import './CustomerSignin.css';
 
 const CustomerSignin = () => {
   const [loading, setLoading] = useState(false);
@@ -30,21 +29,64 @@ const CustomerSignin = () => {
     }
   };
 
+  const containerStyle = {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: '90vh',
+    padding: '20px',
+    backgroundColor: '#f0f2f5',
+  };
+
+  const cardStyle = {
+    backgroundColor: 'white',
+    borderRadius: '8px',
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+    padding: '40px',
+    width: '100%',
+    maxWidth: '400px',
+  };
+
+  const formStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+  };
+
+  const titleStyle = {
+    textAlign: 'center',
+    marginBottom: '24px',
+    color: '#fdb940',
+  };
+
+  const inputStyle = {
+    marginBottom: '16px',
+  };
+
+  const iconStyle = {
+    color: 'rgba(0, 0, 0, 0.25)',
+  };
+
+  const buttonStyle = {
+    width: '100%',
+    backgroundColor: '#fdb940',
+    borderColor: '#fdb940',
+  };
+
   return (
-    <div className="signin-container">
-      <div className="signin-card">
-        <div className="signin-form">
-          <h1>Customer Signin</h1>
+    <div style={containerStyle}>
+      <div style={cardStyle}>
+        <div style={formStyle}>
+          <h1 style={titleStyle}>Customer Signin</h1>
           <Form onFinish={onFinish}>
             <Form.Item
               name="userName"
               rules={[{ required: true, message: 'Please input your username!' }]}
             >
               <Input
-                prefix={<MailOutlined className="input-icon" />}
+                prefix={<MailOutlined style={iconStyle} />}
                 placeholder="Username"
                 size="large"
-                className="signin-input"
+                style={inputStyle}
               />
             </Form.Item>
             <Form.Item
@@ -52,10 +94,10 @@ const CustomerSignin = () => {
               rules={[{ required: true, message: 'Please input your password!' }]}
             >
               <Input.Password
-                prefix={<LockOutlined className="input-icon" />}
+                prefix={<LockOutlined style={iconStyle} />}
                 placeholder="Password"
                 size="large"
-                className="signin-input"
+                style={inputStyle}
               />
             </Form.Item>
             <Form.Item>
@@ -63,7 +105,7 @@ const CustomerSignin = () => {
                 type="primary"
                 htmlType="submit"
                 size="large"
-                className="signin-button"
+                style={buttonStyle}
                 loading={loading}
               >
                 Sign In
