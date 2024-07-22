@@ -3,7 +3,7 @@ import { MailOutlined, LockOutlined } from '@ant-design/icons';
 import { Button, Input, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import httpService from '../../../services/httpService';
-
+import './CustomerSignin.css'; // Import the CSS file for custom styling
 
 const CustomerSignin = () => {
   const [userName, setUserName] = useState('');
@@ -61,7 +61,7 @@ const CustomerSignin = () => {
           <Button
             type="primary"
             size="large"
-            style={{ backgroundColor: '#fdb940', border: 'none', width: '80%', height: '50px' }}
+            className="signin-button"
             onClick={handleSignIn}
           >
             Sign In

@@ -42,3 +42,24 @@
     border-color: #e6a423;
   }
   
+
+
+  
+  @media (max-width: 480px) {
+    .signin-form {
+      padding: 16px;
+      max-width: 100%;
+    }
+  
+    .signin-form h1 {
+      font-size: 1.5em;
+    }
+  
+    .signin-form .ant-input,
+    .signin-form .ant-input-password,
+    .signin-form .ant-btn {
+      font-size: 1em;
+      width: 100%;
+    }
+  }
+  

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
-import { Button, Input, message } from 'antd'; // Import message from antd
-import httpService from '../../../services/httpService';
+import { Button, Input, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import './OwnerSignin.css'
+import httpService from '../../../services/httpService';
+import './OwnerSignin.css';
 
 const OwnerSignin = () => {
   const [userName, setUserName] = useState('');
@@ -18,7 +18,7 @@ const OwnerSignin = () => {
 
     try {
       const response = await httpService.post('/owner/signin', { userName, password });
-      const { id } = response.data; 
+      const { id } = response.data;
       localStorage.setItem('ownerId', id);
       message.success('Sign-in successful!');
       navigate('/owner/dashboard');
@@ -51,7 +51,7 @@ const OwnerSignin = () => {
         <Button
           type="primary"
           size="large"
-          style={{ backgroundColor: '#fdb940', border: 'none', width: '80%', height: '50px' }}
+          className="signin-button"
           onClick={handleSignIn}
         >
           Sign In

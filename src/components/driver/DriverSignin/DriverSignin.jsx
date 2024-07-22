@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
 import { Button, Input, Form, message } from 'antd';
-import httpService from '../../../services/httpService'; // Update the import to use httpService
+import httpService from '../../../services/httpService';
 import './DriverSignin.css';
 
 const DriverSignin = ({ onSignIn, title }) => {
@@ -11,7 +11,7 @@ const DriverSignin = ({ onSignIn, title }) => {
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      const response = await httpService.post('/driver/signin', values); 
+      const response = await httpService.post('/driver/signin', values);
       localStorage.setItem('driverId', response.data.id);
       message.success('Sign-in successful!');
       onSignIn();
@@ -32,7 +32,8 @@ const DriverSignin = ({ onSignIn, title }) => {
   return (
     <div className="signin-card">
       <div className="signin-form">
-        <h1>{title}</h1><br />
+        <h1>{title}</h1>
+        <br />
         <Form onFinish={onFinish}>
           <Form.Item
             name="userName"
@@ -60,7 +61,12 @@ const DriverSignin = ({ onSignIn, title }) => {
             type="primary"
             htmlType="submit"
             size="large"
-            style={{ backgroundColor: '#fdb940', border: 'none', width: '80%', height: '50px' }}
+            style={{
+              backgroundColor: '#fdb940',
+              border: 'none',
+              width: '80%',
+              height: '50px',
+            }}
             loading={loading}
           >
             Sign In
