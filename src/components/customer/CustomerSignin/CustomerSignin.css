@@ -1,58 +1,59 @@
-/* CustomerSignin.css */
+.signin-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+  background-color: #f0f2f5;
+}
 
-.signin-page {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: #f0f2f5;
-  }
-  
+.signin-card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 40px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.signin-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.signin-form h1 {
+  text-align: center;
+  margin-bottom: 24px;
+  color: #1890ff; /* You can change this color to match your customer theme */
+}
+
+.signin-input {
+  margin-bottom: 16px;
+}
+
+.input-icon {
+  color: rgba(0, 0, 0, 0.25);
+}
+
+.signin-button {
+  width: 100%;
+}
+
+/* Media query for mobile devices */
+@media (max-width: 480px) {
   .signin-card {
-    background: #fff;
-    padding: 24px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 400px;
-    margin: 0 16px;
+    padding: 20px;
   }
-  
-  .signin-form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
+
   .signin-form h1 {
     font-size: 24px;
-    margin-bottom: 24px;
   }
-  
-  .signin-form .ant-input,
-  .signin-form .ant-input-password {
-    width: 100%;
+
+  .signin-input {
+    font-size: 14px;
   }
-  
+
   .signin-button {
-    background-color: #fdb940;
-    border: none;
-    width: 100%;
-    height: 50px;
+    font-size: 16px;
   }
-  
-  /* Responsive design for mobile devices */
-  @media (max-width: 480px) {
-    .signin-card {
-      padding: 16px;
-    }
-  
-    .signin-form h1 {
-      font-size: 20px;
-    }
-  
-    .signin-button {
-      height: 45px;
-    }
-  }
-  
+}

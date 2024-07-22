@@ -3,7 +3,7 @@ import { MailOutlined, LockOutlined } from '@ant-design/icons';
 import { Button, Input, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import httpService from '../../../services/httpService';
-import './OwnerSignin.css';
+import './OwnerSignin.css'; // We'll create this CSS file for styling
 
 const OwnerSignin = () => {
   const [userName, setUserName] = useState('');
@@ -29,33 +29,35 @@ const OwnerSignin = () => {
   };
 
   return (
-    <div className="signin-card">
-      <div className="signin-form">
-        <h1>Owner Signin</h1><br></br>
-        <Input
-          prefix={<MailOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
-          placeholder="Username"
-          size="large"
-          style={{ marginBottom: '10%' }}
-          value={userName}
-          onChange={(e) => setUserName(e.target.value)}
-        />
-        <Input.Password
-          prefix={<LockOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
-          placeholder="Password"
-          size="large"
-          style={{ marginBottom: '10%' }}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <Button
-          type="primary"
-          size="large"
-          className="signin-button"
-          onClick={handleSignIn}
-        >
-          Sign In
-        </Button>
+    <div className="signin-container">
+      <div className="signin-card">
+        <div className="signin-form">
+          <h1>Owner Signin</h1>
+          <Input
+            prefix={<MailOutlined className="input-icon" />}
+            placeholder="Username"
+            size="large"
+            className="signin-input"
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
+          />
+          <Input.Password
+            prefix={<LockOutlined className="input-icon" />}
+            placeholder="Password"
+            size="large"
+            className="signin-input"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <Button
+            type="primary"
+            size="large"
+            className="signin-button"
+            onClick={handleSignIn}
+          >
+            Sign In
+          </Button>
+        </div>
       </div>
     </div>
   );

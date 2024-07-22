@@ -1,77 +1,59 @@
-/* OwnerSignin.css */
-
-.signin-card {
+.signin-container {
   display: flex;
-  width: 100%;
   justify-content: center;
   align-items: center;
-  height: 90vh;
+  min-height: 100vh;
+  padding: 20px;
+  background-color: #f0f2f5;
+}
+
+.signin-card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 40px;
+  width: 100%;
+  max-width: 400px;
 }
 
 .signin-form {
-  width: 25%;
-  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.signin-form h1 {
   text-align: center;
-  border-radius: 8px;
-  background-color: #fff;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+  color: #1890ff;
 }
 
-.ant-input:focus,
-.ant-input:hover,
-.ant-input-password .ant-input:focus,
-.ant-input-password .ant-input:hover,
-.ant-input-affix-wrapper:focus,
-.ant-input-affix-wrapper:hover,
-.ant-select-selector:focus,
-.ant-select-selector:hover,
-.ant-upload-list-picture-card-container:focus,
-.ant-upload-list-picture-card-container:hover {
-  border-color: #fdb940 !important;
-}  
-
-.ant-btn-primary {
-  background-color: #fdb940;
-  border-color: #fdb940;
+.signin-input {
+  margin-bottom: 16px;
 }
 
-.ant-btn-primary:hover,
-.ant-btn-primary:focus {
-  background-color: #e6a423;
-  border-color: #e6a423;
+.input-icon {
+  color: rgba(0, 0, 0, 0.25);
 }
 
-/* Responsive design for mobile devices */
-@media (max-width: 768px) {
-  .signin-form {
-    width: 50%;
-    height: auto;
-    padding: 16px;
-  }
-
-  .signin-form h1 {
-    font-size: 22px;
-  }
-
-  .signin-button {
-    width: 100%;
-    height: 45px;
-  }
+.signin-button {
+  width: 100%;
 }
 
+/* Media query for mobile devices */
 @media (max-width: 480px) {
-  .signin-form {
-    width: 80%;
-    height: auto;
-    padding: 12px;
+  .signin-card {
+    padding: 20px;
   }
 
   .signin-form h1 {
-    font-size: 18px;
+    font-size: 24px;
+  }
+
+  .signin-input {
+    font-size: 14px;
   }
 
   .signin-button {
-    width: 100%;
-    height: 40px;
+    font-size: 16px;
   }
 }

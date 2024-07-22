@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
 import { Button, Input, Form, message } from 'antd';
+import { useNavigate } from 'react-router-dom';
 import httpService from '../../../services/httpService';
 import './DriverSignin.css';
 
-const DriverSignin = ({ onSignIn, title }) => {
+const DriverSignin = () => {
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const onFinish = async (values) => {
     setLoading(true);
@@ -14,7 +15,7 @@ const DriverSignin = ({ onSignIn, title }) => {
       const response = await httpService.post('/driver/signin', values);
       localStorage.setItem('driverId', response.data.id);
       message.success('Sign-in successful!');
-      onSignIn();
+      navigate('/driver/dashboard');
     } catch (error) {
       if (error.response && error.response.status === 404) {
         message.error('Driver not found.');
@@ -30,56 +31,49 @@ const DriverSignin = ({ onSignIn, title }) => {
   };
 
   return (
-    <div className="signin-card">
-      <div className="signin-form">
-        <h1>{title}</h1>
-        <br />
-        <Form onFinish={onFinish}>
-          <Form.Item
-            name="userName"
-            rules={[{ required: true, message: 'Please input your username!' }]}
-          >
-            <Input
-              prefix={<MailOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
-              placeholder="Username"
-              size="large"
-              style={{ marginBottom: '10%' }}
-            />
-          </Form.Item>
-          <Form.Item
-            name="password"
-            rules={[{ required: true, message: 'Please input your password!' }]}
-          >
-            <Input.Password
-              prefix={<LockOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
-              placeholder="Password"
-              size="large"
-              style={{ marginBottom: '10%' }}
-            />
-          </Form.Item>
-          <Button
-            type="primary"
-            htmlType="submit"
-            size="large"
-            style={{
-              backgroundColor: '#fdb940',
-              border: 'none',
-              width: '80%',
-              height: '50px',
-            }}
-            loading={loading}
-          >
-            Sign In
-          </Button>
-        </Form>
+    <div className="signin-container">
+      <div className="signin-card">
+        <div className="signin-form">
+          <h1>Driver Signin</h1>
+          <Form onFinish={onFinish}>
+            <Form.Item
+              name="userName"
+              rules={[{ required: true, message: 'Please input your username!' }]}
+            >
+              <Input
+                prefix={<MailOutlined className="input-icon" />}
+                placeholder="Username"
+                size="large"
+                className="signin-input"
+              />
+            </Form.Item>
+            <Form.Item
+              name="password"
+              rules={[{ required: true, message: 'Please input your password!' }]}
+            >
+              <Input.Password
+                prefix={<LockOutlined className="input-icon" />}
+                placeholder="Password"
+                size="large"
+                className="signin-input"
+              />
+            </Form.Item>
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                size="large"
+                className="signin-button"
+                loading={loading}
+              >
+                Sign In
+              </Button>
+            </Form.Item>
+          </Form>
+        </div>
       </div>
     </div>
   );
-};
-
-DriverSignin.propTypes = {
-  onSignIn: PropTypes.func.isRequired,
-  title: PropTypes.string.isRequired,
 };
 
 export default DriverSignin;

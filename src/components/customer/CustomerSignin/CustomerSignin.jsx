@@ -1,27 +1,18 @@
 import React, { useState } from 'react';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
-import { Button, Input, message } from 'antd';
+import { Button, Input, Form, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import httpService from '../../../services/httpService';
-import './CustomerSignin.css'; // Import the CSS file for custom styling
+import './CustomerSignin.css';
 
 const CustomerSignin = () => {
-  const [userName, setUserName] = useState('');
-  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSignIn = async () => {
-    if (!userName || !password) {
-      message.error('Please provide both username and password.');
-      return;
-    }
-
+  const onFinish = async (values) => {
+    setLoading(true);
     try {
-      const response = await httpService.post('/customer/signin', {
-        userName,
-        password,
-      });
-
+      const response = await httpService.post('/customer/signin', values);
       if (response.status === 200) {
         localStorage.setItem('customerId', response.data.customerId);
         message.success('Sign-in successful');
@@ -34,38 +25,51 @@ const CustomerSignin = () => {
         message.error('Error signing in. Please try again later.');
       }
       console.error('Error signing in:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="signin-page">
+    <div className="signin-container">
       <div className="signin-card">
         <div className="signin-form">
           <h1>Customer Signin</h1>
-          <Input
-            prefix={<MailOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
-            placeholder="Username"
-            size="large"
-            style={{ marginBottom: '10%' }}
-            value={userName}
-            onChange={(e) => setUserName(e.target.value)}
-          />
-          <Input.Password
-            prefix={<LockOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
-            placeholder="Password"
-            size="large"
-            style={{ marginBottom: '10%' }}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <Button
-            type="primary"
-            size="large"
-            className="signin-button"
-            onClick={handleSignIn}
-          >
-            Sign In
-          </Button>
+          <Form onFinish={onFinish}>
+            <Form.Item
+              name="userName"
+              rules={[{ required: true, message: 'Please input your username!' }]}
+            >
+              <Input
+                prefix={<MailOutlined className="input-icon" />}
+                placeholder="Username"
+                size="large"
+                className="signin-input"
+              />
+            </Form.Item>
+            <Form.Item
+              name="password"
+              rules={[{ required: true, message: 'Please input your password!' }]}
+            >
+              <Input.Password
+                prefix={<LockOutlined className="input-icon" />}
+                placeholder="Password"
+                size="large"
+                className="signin-input"
+              />
+            </Form.Item>
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                size="large"
+                className="signin-button"
+                loading={loading}
+              >
+                Sign In
+              </Button>
+            </Form.Item>
+          </Form>
         </div>
       </div>
     </div>
