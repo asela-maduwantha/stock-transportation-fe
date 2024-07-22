@@ -27,8 +27,8 @@ const ApproveVehicle = () => {
       );
       setData(vehiclesData);
     } catch (error) {
-      console.error('Error fetching data:', error);
-      message.error('Error fetching vehicles');
+      
+      message.error('No vehicle requests');
     }
   };
 
