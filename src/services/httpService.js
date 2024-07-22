@@ -42,9 +42,8 @@ httpService.interceptors.response.use(
         case 409:
           message.error('Conflict: The resource already exists.');
           break;
-        default:
-          const msg = data?.message || 'Cannot find the Server';
-          message.error(msg);
+        case 404:
+          const msg = data?.message || 'No Requests available.';
           return Promise.reject(msg);
       }
     } else {
