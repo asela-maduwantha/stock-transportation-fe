@@ -23,7 +23,7 @@ const ProtectedRoute = ({ component: Component, allowedRoles }) => {
   const signInPath = getSignInPathByRole(userRole);
 
   if (!token) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   if (!allowedRoles.includes(userRole)) {
