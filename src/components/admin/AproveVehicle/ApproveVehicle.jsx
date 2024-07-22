@@ -28,8 +28,9 @@ const ApproveVehicle = () => {
 
   const handleApprove = async () => {
     try {
-      console.log(selectedVehicle.id)
-      await httpService.post(`admin/acceptVehicle/${selectedVehicle.id}`);
+      const vehicleId = selectedVehicle.vehicles[0].id;
+      console.log(vehicleId);
+      await httpService.post(`admin/acceptVehicle/${vehicleId}`);
       message.success('Vehicle approved successfully');
       setIsModalVisible(false);
       fetchData();
@@ -38,11 +39,12 @@ const ApproveVehicle = () => {
       message.error(`Error approving vehicle: ${error.message}`);
     }
   };
-
+  
   const handleReject = async () => {
     try {
-      console.log(selectedVehicle.id)
-      await httpService.post(`admin/rejectVehicle/${selectedVehicle.id}`);
+      const vehicleId = selectedVehicle.vehicles[0].id;
+      console.log(vehicleId);
+      await httpService.post(`admin/rejectVehicle/${vehicleId}`);
       message.success('Vehicle rejected successfully');
       setIsModalVisible(false);
       fetchData();
@@ -51,7 +53,6 @@ const ApproveVehicle = () => {
       message.error(`Error rejecting vehicle: ${error.message}`);
     }
   };
-
   const columns = [
     {
       title: 'No',
