@@ -1,11 +1,18 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Route, Navigate } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 
-const getCurrentUserRole = () => {
-  return localStorage.getItem('userRole'); 
+// Helper function to get the current user's token from local storage
+const getToken = () => {
+  return localStorage.getItem('authToken');
 };
 
+// Helper function to get the current user's role from local storage
+const getCurrentUserRole = () => {
+  return localStorage.getItem('userRole');
+};
+
+// Helper function to get the sign-in path based on user role
 const getSignInPathByRole = (role) => {
   switch (role) {
     case 'admin':
@@ -17,25 +24,27 @@ const getSignInPathByRole = (role) => {
     case 'driver':
       return '/driver/signin';
     default:
-      return '/'; 
+      return '/';
   }
 };
 
-const ProtectedRoute = ({ component: Component, allowedRoles, ...rest }) => {
+const ProtectedRoute = ({ component: Component, allowedRoles }) => {
+  const token = getToken();
   const userRole = getCurrentUserRole();
   const signInPath = getSignInPathByRole(userRole);
 
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!allowedRoles.includes(userRole)) {
+    return <Navigate to={signInPath} replace />;
+  }
+
   return (
-    <Route
-      {...rest}
-      render={(props) =>
-        allowedRoles.includes(userRole) ? (
-          <Component {...props} />
-        ) : (
-          <Navigate to={signInPath} /> 
-        )
-      }
-    />
+    <Component>
+      <Outlet />
+    </Component>
   );
 };
 

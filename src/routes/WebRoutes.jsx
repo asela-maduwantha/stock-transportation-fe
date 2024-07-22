@@ -26,11 +26,11 @@ import VehicleOwnerDashboard from '../components/owner/VehicleOwnerDashboard/Veh
 import Payment from '../components/customer/Payment/Payment';
 import OwnerVehicles from '../components/owner/OwnerVehicels/OwnerVehicles';
 import PickupStock from '../components/driver/PickupStock/PickupStock';
-import Conatct from '../components/common/Contact/Conatct';
+import Contact from '../components/common/Contact/Contact';
 import CustomerView from '../components/customer/CustomerView/CustomerView';
 import AdminCreate from '../components/admin/AdminCreate/AdminCreate';
 import AdminSignin from '../components/admin/AdminSignin/AdminSignin';
-import ProtectedRoute from '../services/ProtectedRoute'
+import ProtectedRoute from '../services/ProtectedRoute';
 import DriverLayoutPage from '../pages/DriverLayoutPage/DriverLayoutPage';
 import DriverDashboard from '../components/driver/DriverDashboard/DriverDashboard';
 
@@ -40,7 +40,7 @@ const WebRoutes = () => {
       <Routes>
         <Route path="/" element={<HomePage />}>
           <Route path="about" element={<AboutUs />} />
-          <Route path="contact" element={<Conatct />} />
+          <Route path="contact" element={<Contact />} />
           <Route path="admin/create" element={<AdminCreate />} />
           <Route path="admin/signin" element={<AdminSignin />} />
           <Route path="vehicle-owner/reg" element={<VehicleOwnerRegistration />} />
@@ -51,8 +51,9 @@ const WebRoutes = () => {
           <Route path="vehicle/:id" element={<VehicleDetails />} />
           <Route path="payment" element={<Payment />} />
         </Route>
+
         <Route
-          path="/admin"
+          path="/admin/*"
           element={
             <ProtectedRoute
               component={AdminLayoutPage}
@@ -64,8 +65,9 @@ const WebRoutes = () => {
           <Route path="driver-requests" element={<ApproveDriverAccounts />} />
           <Route path="vehicle-requests" element={<ApproveVehicle />} />
         </Route>
+
         <Route
-          path="/driver"
+          path="/driver/*"
           element={
             <ProtectedRoute
               component={DriverLayoutPage}
@@ -73,11 +75,12 @@ const WebRoutes = () => {
             />
           }
         >
-          <Route path='dashboard' element={<DriverDashboard/>}/>
-          <Route path='pickup-stock' element={<PickupStock/>}/>
+          <Route path="dashboard" element={<DriverDashboard />} />
+          <Route path="pickup-stock" element={<PickupStock />} />
         </Route>
+
         <Route
-          path="/owner"
+          path="/owner/*"
           element={
             <ProtectedRoute
               component={OwnerLayoutPage}
@@ -90,8 +93,9 @@ const WebRoutes = () => {
           <Route path="add-driver" element={<AddDriver />} />
           <Route path="vehicles" element={<OwnerVehicles />} />
         </Route>
+
         <Route
-          path="/customer"
+          path="/customer/*"
           element={
             <ProtectedRoute
               component={CustomerLayoutPage}
