@@ -1,4 +1,3 @@
-// ApproveVehicleAccounts.js
 import React, { useEffect, useState } from 'react';
 import { Table, Button, Modal, Descriptions, message, Row, Col } from 'antd';
 import httpService from '../../../services/httpService';
@@ -59,24 +58,31 @@ const ApproveVehicle = () => {
       render: (text, record, index) => index + 1,
     },
     {
-      title: 'Model',
-      dataIndex: 'model',
-      key: 'model',
+      title: 'Driver Name',
+      dataIndex: 'driverName',
+      key: 'driverName',
+      render: (_, record) => `${record.firstName} ${record.lastName}`,
     },
     {
-      title: 'Make',
-      dataIndex: 'make',
-      key: 'make',
+      title: 'Vehicle Type',
+      dataIndex: 'type',
+      key: 'type',
     },
     {
-      title: 'Year',
-      dataIndex: 'year',
-      key: 'year',
+      title: 'Registration Number',
+      dataIndex: 'regNo',
+      key: 'regNo',
     },
     {
-      title: 'License Plate',
-      dataIndex: 'licensePlate',
-      key: 'licensePlate',
+      title: 'Preferred Area',
+      dataIndex: 'preferredArea',
+      key: 'preferredArea',
+    },
+    {
+      title: 'Capacity',
+      dataIndex: 'capacity',
+      key: 'capacity',
+      render: (text, record) => `${text} ${record.capacityUnit}`,
     },
     {
       title: 'Action',
@@ -110,16 +116,24 @@ const ApproveVehicle = () => {
             <Row gutter={16}>
               <Col span={12}>
                 <Descriptions bordered column={1}>
-                  <Descriptions.Item label="Model">{selectedVehicle.model}</Descriptions.Item>
-                  <Descriptions.Item label="Make">{selectedVehicle.make}</Descriptions.Item>
-                  <Descriptions.Item label="Year">{selectedVehicle.year}</Descriptions.Item>
-                  <Descriptions.Item label="License Plate">{selectedVehicle.licensePlate}</Descriptions.Item>
+                  <Descriptions.Item label="Driver Name">{`${selectedVehicle.firstName} ${selectedVehicle.lastName}`}</Descriptions.Item>
+                  <Descriptions.Item label="Email">{selectedVehicle.email}</Descriptions.Item>
+                  <Descriptions.Item label="Mobile Number">{selectedVehicle.mobNumber}</Descriptions.Item>
+                  <Descriptions.Item label="Vehicle Type">{selectedVehicle.vehicles[0].type}</Descriptions.Item>
+                  <Descriptions.Item label="Registration Number">{selectedVehicle.vehicles[0].regNo}</Descriptions.Item>
+                  <Descriptions.Item label="Preferred Area">{selectedVehicle.vehicles[0].preferredArea}</Descriptions.Item>
+                  <Descriptions.Item label="Capacity">{`${selectedVehicle.vehicles[0].capacity} ${selectedVehicle.vehicles[0].capacityUnit}`}</Descriptions.Item>
                 </Descriptions>
               </Col>
               <Col span={12} style={{ textAlign: 'center' }}>
                 <img
-                  src={selectedVehicle.imageUrl}
+                  src={selectedVehicle.vehicles[0].photoUrl}
                   alt="Vehicle"
+                  style={{ width: '90%', margin: '10px 0' }}
+                />
+                <img
+                  src={selectedVehicle.vehicles[0].vehicleBookUrl}
+                  alt="Vehicle Book"
                   style={{ width: '90%', margin: '10px 0' }}
                 />
               </Col>

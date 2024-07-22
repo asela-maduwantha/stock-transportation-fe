@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Form, Input, Button, Upload, message, Checkbox } from 'antd';
+import { Form, Input, Button, Upload, message, Switch } from 'antd';
 import { EyeInvisibleOutlined, EyeTwoTone, UploadOutlined } from '@ant-design/icons';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../../config/firebaseconfig'; // Adjust the import path as needed
@@ -88,7 +88,7 @@ const AddDriver = () => {
 
   const onFinish = async (values) => {
     const ownerId = localStorage.getItem('ownerId');
-    const { licenseUrl, policeCertiUrl, firstName, lastName, ...rest } = values;
+    const { licenseUrl, policeCertiUrl, firstName, lastName, heavyVehicleLic, ...rest } = values;
 
     const fullName = `${firstName}_${lastName}`;
     let licenseUrlValue = '';
@@ -103,7 +103,7 @@ const AddDriver = () => {
         policeCertificateUrl = await uploadFile(policeCertiUrl[0].originFileObj, 'policeCertificates', `${fullName}_police_certificate.jpg`);
       }
 
-      submitForm({ ...rest, firstName, lastName, licenseUrl: licenseUrlValue, policeCertiUrl: policeCertificateUrl, ownerId });
+      submitForm({ ...rest, firstName, lastName, licenseUrl: licenseUrlValue, policeCertiUrl: policeCertificateUrl, heavyVehicleLic, ownerId });
       setUploading(false);
     } catch (error) {
       message.error('File upload failed.');
@@ -233,8 +233,9 @@ const AddDriver = () => {
           <Form.Item
             name="heavyVehicleLic"
             valuePropName="checked"
+            label="Heavy Vehicle License"
           >
-            <Checkbox>Heavy Vehicle License</Checkbox>
+            <Switch />
           </Form.Item>
 
           <Form.Item
