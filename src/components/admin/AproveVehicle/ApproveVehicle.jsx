@@ -15,16 +15,31 @@ const ApproveVehicle = () => {
   const fetchData = async () => {
     try {
       const response = await httpService.get('admin/getTempVehicles');
-      setData(response.data);
+      const vehiclesData = response.data.reduce((acc, owner) => {
+        const ownerVehicles = owner.vehicles.map(vehicle => ({
+          ...vehicle,
+          ownerFirstName: owner.firstName,
+          ownerLastName: owner.lastName,
+          ownerEmail: owner.email,
+          ownerMobNumber: owner.mobNumber,
+        }));
+        return [...acc, ...ownerVehicles];
+      }, []);
+      setData(vehiclesData);
     } catch (error) {
       console.error('Error fetching data:', error);
       message.error('Error fetching vehicles');
     }
   };
 
-  const handleViewMore = (owner, vehicle) => {
-    setSelectedOwner(owner);
-    setSelectedVehicle(vehicle);
+  const handleViewMore = (record) => {
+    setSelectedVehicle(record);
+    setSelectedOwner({
+      firstName: record.ownerFirstName,
+      lastName: record.ownerLastName,
+      email: record.ownerEmail,
+      mobNumber: record.ownerMobNumber,
+    });
     setIsModalVisible(true);
   };
 
@@ -62,34 +77,25 @@ const ApproveVehicle = () => {
       render: (text, record, index) => index + 1,
     },
     {
-      title: 'Driver Name',
-      dataIndex: 'driverName',
-      key: 'driverName',
-      render: (_, record) => `${record.firstName} ${record.lastName}`,
-    },
-    {
       title: 'Vehicle Type',
       dataIndex: 'type',
       key: 'type',
-      render: (_, record) => record.vehicles[0].type,
     },
     {
       title: 'Registration Number',
       dataIndex: 'regNo',
       key: 'regNo',
-      render: (_, record) => record.vehicles[0].regNo,
     },
     {
       title: 'Preferred Area',
       dataIndex: 'preferredArea',
       key: 'preferredArea',
-      render: (_, record) => record.vehicles[0].preferredArea,
     },
     {
       title: 'Capacity',
       dataIndex: 'capacity',
       key: 'capacity',
-      render: (_, record) => `${record.vehicles[0].capacity} ${record.vehicles[0].capacityUnit}`,
+      render: (text, record) => `${record.capacity} ${record.capacityUnit}`,
     },
     {
       title: 'Action',
@@ -98,7 +104,7 @@ const ApproveVehicle = () => {
         <Button
           type="primary"
           style={{ backgroundColor: 'rgb(253, 185, 64)', borderColor: 'rgb(253, 185, 64)' }}
-          onClick={() => handleViewMore(record, record.vehicles[0])}
+          onClick={() => handleViewMore(record)}
         >
           View More
         </Button>
