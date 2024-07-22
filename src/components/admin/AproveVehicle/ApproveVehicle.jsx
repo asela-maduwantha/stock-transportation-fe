@@ -47,7 +47,7 @@ const ApproveVehicle = () => {
   const handleApprove = async () => {
     try {
       const vehicleId = selectedVehicle.id;
-      const ownerId = selectedOwner.id;
+     
       await httpService.post(`admin/acceptVehicle/${vehicleId}`);
       message.success('Vehicle approved successfully');
       setIsModalVisible(false);
@@ -61,7 +61,7 @@ const ApproveVehicle = () => {
   const handleReject = async () => {
     try {
       const vehicleId = selectedVehicle.id;
-      const ownerId = selectedOwner.id;
+     
       await httpService.post(`admin/rejectVehicle/${vehicleId}`);
       message.success('Vehicle rejected successfully');
       setIsModalVisible(false);
