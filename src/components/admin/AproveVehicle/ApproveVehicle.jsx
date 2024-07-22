@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, Modal, Descriptions, message, Row, Col, Select } from 'antd';
+import { Table, Button, Modal, Descriptions, message, Row, Col } from 'antd';
 import httpService from '../../../services/httpService';
-
-const { Option } = Select;
 
 const ApproveVehicle = () => {
   const [data, setData] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [selectedOwner, setSelectedOwner] = useState(null);
-  const [selectedVehicleIndex, setSelectedVehicleIndex] = useState(0);
 
   useEffect(() => {
     fetchData();
@@ -24,16 +22,15 @@ const ApproveVehicle = () => {
     }
   };
 
-  const handleViewMore = (record) => {
-    setSelectedOwner(record);
-    setSelectedVehicleIndex(0);
+  const handleViewMore = (owner, vehicle) => {
+    setSelectedOwner(owner);
+    setSelectedVehicle(vehicle);
     setIsModalVisible(true);
   };
 
   const handleApprove = async () => {
     try {
-      const vehicleId = selectedOwner.vehicles[selectedVehicleIndex].id;
-      console.log(vehicleId);
+      const vehicleId = selectedVehicle.id;
       await httpService.post(`admin/acceptVehicle/${vehicleId}`);
       message.success('Vehicle approved successfully');
       setIsModalVisible(false);
@@ -46,8 +43,7 @@ const ApproveVehicle = () => {
 
   const handleReject = async () => {
     try {
-      const vehicleId = selectedOwner.vehicles[selectedVehicleIndex].id;
-      console.log(vehicleId);
+      const vehicleId = selectedVehicle.id;
       await httpService.post(`admin/rejectVehicle/${vehicleId}`);
       message.success('Vehicle rejected successfully');
       setIsModalVisible(false);
@@ -72,10 +68,28 @@ const ApproveVehicle = () => {
       render: (_, record) => `${record.firstName} ${record.lastName}`,
     },
     {
-      title: 'Number of Vehicles',
-      dataIndex: 'vehicles',
-      key: 'vehicleCount',
-      render: (vehicles) => vehicles.length,
+      title: 'Vehicle Type',
+      dataIndex: 'type',
+      key: 'type',
+      render: (_, record) => record.vehicles[0].type,
+    },
+    {
+      title: 'Registration Number',
+      dataIndex: 'regNo',
+      key: 'regNo',
+      render: (_, record) => record.vehicles[0].regNo,
+    },
+    {
+      title: 'Preferred Area',
+      dataIndex: 'preferredArea',
+      key: 'preferredArea',
+      render: (_, record) => record.vehicles[0].preferredArea,
+    },
+    {
+      title: 'Capacity',
+      dataIndex: 'capacity',
+      key: 'capacity',
+      render: (_, record) => `${record.vehicles[0].capacity} ${record.vehicles[0].capacityUnit}`,
     },
     {
       title: 'Action',
@@ -84,7 +98,7 @@ const ApproveVehicle = () => {
         <Button
           type="primary"
           style={{ backgroundColor: 'rgb(253, 185, 64)', borderColor: 'rgb(253, 185, 64)' }}
-          onClick={() => handleViewMore(record)}
+          onClick={() => handleViewMore(record, record.vehicles[0])}
         >
           View More
         </Button>
@@ -97,7 +111,7 @@ const ApproveVehicle = () => {
       <div style={{ paddingTop: '2%', width: '100%', paddingLeft: '2%' }}>
         <h1>Vehicle Requests</h1><br />
         <Table columns={columns} dataSource={data} rowKey="id" />
-        {selectedOwner && (
+        {selectedVehicle && selectedOwner && (
           <Modal
             title="Vehicle and Owner Details"
             visible={isModalVisible}
@@ -107,48 +121,29 @@ const ApproveVehicle = () => {
             bodyStyle={{ maxHeight: '70vh', overflowY: 'auto' }}
           >
             <Row gutter={16}>
-              <Col span={24}>
+              <Col span={12}>
                 <Descriptions bordered column={1} title="Owner Information">
                   <Descriptions.Item label="Owner Name">{`${selectedOwner.firstName} ${selectedOwner.lastName}`}</Descriptions.Item>
                   <Descriptions.Item label="Email">{selectedOwner.email}</Descriptions.Item>
                   <Descriptions.Item label="Mobile Number">{selectedOwner.mobNumber}</Descriptions.Item>
                 </Descriptions>
-              </Col>
-            </Row>
-            <Row gutter={16} style={{ marginTop: '20px' }}>
-              <Col span={24}>
-                <Select
-                  style={{ width: '100%' }}
-                  value={selectedVehicleIndex}
-                  onChange={(value) => setSelectedVehicleIndex(value)}
-                >
-                  {selectedOwner.vehicles.map((vehicle, index) => (
-                    <Option key={index} value={index}>
-                      Vehicle {index + 1} - {vehicle.type} ({vehicle.regNo})
-                    </Option>
-                  ))}
-                </Select>
-              </Col>
-            </Row>
-            <Row gutter={16} style={{ marginTop: '20px' }}>
-              <Col span={12}>
-                <Descriptions bordered column={1} title="Vehicle Information">
-                  <Descriptions.Item label="Vehicle Type">{selectedOwner.vehicles[selectedVehicleIndex].type}</Descriptions.Item>
-                  <Descriptions.Item label="Registration Number">{selectedOwner.vehicles[selectedVehicleIndex].regNo}</Descriptions.Item>
-                  <Descriptions.Item label="Preferred Area">{selectedOwner.vehicles[selectedVehicleIndex].preferredArea}</Descriptions.Item>
-                  <Descriptions.Item label="Capacity">{`${selectedOwner.vehicles[selectedVehicleIndex].capacity} ${selectedOwner.vehicles[selectedVehicleIndex].capacityUnit}`}</Descriptions.Item>
+                <Descriptions bordered column={1} title="Vehicle Information" style={{ marginTop: '20px' }}>
+                  <Descriptions.Item label="Vehicle Type">{selectedVehicle.type}</Descriptions.Item>
+                  <Descriptions.Item label="Registration Number">{selectedVehicle.regNo}</Descriptions.Item>
+                  <Descriptions.Item label="Preferred Area">{selectedVehicle.preferredArea}</Descriptions.Item>
+                  <Descriptions.Item label="Capacity">{`${selectedVehicle.capacity} ${selectedVehicle.capacityUnit}`}</Descriptions.Item>
                 </Descriptions>
               </Col>
               <Col span={12} style={{ textAlign: 'center' }}>
                 <h3>Vehicle Photo</h3>
                 <img
-                  src={selectedOwner.vehicles[selectedVehicleIndex].photoUrl}
+                  src={selectedVehicle.photoUrl}
                   alt="Vehicle"
                   style={{ width: '90%', margin: '10px 0' }}
                 />
                 <h3>Vehicle Book Photo</h3>
                 <img
-                  src={selectedOwner.vehicles[selectedVehicleIndex].vehicleBookUrl}
+                  src={selectedVehicle.vehicleBookUrl}
                   alt="Vehicle Book"
                   style={{ width: '90%', margin: '10px 0' }}
                 />
