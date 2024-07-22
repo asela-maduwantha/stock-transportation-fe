@@ -28,25 +28,27 @@ const ApproveVehicle = () => {
 
   const handleApprove = async () => {
     try {
+      console.log(selectedVehicle.id)
       await httpService.post(`admin/acceptVehicle/${selectedVehicle.id}`);
       message.success('Vehicle approved successfully');
       setIsModalVisible(false);
       fetchData();
     } catch (error) {
-      message.error('Error approving vehicle');
       console.error('Error approving vehicle:', error);
+      message.error(`Error approving vehicle: ${error.message}`);
     }
   };
 
   const handleReject = async () => {
     try {
+      console.log(selectedVehicle.id)
       await httpService.post(`admin/rejectVehicle/${selectedVehicle.id}`);
       message.success('Vehicle rejected successfully');
       setIsModalVisible(false);
       fetchData();
     } catch (error) {
-      message.error('Error rejecting vehicle');
       console.error('Error rejecting vehicle:', error);
+      message.error(`Error rejecting vehicle: ${error.message}`);
     }
   };
 
