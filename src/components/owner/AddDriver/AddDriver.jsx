@@ -39,7 +39,10 @@ const AddDriver = () => {
       if (Array.isArray(field)) {
         return field.length > 0;
       }
-      return field && field.trim() !== "";
+      if (typeof field === 'string') {
+        return field.trim() !== "";
+      }
+      return field !== undefined && field !== null;
     });
     setAllFieldsFilled(allFilled);
   };
