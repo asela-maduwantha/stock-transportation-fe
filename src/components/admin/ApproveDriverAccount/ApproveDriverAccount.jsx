@@ -6,8 +6,6 @@ const ApproveDriverAccounts = () => {
   const [data, setData] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState(null);
-  const [selectedOwner, setSelectedOwner] = useState(null);
-  const [isOwnerModalVisible, setIsOwnerModalVisible] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -29,11 +27,6 @@ const ApproveDriverAccounts = () => {
   const handleViewMore = (record) => {
     setSelectedDriver(record);
     setIsModalVisible(true);
-  };
-
-  const handleViewOwner = (owner) => {
-    setSelectedOwner(owner);
-    setIsOwnerModalVisible(true);
   };
 
   const handleApprove = async () => {
@@ -105,18 +98,6 @@ const ApproveDriverAccounts = () => {
         </Button>
       ),
     },
-    {
-      title: 'Owner',
-      key: 'owner',
-      render: (text, record) => (
-        <Button
-          type="default"
-          onClick={() => handleViewOwner(record.owner)}
-        >
-          Show Owner
-        </Button>
-      ),
-    },
   ];
 
   return (
@@ -141,6 +122,10 @@ const ApproveDriverAccounts = () => {
                   <Descriptions.Item label="Phone Number">{selectedDriver.phoneNumber}</Descriptions.Item>
                   <Descriptions.Item label="Email">{selectedDriver.email}</Descriptions.Item>
                   <Descriptions.Item label="Address">{selectedDriver.address}</Descriptions.Item>
+                  <Descriptions.Item label="Owner First Name">{selectedDriver.owner.firstName}</Descriptions.Item>
+                  <Descriptions.Item label="Owner Last Name">{selectedDriver.owner.lastName}</Descriptions.Item>
+                  <Descriptions.Item label="Owner Mobile Number">{selectedDriver.owner.mobNumber}</Descriptions.Item>
+                  <Descriptions.Item label="Owner Email">{selectedDriver.owner.email}</Descriptions.Item>
                 </Descriptions>
               </Col>
               <Col span={12} style={{ textAlign: 'center' }}>
@@ -159,27 +144,6 @@ const ApproveDriverAccounts = () => {
                 Reject
               </Button>
             </div>
-          </Modal>
-        )}
-        {selectedOwner && (
-          <Modal
-            title="Owner Details"
-            visible={isOwnerModalVisible}
-            onCancel={() => setIsOwnerModalVisible(false)}
-            footer={null}
-            width={800}
-            bodyStyle={{ maxHeight: '70vh', overflowY: 'auto' }}
-          >
-            <Row gutter={16}>
-              <Col span={24}>
-                <Descriptions bordered column={1}>
-                  <Descriptions.Item label="First Name">{selectedOwner.firstName}</Descriptions.Item>
-                  <Descriptions.Item label="Last Name">{selectedOwner.lastName}</Descriptions.Item>
-                  <Descriptions.Item label="Mobile Number">{selectedOwner.mobNumber}</Descriptions.Item>
-                  <Descriptions.Item label="Email">{selectedOwner.email}</Descriptions.Item>
-                </Descriptions>
-              </Col>
-            </Row>
           </Modal>
         )}
       </div>
