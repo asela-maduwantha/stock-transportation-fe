@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Form, Input, Button, Upload, Select, message } from 'antd';
+import { Form, Input, Button, Upload, Select, Switch, message } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../../config/firebaseconfig';
@@ -52,9 +52,11 @@ const AddVehicle = () => {
     };
   }, []);
 
-  const uploadFile = (file, path) => {
+  const uploadFile = (file, path, regNo) => {
     return new Promise((resolve, reject) => {
-      const storageRef = ref(storage, `${path}/${file.name}`);
+      const fileExtension = file.name.split('.').pop();
+      const fileName = `${regNo}.${fileExtension}`;
+      const storageRef = ref(storage, `${path}/${fileName}`);
       const uploadTask = uploadBytesResumable(storageRef, file);
 
       uploadTask.on(
@@ -74,18 +76,25 @@ const AddVehicle = () => {
   };
 
   const onFinish = async (values) => {
-    const { vehiclePhoto, bookPhoto, ...rest } = values;
+    const { vehiclePhoto, bookPhoto, regNo, capacity, ...rest } = values;
     const ownerId = localStorage.getItem('ownerId');
 
     if (vehiclePhoto && vehiclePhoto[0] && vehiclePhoto[0].originFileObj) {
       setUploading(true);
       try {
-        const vehiclePhotoUrl = await uploadFile(vehiclePhoto[0].originFileObj, 'vehicles/photos');
-        let bookPhotoUrl;
+        const photoUrl = await uploadFile(vehiclePhoto[0].originFileObj, 'vehicles/photos', regNo);
+        let vehicleBookUrl;
         if (bookPhoto && bookPhoto[0] && bookPhoto[0].originFileObj) {
-          bookPhotoUrl = await uploadFile(bookPhoto[0].originFileObj, 'vehicles/book-photos');
+          vehicleBookUrl = await uploadFile(bookPhoto[0].originFileObj, 'vehicles/book-photos', regNo);
         }
-        await submitForm({ ...rest, vehiclePhotoUrl, bookPhotoUrl, ownerId });
+        await submitForm({
+          ...rest,
+          photoUrl,
+          vehicleBookUrl,
+          regNo,
+          capacity: Number(capacity),
+          ownerId
+        });
         setUploading(false);
         message.success('Vehicle added successfully!');
         form.resetFields();
@@ -152,6 +161,10 @@ const AddVehicle = () => {
                 <Option key={unit} value={unit}>{unit}</Option>
               ))}
             </Select>
+          </Form.Item>
+
+          <Form.Item name="heavyVehicle" valuePropName="checked">
+            <Switch checkedChildren="Heavy" unCheckedChildren="Light" />
           </Form.Item>
 
           <Form.Item name="vehiclePhoto" valuePropName="fileList" getValueFromEvent={(e) => Array.isArray(e) ? e : e && e.fileList} rules={[{ required: true, message: 'Please upload your vehicle photo!' }]}>
