@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Input, Pagination, Layout, Button, Checkbox, Typography, message, Modal } from 'antd';
-import { CloseOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Input, Pagination, Layout, Button, Checkbox, Typography, message, Modal, DatePicker, TimePicker, Select } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { GoogleMap, LoadScript, Autocomplete, DirectionsRenderer, Marker } from '@react-google-maps/api';
-import httpService from '../../../services/httpService'
+import httpService from '../../../services/httpService';
+import moment from 'moment';
 
 const { Content, Sider } = Layout;
 const { Search } = Input;
 const { Title } = Typography;
+const { Option } = Select;
 
 const dummyVehicles = [
     {
@@ -98,6 +99,12 @@ const VehicleBooking = () => {
     const [pickupAutocomplete, setPickupAutocomplete] = useState(null);
     const [dropAutocomplete, setDropAutocomplete] = useState(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [capacity, setCapacity] = useState(1);
+    const [shareSpace, setShareSpace] = useState(false);
+    const [pickupDate, setPickupDate] = useState(null);
+    const [pickupTime, setPickupTime] = useState(null);
+    const [calculatedDropDateTime, setCalculatedDropDateTime] = useState(null);
+    const [travelDuration, setTravelDuration] = useState('')
 
     const navigate = useNavigate();
 
@@ -118,8 +125,8 @@ const VehicleBooking = () => {
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     const handleBook = async (vehicle) => {
-        if (!pickupLocation || !dropLocation) {
-            message.error('Please select pickup and drop locations.');
+        if (!pickupLocation || !dropLocation || !pickupDate || !pickupTime) {
+            message.error('Please select all booking details.');
             return;
         }
 
@@ -136,9 +143,15 @@ const VehicleBooking = () => {
                     lat: dropLocation.lat,
                     lng: dropLocation.lng,
                 },
+                pickupDate,
+                pickupTime,
+                dropDate: calculatedDropDateTime.date,
+                dropTime: calculatedDropDateTime.time,
                 returnTrip,
                 distance,
                 totalPrice: calculatePrice(),
+                capacity,
+                shareSpace
             });
 
             if (response.data.success) {
@@ -148,6 +161,10 @@ const VehicleBooking = () => {
                         vehicle,
                         pickupLocation,
                         dropLocation,
+                        pickupDate,
+                        pickupTime,
+                        dropDate: calculatedDropDateTime.date,
+                        dropTime: calculatedDropDateTime.time,
                         returnTrip,
                         distance,
                         advanceAmount: calculatePrice() * 0.2,
@@ -163,10 +180,6 @@ const VehicleBooking = () => {
         }
     };
 
-    // const handleChat = (vehicle) => {
-    //     console.log(`Chat with ${vehicle.ownerName}`);
-    // };
-
     const calculatePrice = () => {
         if (!selectedVehicle || !distance) {
             return 0;
@@ -178,6 +191,8 @@ const VehicleBooking = () => {
         if (returnTrip) {
             totalPrice *= 2;
         }
+
+        totalPrice *= capacity;
 
         return totalPrice.toFixed(2);
     };
@@ -213,10 +228,10 @@ const VehicleBooking = () => {
     };
 
     const showConfirmationModal = () => {
-        if (pickupLocation && dropLocation) {
+        if (pickupLocation && dropLocation && pickupDate && pickupTime) {
             setIsModalVisible(true);
         } else {
-            message.error('Please select both pickup and drop locations.');
+            message.error('Please select all booking details.');
         }
     };
 
@@ -229,6 +244,18 @@ const VehicleBooking = () => {
         setIsModalVisible(false);
     };
 
+    const formatDuration = (seconds) => {
+        const days = Math.floor(seconds / (24 * 3600));
+        seconds %= (24 * 3600);
+        const hours = Math.floor(seconds / 3600);
+        seconds %= 3600;
+        const minutes = Math.floor(seconds / 60);
+        seconds %= 60;
+    
+        return `${days}d ${hours}h ${minutes}m ${seconds}s`;
+    };
+
+    
     useEffect(() => {
         if (pickupLocation && dropLocation) {
             const directionsService = new window.google.maps.DirectionsService();
@@ -242,11 +269,19 @@ const VehicleBooking = () => {
                     if (status === window.google.maps.DirectionsStatus.OK) {
                         setDirections(result);
                         setDistance(result.routes[0].legs[0].distance.value / 1000);
+                        const travelDuration = result.routes[0].legs[0].duration.value; 
+                        setTravelDuration(travelDuration)
+                        const pickupDateTime = moment(`${pickupDate} ${pickupTime}`);
+                        const dropDateTime = pickupDateTime.clone().add(travelDuration, 'seconds');
+                        setCalculatedDropDateTime({
+                            date: dropDateTime.format('YYYY-MM-DD'),
+                            time: dropDateTime.format('HH:mm'),
+                        });
                     }
                 }
             );
         }
-    }, [pickupLocation, dropLocation]);
+    }, [pickupLocation, dropLocation, pickupDate, pickupTime]);
 
     const filterButtons = ['Car', 'Lorry', 'Freezer', 'Van', 'Tipper Truck', 'Container'];
 
@@ -309,62 +344,137 @@ const VehicleBooking = () => {
                         pageSize={vehiclesPerPage}
                         total={filteredVehicles.length}
                         onChange={paginate}
-                        style={{ marginTop: 24, textAlign: 'center' }}
+                        style={{ marginTop: '16px', textAlign: 'center' }}
                     />
                 </Content>
-                {selectedVehicle && (
-                    <Sider width={400} theme="light" style={{ padding: '24px', backgroundColor: '#fff' }}>
-                        <Button 
-                            type="text" 
-                            icon={<CloseOutlined />} 
-                            onClick={() => setSelectedVehicle(null)}
-                            style={{ marginBottom: 24 }}
-                        />
-                        <Title level={4}>{selectedVehicle.name}</Title>
-                        <p><strong>Type:</strong> {selectedVehicle.type}</p>
-                        <p><strong>Registration:</strong> {selectedVehicle.registrationNumber}</p>
-                        <p><strong>Owner:</strong> {selectedVehicle.ownerName}</p>
-                        <p><strong>Driver:</strong> {selectedVehicle.driverName}</p>
-                        <p><strong>Price per Km:</strong> ${selectedVehicle.pricePerKm}</p>
-                        <Autocomplete onLoad={onPickupLoad} onPlaceChanged={onPickupPlaceChanged}>
-                            <Input placeholder="Pickup Location" style={{ marginBottom: 16 }} />
-                        </Autocomplete>
-                        <Autocomplete onLoad={onDropLoad} onPlaceChanged={onDropPlaceChanged}>
-                            <Input placeholder="Drop Location" style={{ marginBottom: 16 }} />
-                        </Autocomplete>
-                        <Checkbox 
-                            checked={returnTrip} 
-                            onChange={(e) => setReturnTrip(e.target.checked)}
-                            style={{ marginBottom: 16 }}
-                        >
-                            Return Trip
-                        </Checkbox>
-                        <GoogleMap
-                            mapContainerStyle={{ width: '100%', height: '300px', marginBottom: 16 }}
-                            center={pickupLocation || { lat: -34.397, lng: 150.644 }}
-                            zoom={8}
-                        >
-                            {pickupLocation && <Marker position={{ lat: pickupLocation.lat, lng: pickupLocation.lng }} />}
-                            {dropLocation && <Marker position={{ lat: dropLocation.lat, lng: dropLocation.lng }} />}
-                            {directions && <DirectionsRenderer directions={directions} />}
-                        </GoogleMap>
-                        <p><strong>Distance:</strong> {distance.toFixed(2)} km</p>
-                        <p><strong>Total Price:</strong> ${calculatePrice()}</p>
-                        <Button type="primary" onClick={showConfirmationModal} block>Book Now</Button>
-                    </Sider>
-                )}
+                <Sider width={400} style={{ padding: '24px', backgroundColor: '#ffffff' }}>
+                    <Title level={4}>Booking Details</Title>
+                    {selectedVehicle ? (
+                        <div>
+                            <Card
+                                cover={<img alt={selectedVehicle.name} src={selectedVehicle.photo} style={{ objectFit: 'cover', height: 200 }} />}
+                            >
+                                <Card.Meta
+                                    title={selectedVehicle.name}
+                                    description={
+                                        <>
+                                            <p><strong>Type:</strong> {selectedVehicle.type}</p>
+                                            <p><strong>Registration:</strong> {selectedVehicle.registrationNumber}</p>
+                                            <p><strong>Owner:</strong> {selectedVehicle.ownerName}</p>
+                                            <p><strong>Price Per Km:</strong> ${selectedVehicle.pricePerKm}</p>
+                                        </>
+                                    }
+                                />
+                            </Card>
+                            <Autocomplete onLoad={onPickupLoad} onPlaceChanged={onPickupPlaceChanged}>
+                                <Input 
+                                    placeholder="Enter pickup location"
+                                    style={{ width: '100%', marginBottom: '16px', marginTop: '16px' }}
+                                />
+                            </Autocomplete>
+                            <DatePicker
+                                placeholder="Pickup Date"
+                                style={{ width: '100%', marginBottom: '16px' }}
+                                onChange={(date, dateString) => setPickupDate(dateString)}
+                            />
+                            <TimePicker
+                                placeholder="Pickup Time"
+                                style={{ width: '100%', marginBottom: '16px' }}
+                                onChange={(time, timeString) => setPickupTime(timeString)}
+                            />
+                            <Autocomplete onLoad={onDropLoad} onPlaceChanged={onDropPlaceChanged}>
+                                <Input 
+                                    placeholder="Enter drop location"
+                                    style={{ width: '100%', marginBottom: '16px' }}
+                                />
+                            </Autocomplete>
+                            <Select
+                                defaultValue={1}
+                                style={{ width: '100%', marginBottom: '16px' }}
+                                onChange={(value) => {
+                                    setCapacity(value);
+                                    if (value < 1) {
+                                        setShareSpace(true);
+                                    } else {
+                                        setShareSpace(false);
+                                    }
+                                }}
+                            >
+                                <Option value={0.3}>1/3</Option>
+                                <Option value={0.5}>1/2</Option>
+                                <Option value={1}>1</Option>
+                               
+                            </Select>
+                            {capacity < 1 && (
+                                <Checkbox
+                                    checked={shareSpace}
+                                    onChange={(e) => setShareSpace(e.target.checked)}
+                                    style={{ marginBottom: '16px' }}
+                                >
+                                    Share space with another customer
+                                </Checkbox>
+                            )}
+                            <Checkbox
+                                checked={returnTrip}
+                                onChange={(e) => setReturnTrip(e.target.checked)}
+                                style={{ marginBottom: '16px' }}
+                            >
+                                Return Trip
+                            </Checkbox>
+                            <GoogleMap
+                                mapContainerStyle={{ height: '300px', width: '100%', marginBottom: '16px' }}
+                                center={{ lat: 6.9271, lng: 79.8612 }}
+                                zoom={10}
+                            >
+                                {directions && <DirectionsRenderer directions={directions} />}
+                            </GoogleMap>
+                            <Button type="primary" block onClick={showConfirmationModal}>
+                                Book Now
+                            </Button>
+                            <Modal
+                                title="Confirm Booking"
+                                visible={isModalVisible}
+                                onOk={handleOk}
+                                onCancel={handleCancel}
+                                width={800}
+                            >
+                                <p><strong>Vehicle:</strong> {selectedVehicle.name}</p>
+                                <p><strong>Pickup Location:</strong> {pickupLocation && pickupLocation.address}</p>
+                                <p><strong>Drop Location:</strong> {dropLocation && dropLocation.address}</p>
+                                <p><strong>Pickup Date:</strong> {pickupDate}</p>
+                                <p><strong>Pickup Time:</strong> {pickupTime}</p>
+                                <p><strong>Average Time to Destination:</strong>{formatDuration(travelDuration)} </p>
+                                <p><strong>Drop Date:</strong> {calculatedDropDateTime && calculatedDropDateTime.date}</p>
+                                <p><strong>Drop Time:</strong> {calculatedDropDateTime && calculatedDropDateTime.time}</p>
+                                <p><strong>Return Trip:</strong> {returnTrip ? 'Yes' : 'No'}</p>
+                                <p><strong>Distance:</strong> {distance} km</p>
+                                <p><strong>Total Price:</strong> ${calculatePrice()}</p>
+                                <GoogleMap
+                                    mapContainerStyle={{ height: '300px', width: '100%', marginTop: '16px' }}
+                                    center={{ lat: 6.9271, lng: 79.8612 }}
+                                    zoom={10}
+                                >
+                                    {directions && <DirectionsRenderer directions={directions} />}
+                                    {pickupLocation && (
+                                        <Marker
+                                            position={{ lat: pickupLocation.lat, lng: pickupLocation.lng }}
+                                            label="P"
+                                        />
+                                    )}
+                                    {dropLocation && (
+                                        <Marker
+                                            position={{ lat: dropLocation.lat, lng: dropLocation.lng }}
+                                            label="D"
+                                        />
+                                    )}
+                                </GoogleMap>
+                            </Modal>
+                        </div>
+                    ) : (
+                        <div>Please select a vehicle to book</div>
+                    )}
+                </Sider>
             </Layout>
-            <Modal
-                title="Confirm Booking"
-                visible={isModalVisible}
-                onOk={handleOk}
-                onCancel={handleCancel}
-            >
-                <p>Pickup Location: {pickupLocation ? pickupLocation.address : 'N/A'}</p>
-                <p>Drop Location: {dropLocation ? dropLocation.address : 'N/A'}</p>
-                <p>Distance: {distance.toFixed(2)} km</p>
-                <p>Total Price: ${calculatePrice()}</p>
-            </Modal>
         </LoadScript>
     );
 };
