@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Row, Col, Typography, Select, Button, Modal, Form, message } from 'antd';
 import httpService from '../../../services/httpService';
 
@@ -13,28 +13,28 @@ const OwnerUnassignedVehicles = () => {
     const [selectedDriver, setSelectedDriver] = useState(null);
     const ownerId = localStorage.getItem('ownerId');
 
-    useEffect(() => {
-        fetchUnassignedVehicles();
-        fetchUnassignedDrivers();
-    }, []);
-
-    const fetchUnassignedVehicles = async () => {
+    const fetchUnassignedVehicles = useCallback(async () => {
         try {
             const response = await httpService.get(`/owner/unassignedVehicles/${ownerId}`);
             setVehicles(response.data);
         } catch (error) {
             message.error('Failed to fetch unassigned vehicles.');
         }
-    };
+    }, [ownerId]);
 
-    const fetchUnassignedDrivers = async () => {
+    const fetchUnassignedDrivers = useCallback(async () => {
         try {
             const response = await httpService.get(`/owner/unassignedDrivers/${ownerId}`);
             setDrivers(response.data);
         } catch (error) {
             message.error('Failed to fetch unassigned drivers.');
         }
-    };
+    }, [ownerId]);
+
+    useEffect(() => {
+        fetchUnassignedVehicles();
+        fetchUnassignedDrivers();
+    }, [fetchUnassignedVehicles, fetchUnassignedDrivers]);
 
     const showAssignDriverModal = (vehicle) => {
         setSelectedVehicle(vehicle);
