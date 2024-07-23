@@ -30,6 +30,7 @@ const AddVehicle = () => {
   const [form] = Form.useForm();
   const [uploading, setUploading] = useState(false);
   const [capacityUnits, setCapacityUnits] = useState([]);
+  const [isFormValid, setIsFormValid] = useState(false);
 
   const container = useRef(null);
   const lottieInstance = useRef(null);
@@ -100,6 +101,7 @@ const AddVehicle = () => {
         setUploading(false);
         message.success('Vehicle added successfully!');
         form.resetFields();
+        setIsFormValid(false);
       } catch (error) {
         message.error('File upload failed.');
         setUploading(false);
@@ -127,12 +129,18 @@ const AddVehicle = () => {
     }
   };
 
+  const onFieldsChange = () => {
+    const fields = form.getFieldsError();
+    const allValid = fields.every(field => field.errors.length === 0);
+    setIsFormValid(allValid);
+  };
+
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '20px' }}>
       <div ref={container} id="animation-container" style={{ paddingLeft: '20px' }} />
       <div style={{ paddingRight: '20px', width: '30%' }}>
         <h2>Add a New Vehicle</h2>
-        <Form form={form} layout="vertical" onFinish={onFinish}>
+        <Form form={form} layout="vertical" onFinish={onFinish} onFieldsChange={onFieldsChange}>
           <Form.Item name="type" rules={[{ required: true, message: 'Please select your vehicle type!' }]}>
             <Select placeholder="Select Vehicle Type" onChange={handleVehicleTypeChange}>
               {vehicleTypes.map(({ type }) => (
@@ -169,15 +177,17 @@ const AddVehicle = () => {
             <Input placeholder="Charge Per Km" />
           </Form.Item>
 
-          <Form.Item 
-            name="heavyVehicle" 
-            label="Vehicle Type"
-            rules={[{ required: true, message: 'Please select the vehicle type!' }]}
-          >
-            <Radio.Group>
-              <Radio value="true">Heavy</Radio>
-              <Radio value="false">Light</Radio>
-            </Radio.Group>
+          <Form.Item label="Vehicle Type" style={{ display: 'flex', alignItems: 'center' }}>
+            <Form.Item
+              name="heavyVehicle"
+              noStyle
+              rules={[{ required: true, message: 'Please select the vehicle type!' }]}
+            >
+              <Radio.Group style={{ marginLeft: '10px' }}>
+                <Radio value="true">Heavy</Radio>
+                <Radio value="false">Light</Radio>
+              </Radio.Group>
+            </Form.Item>
           </Form.Item>
 
           <Form.Item name="vehiclePhoto" valuePropName="fileList" getValueFromEvent={(e) => Array.isArray(e) ? e : e && e.fileList} rules={[{ required: true, message: 'Please upload your vehicle photo!' }]}>
@@ -193,7 +203,7 @@ const AddVehicle = () => {
           </Form.Item>
 
           <Form.Item>
-            <Button type="primary" htmlType="submit" style={{ width: '100%', backgroundColor: '#fdb940', borderColor: '#fdb940' }} loading={uploading}>
+            <Button type="primary" htmlType="submit" style={{ width: '100%', backgroundColor: '#fdb940', borderColor: '#fdb940' }} loading={uploading} disabled={!isFormValid}>
               Add Vehicle
             </Button>
           </Form.Item>

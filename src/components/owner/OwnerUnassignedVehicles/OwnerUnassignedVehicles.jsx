@@ -1,25 +1,33 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Row, Col, Typography, Select, Button, Modal, Form, message } from 'antd';
+import { Card, Row, Col, Typography, Select, Button, Modal, Form, message, Input, Empty } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
 import httpService from '../../../services/httpService';
 
 const { Title } = Typography;
 const { Option } = Select;
+const { Meta } = Card;
 
 const OwnerUnassignedVehicles = () => {
     const [vehicles, setVehicles] = useState([]);
+    const [filteredVehicles, setFilteredVehicles] = useState([]);
     const [drivers, setDrivers] = useState([]);
     const [selectedVehicle, setSelectedVehicle] = useState(null);
     const [assignDriverModalVisible, setAssignDriverModalVisible] = useState(false);
     const [selectedDriver, setSelectedDriver] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
     const ownerId = localStorage.getItem('ownerId');
 
     const fetchUnassignedVehicles = useCallback(async () => {
         try {
             const response = await httpService.get(`/owner/unassignedVehi/${ownerId}`);
             setVehicles(response.data);
+            setFilteredVehicles(response.data);
+            setLoading(false);
         } catch (error) {
-            console.log(error)
+            console.log(error);
             message.error('Failed to fetch unassigned vehicles.');
+            setLoading(false);
         }
     }, [ownerId]);
 
@@ -36,6 +44,14 @@ const OwnerUnassignedVehicles = () => {
         fetchUnassignedVehicles();
         fetchUnassignedDrivers();
     }, [fetchUnassignedVehicles, fetchUnassignedDrivers]);
+
+    useEffect(() => {
+        const filtered = vehicles.filter(vehicle => 
+            vehicle.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            vehicle.regNo.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        setFilteredVehicles(filtered);
+    }, [searchTerm, vehicles]);
 
     const showAssignDriverModal = (vehicle) => {
         setSelectedVehicle(vehicle);
@@ -65,40 +81,56 @@ const OwnerUnassignedVehicles = () => {
         }
     };
 
+    const handleSearch = (value) => {
+        setSearchTerm(value);
+    };
+
     const filteredDrivers = selectedVehicle?.heavyVehicle
         ? drivers.filter(driver => driver.heavyVehicleLic)
         : drivers;
 
     return (
-        <div>
-            <Title level={2} style={{ textAlign: 'center' }}>Vehicle Management</Title>
-            <Row gutter={[16, 16]} justify="center">
-                {vehicles.map(vehicle => (
-                    <Col key={vehicle.id} xs={24} sm={12} md={8} lg={6}>
-                        <Card
-                            title={vehicle.name}
-                            extra={
-                                <Button type="link" onClick={() => showAssignDriverModal(vehicle)}>
-                                    Assign Driver
-                                </Button>
-                            }
-                            style={{ marginBottom: '16px' }}
-                        >
-                            <div style={{ marginBottom: '16px' }}>
-                                <img src={vehicle.photoUrl} alt="Vehicle" style={{ width: '100%', height: 'auto', borderRadius: '8px' }} />
-                            </div>
-                            <p><strong>Type:</strong> {vehicle.type}</p>
-                            <p><strong>Registration:</strong> {vehicle.regNo}</p>
-                            <p><strong>Preferred Area:</strong> {vehicle.preferredArea}</p>
-                            <p><strong>Capacity:</strong> {vehicle.capacity} {vehicle.capacityUnit}</p>
-                            <p><strong>Owner:</strong> {vehicle.ownerName}</p>
-                            <p><strong>Owner Contact:</strong> {vehicle.ownerContact}</p>
-                            <p><strong>Driver:</strong> {vehicle.driver || 'Not Assigned'}</p>
-                            <p><strong>Driver Contact:</strong> {vehicle.driverContact || 'Not Available'}</p>
-                        </Card>
-                    </Col>
-                ))}
-            </Row>
+        <div style={{ padding: '20px' }}>
+            <Title level={3} style={{ marginBottom: '20px' }}>Unassigned Vehicles</Title>
+            <Input
+                prefix={<SearchOutlined />}
+                placeholder="Search by vehicle type or registration number"
+                onChange={(e) => handleSearch(e.target.value)}
+                style={{ marginBottom: '20px', width: '100%', maxWidth: '400px' }}
+            />
+            {loading ? (
+                <div>Loading...</div>
+            ) : filteredVehicles.length > 0 ? (
+                <Row gutter={[16, 16]}>
+                    {filteredVehicles.map(vehicle => (
+                        <Col xs={24} sm={12} md={8} lg={6} key={vehicle.id}>
+                            <Card
+                                hoverable
+                                cover={<img alt={vehicle.name} src={vehicle.photoUrl} style={{ height: 200, objectFit: 'cover' }} />}
+                                actions={[
+                                    <Button key="assign" type="primary" onClick={() => showAssignDriverModal(vehicle)}>
+                                        Assign Driver
+                                    </Button>
+                                ]}
+                            >
+                                <Meta
+                                    title={`${vehicle.type} - ${vehicle.regNo}`}
+                                    description={
+                                        <>
+                                            <p><strong>Preferred Area:</strong> {vehicle.preferredArea}</p>
+                                            <p><strong>Capacity:</strong> {vehicle.capacity} {vehicle.capacityUnit}</p>
+                                            <p><strong>Owner:</strong> {vehicle.ownerName}</p>
+                                            <p><strong>Owner Contact:</strong> {vehicle.ownerContact}</p>
+                                        </>
+                                    }
+                                />
+                            </Card>
+                        </Col>
+                    ))}
+                </Row>
+            ) : (
+                <Empty description="No unassigned vehicles found" />
+            )}
             <Modal
                 title="Assign Driver"
                 visible={assignDriverModalVisible}

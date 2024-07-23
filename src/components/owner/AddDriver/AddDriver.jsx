@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Form, Input, Button, Upload, message, Radio } from 'antd';
-import { EyeInvisibleOutlined, EyeTwoTone, UploadOutlined } from '@ant-design/icons';
+import {  UploadOutlined } from '@ant-design/icons';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../../config/firebaseconfig'; // Adjust the import path as needed
 import lottie from 'lottie-web';
@@ -188,16 +188,6 @@ const AddDriver = () => {
           </Form.Item>
 
           <Form.Item
-            name="password"
-            rules={[{ required: true, message: 'Please input your password!' }]}
-          >
-            <Input.Password
-              placeholder="Password"
-              iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
-            />
-          </Form.Item>
-
-          <Form.Item
             name="licenseUrl"
             valuePropName="fileList"
             getValueFromEvent={(e) => Array.isArray(e) ? e : e && e.fileList}
@@ -206,6 +196,16 @@ const AddDriver = () => {
             <Upload name="licenseUrl" listType="picture">
               <Button icon={<UploadOutlined />}>Click to Upload Driver&apos;s License</Button>
             </Upload>
+          </Form.Item>
+          <Form.Item
+            name="heavyVehicleLic"
+            label="Heavy Vehicle License"
+            rules={[{ required: true, message: 'Please select an option for Heavy Vehicle License!' }]}
+          >
+            <Radio.Group>
+              <Radio value={true}>Yes</Radio>
+              <Radio value={false}>No</Radio>
+            </Radio.Group>
           </Form.Item>
 
           <Form.Item
@@ -219,16 +219,7 @@ const AddDriver = () => {
             </Upload>
           </Form.Item>
 
-          <Form.Item
-            name="heavyVehicleLic"
-            label="Heavy Vehicle License"
-            rules={[{ required: true, message: 'Please select an option for Heavy Vehicle License!' }]}
-          >
-            <Radio.Group>
-              <Radio value={true}>Yes</Radio>
-              <Radio value={false}>No</Radio>
-            </Radio.Group>
-          </Form.Item>
+        
 
           <Form.Item
             name="policeCertiUrl"
