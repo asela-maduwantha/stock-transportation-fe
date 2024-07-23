@@ -89,6 +89,8 @@ const OwnerUnassignedVehicles = () => {
                             </div>
                             <p><strong>Type:</strong> {vehicle.type}</p>
                             <p><strong>Registration:</strong> {vehicle.regNo}</p>
+                            <p><strong>Preferred Area:</strong> {vehicle.preferredArea}</p>
+                            <p><strong>Capacity:</strong> {vehicle.capacity} {vehicle.capacityUnit}</p>
                             <p><strong>Owner:</strong> {vehicle.ownerName}</p>
                             <p><strong>Owner Contact:</strong> {vehicle.ownerContact}</p>
                             <p><strong>Driver:</strong> {vehicle.driver || 'Not Assigned'}</p>
