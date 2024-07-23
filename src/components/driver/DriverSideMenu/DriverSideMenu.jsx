@@ -25,7 +25,7 @@ const menuItems = [
     key: 'pickup-stock',
     icon: <ContainerOutlined />,
     label: 'Stock Pending Pickup',
-    link: '/driver/pickupstock',
+    link: '/driver/pickup-stock',
   },
   {
     key: 'assigned-trips',

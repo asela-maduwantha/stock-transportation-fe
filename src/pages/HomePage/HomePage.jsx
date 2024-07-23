@@ -6,6 +6,7 @@ import Header from '../../components/common/Header/Header'
 import HomeSearch from '../../components/common/HomeSearch/HomeSearch'
 import ReviewPortal from '../../components/common/ReviewPortal/ReviewPortal'
 import AboutUs from '../../components/common/AboutUs/AboutUs'
+import FooterComponent from "../../components/common/FooterComponent/FooterComponent";
 
 const HomePage = () => {
   const location = useLocation();
@@ -23,6 +24,7 @@ const HomePage = () => {
             <HomeSearch />
             <ReviewPortal />
             <AboutUs />
+            <FooterComponent/>
           </>
         )}
       </div>

@@ -6,7 +6,7 @@ import './HomeSearch.css';
 const { Title } = Typography;
 const { Option } = Select;
 
-const vehicleCategories = ['Lorry', 'Freezer', 'Van', 'Tipper Truck'];
+const vehicleCategories = ['Lorry', 'Freezer', 'Van', 'Tipper Truck', 'Container'];
 
 // Mock data for demonstration
 const mockVehicles = [
