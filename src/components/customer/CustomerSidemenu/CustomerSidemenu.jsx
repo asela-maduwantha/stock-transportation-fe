@@ -7,78 +7,92 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   UserOutlined,
+  CarOutlined,
+  CalculatorOutlined,
 } from '@ant-design/icons';
 import { Menu, Layout } from 'antd';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import './CustomerSidemenu.css';
 
 const { Sider } = Layout;
-
 
 const menuItems = [
   {
     key: 'dashboard',
     icon: <PieChartOutlined />,
     label: 'Dashboard',
-    link: 'dashboard',
+    link: '/customer/dashboard',
   },
   {
     key: 'book',
     icon: <DesktopOutlined />,
     label: 'Book Vehicle',
-    link: 'booking', 
+    link: '/customer/booking', 
   },
   {
     key: 'booking-history',
     icon: <ContainerOutlined />,
     label: 'Booking History',
-    link: 'booking-history', 
+    link: '/customer/booking-history', 
   },
   {
     key: 'pickup-view',
     icon: <ContainerOutlined />,
-    label: 'Stock pending Pickup',
-    link: 'stock-pickup', 
+    label: 'Stock Pending Pickup',
+    link: '/customer/stock-pickup', 
   },
   {
     key: 'drivers',
-    icon: <ContainerOutlined />,
+    icon: <CarOutlined />,
     label: 'Drivers',
-    link: 'drivers', 
+    link: '/customer/drivers', 
   },
   {
     key: 'costcalculator',
-    icon: <ContainerOutlined />,
+    icon: <CalculatorOutlined />,
     label: 'Cost Calculator',
-    link: 'cost-calculator',
+    link: '/customer/cost-calculator',
   },
   {
     key: 'profile-settings',
     icon: <UserOutlined />,
     label: 'Profile Settings',
-    link: 'profile-settings',
+    link: '/customer/profile-settings',
   },
   {
     key: 'logout',
     icon: <MailOutlined />,
     label: 'Logout',
-    link: 'logout',
+    link: '/logout',
   },
 ];
 
 const CustomerSidemenu = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const history = useHistory();
 
   const toggleCollapsed = () => {
     setCollapsed(!collapsed);
   };
 
+  const handleLogout = () => {
+    // Clear local storage or any other logout logic
+    localStorage.clear();
+    history.push('/customer/signin'); // Redirect to the login page
+  };
+
   const renderMenuItems = (items) =>
-    items.map((item) => (
-      <Menu.Item key={item.key} icon={item.icon}>
-        <Link to={item.link}>{item.label}</Link>
-      </Menu.Item>
-    ));
+    items.map((item) =>
+      item.key === 'logout' ? (
+        <Menu.Item key={item.key} icon={item.icon} onClick={handleLogout}>
+          {item.label}
+        </Menu.Item>
+      ) : (
+        <Menu.Item key={item.key} icon={item.icon}>
+          <Link to={item.link}>{item.label}</Link>
+        </Menu.Item>
+      )
+    );
 
   return (
     <Layout style={{ minHeight: '100vh' }}>

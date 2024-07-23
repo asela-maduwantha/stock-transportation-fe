@@ -4,13 +4,23 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   UserOutlined,
+  DashboardOutlined,
+  CarOutlined,
+  InfoCircleOutlined,
+  LogoutOutlined,
 } from '@ant-design/icons';
 import { Menu, Layout } from 'antd';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 
 const { Sider } = Layout;
 
 const menuItems = [
+  {
+    key: 'dashboard',
+    icon: <DashboardOutlined />,
+    label: 'Dashboard',
+    link: '/driver/dashboard',
+  },
   {
     key: 'pickup-stock',
     icon: <ContainerOutlined />,
@@ -18,14 +28,32 @@ const menuItems = [
     link: '/driver/pickupstock',
   },
   {
+    key: 'assigned-trips',
+    icon: <CarOutlined />,
+    label: 'Assigned Trips',
+    link: '/driver/assigned-trips',
+  },
+  {
+    key: 'vehicles',
+    icon: <CarOutlined />,
+    label: 'Vehicles',
+    link: '/driver/vehicles',
+  },
+  {
     key: 'profile-settings',
     icon: <UserOutlined />,
     label: 'Profile Settings',
-    link: '/customer/profile-settings',
+    link: '/driver/profile-settings',
+  },
+  {
+    key: 'help',
+    icon: <InfoCircleOutlined />,
+    label: 'Help',
+    link: '/driver/help',
   },
   {
     key: 'logout',
-    icon: <ContainerOutlined />,
+    icon: <LogoutOutlined />,
     label: 'Logout',
     link: '/logout',
   },
@@ -33,17 +61,30 @@ const menuItems = [
 
 const DriverSideMenu = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const history = useHistory();
 
   const toggleCollapsed = () => {
     setCollapsed(!collapsed);
   };
 
+  const handleLogout = () => {
+   
+    localStorage.clear();
+    history.push('/driver/signin'); 
+  };
+
   const renderMenuItems = (items) =>
-    items.map((item) => (
-      <Menu.Item key={item.key} icon={item.icon}>
-        <Link to={item.link}>{item.label}</Link>
-      </Menu.Item>
-    ));
+    items.map((item) =>
+      item.key === 'logout' ? (
+        <Menu.Item key={item.key} icon={item.icon} onClick={handleLogout}>
+          {item.label}
+        </Menu.Item>
+      ) : (
+        <Menu.Item key={item.key} icon={item.icon}>
+          <Link to={item.link}>{item.label}</Link>
+        </Menu.Item>
+      )
+    );
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -69,7 +110,7 @@ const DriverSideMenu = () => {
           theme="light"
           inlineCollapsed={collapsed}
           style={{ backgroundColor: 'white', height: '100%' }}
-          defaultSelectedKeys={['pickup-stock']}
+          defaultSelectedKeys={['dashboard']}
         >
           {renderMenuItems(menuItems)}
         </Menu>
