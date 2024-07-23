@@ -11,7 +11,7 @@ import {
   CalculatorOutlined,
 } from '@ant-design/icons';
 import { Menu, Layout } from 'antd';
-import { Link, useHistory } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './CustomerSidemenu.css';
 
 const { Sider } = Layout;
@@ -69,16 +69,16 @@ const menuItems = [
 
 const CustomerSidemenu = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const history = useHistory();
+  const navigate = useNavigate(); 
 
   const toggleCollapsed = () => {
     setCollapsed(!collapsed);
   };
 
   const handleLogout = () => {
-    // Clear local storage or any other logout logic
+    
     localStorage.clear();
-    history.push('/customer/signin'); // Redirect to the login page
+    navigate('/customer/signin'); 
   };
 
   const renderMenuItems = (items) =>

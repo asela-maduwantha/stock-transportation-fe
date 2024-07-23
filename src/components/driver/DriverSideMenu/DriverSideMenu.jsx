@@ -10,7 +10,7 @@ import {
   LogoutOutlined,
 } from '@ant-design/icons';
 import { Menu, Layout } from 'antd';
-import { Link, useHistory } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const { Sider } = Layout;
 
@@ -61,7 +61,7 @@ const menuItems = [
 
 const DriverSideMenu = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const toggleCollapsed = () => {
     setCollapsed(!collapsed);
@@ -70,7 +70,7 @@ const DriverSideMenu = () => {
   const handleLogout = () => {
    
     localStorage.clear();
-    history.push('/driver/signin'); 
+    navigate('/driver/signin'); 
   };
 
   const renderMenuItems = (items) =>
