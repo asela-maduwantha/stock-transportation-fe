@@ -201,10 +201,10 @@ const AddDriver = () => {
             name="licenseUrl"
             valuePropName="fileList"
             getValueFromEvent={(e) => Array.isArray(e) ? e : e && e.fileList}
-            rules={[{ required: true, message: 'Please upload your driver\'s license!' }]}
+            rules={[{ required: true, message: 'Please upload your driver&apos;s license!' }]}
           >
             <Upload name="licenseUrl" listType="picture">
-              <Button icon={<UploadOutlined />}>Click to Upload Driver's License</Button>
+              <Button icon={<UploadOutlined />}>Click to Upload Driver&apos;s License</Button>
             </Upload>
           </Form.Item>
 
@@ -215,7 +215,7 @@ const AddDriver = () => {
             rules={[{ required: true, message: 'Please upload your photo!' }]}
           >
             <Upload name="photoUrl" listType="picture">
-              <Button icon={<UploadOutlined />}>Click to Upload Driver's Photo</Button>
+              <Button icon={<UploadOutlined />}>Click to Upload Driver&apos;s Photo</Button>
             </Upload>
           </Form.Item>
 
