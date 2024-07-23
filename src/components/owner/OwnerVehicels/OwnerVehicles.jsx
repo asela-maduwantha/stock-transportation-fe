@@ -16,32 +16,24 @@ const OwnerVehicles = () => {
 
   return (
     <Layout style={{ minHeight: '100vh', backgroundColor: '#f0f2f5' }}>
-      <Content style={{ padding: '12px' }}>
-        <Title level={2} style={{ marginBottom: '12px', textAlign: 'center' }}>
+      <Content style={{ padding: '24px' }}>
+        <Title level={2} style={{ marginBottom: '24px', textAlign: 'center' }}>
           Vehicle Management
         </Title>
-        <div style={{ 
-          backgroundColor: 'white', 
-          padding: '24px', 
-          borderRadius: '8px', 
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-          maxHeight: '80vh', 
-          overflowY: 'auto' 
-        }}>
-          <Tabs 
-            activeKey={activeTab} 
-            onChange={handleTabChange}
-            type="card"
-            size="large"
-          >
-            <TabPane tab="Assigned Vehicles" key="1">
-              <AssignedVehicles />
-            </TabPane>
-            <TabPane tab="Unassigned Vehicles" key="2">
-              <OwnerUnassignedVehicles />
-            </TabPane>
-          </Tabs>
-        </div>
+        <Tabs 
+          activeKey={activeTab} 
+          onChange={handleTabChange}
+          type="card"
+          size="large"
+          style={{ backgroundColor: 'white', padding: '24px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+        >
+          <TabPane tab="Assigned Vehicles" key="1">
+            <AssignedVehicles />
+          </TabPane>
+          <TabPane tab="Unassigned Vehicles" key="2">
+            <OwnerUnassignedVehicles />
+          </TabPane>
+        </Tabs>
       </Content>
     </Layout>
   );
