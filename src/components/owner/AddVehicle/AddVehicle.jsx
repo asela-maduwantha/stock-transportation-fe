@@ -76,7 +76,7 @@ const AddVehicle = () => {
   };
 
   const onFinish = async (values) => {
-    const { vehiclePhoto, bookPhoto, regNo, capacity, ...rest } = values;
+    const { vehiclePhoto, bookPhoto, regNo, capacity, chargePerKm, ...rest } = values;
     const ownerId = localStorage.getItem('ownerId');
 
     if (vehiclePhoto && vehiclePhoto[0] && vehiclePhoto[0].originFileObj) {
@@ -93,6 +93,7 @@ const AddVehicle = () => {
           vehicleBookUrl,
           regNo,
           capacity: Number(capacity),
+          chargePerKm: Number(chargePerKm),
           ownerId
         });
         setUploading(false);
@@ -161,6 +162,10 @@ const AddVehicle = () => {
                 <Option key={unit} value={unit}>{unit}</Option>
               ))}
             </Select>
+          </Form.Item>
+
+          <Form.Item name="chargePerKm" rules={[{ required: true, message: 'Please input charge per km!' }]}>
+            <Input placeholder="Charge Per Km" />
           </Form.Item>
 
           <Form.Item name="heavyVehicle" valuePropName="checked">

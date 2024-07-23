@@ -88,11 +88,12 @@ const AddDriver = () => {
 
   const onFinish = async (values) => {
     const ownerId = localStorage.getItem('ownerId');
-    const { licenseUrl, policeCertiUrl, firstName, lastName, heavyVehicleLic, ...rest } = values;
+    const { licenseUrl, policeCertiUrl, photoUrl, ...rest } = values;
 
-    const fullName = `${firstName}_${lastName}`;
+    const fullName = `${values.firstName}_${values.lastName}`;
     let licenseUrlValue = '';
     let policeCertificateUrl = '';
+    let photoUrlValue = '';
 
     setUploading(true);
     try {
@@ -102,8 +103,11 @@ const AddDriver = () => {
       if (policeCertiUrl && policeCertiUrl[0] && policeCertiUrl[0].originFileObj) {
         policeCertificateUrl = await uploadFile(policeCertiUrl[0].originFileObj, 'policeCertificates', `${fullName}_police_certificate.jpg`);
       }
+      if (photoUrl && photoUrl[0] && photoUrl[0].originFileObj) {
+        photoUrlValue = await uploadFile(photoUrl[0].originFileObj, 'driverPhotos', `${fullName}_photo.jpg`);
+      }
 
-      submitForm({ ...rest, firstName, lastName, licenseUrl: licenseUrlValue, policeCertiUrl: policeCertificateUrl, heavyVehicleLic, ownerId });
+      submitForm({ ...rest, licenseUrl: licenseUrlValue, policeCertiUrl: policeCertificateUrl, photoUrl: photoUrlValue, ownerId });
       setUploading(false);
     } catch (error) {
       message.error('File upload failed.');
@@ -112,13 +116,8 @@ const AddDriver = () => {
   };
 
   const submitForm = async (data) => {
-    const payload = {
-      ...data,
-      ownerId: data.ownerId,
-    };
-
     try {
-      await httpService.post('owner/createDriver', payload);
+      await httpService.post('owner/createDriver', data);
       message.success('Driver created successfully');
       form.resetFields();
     } catch (error) {
@@ -199,34 +198,24 @@ const AddDriver = () => {
           </Form.Item>
 
           <Form.Item
-            name="confirmPassword"
-            dependencies={['password']}
-            hasFeedback
-            rules={[
-              { required: true, message: 'Please confirm your password!' },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue('password') === value) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject(new Error('The two passwords do not match!'));
-                },
-              }),
-            ]}
-          >
-            <Input.Password
-              placeholder="Confirm Password"
-              iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
-            />
-          </Form.Item>
-
-          <Form.Item
             name="licenseUrl"
             valuePropName="fileList"
             getValueFromEvent={(e) => Array.isArray(e) ? e : e && e.fileList}
+            rules={[{ required: true, message: 'Please upload your driver\'s license!' }]}
           >
             <Upload name="licenseUrl" listType="picture">
-              <Button icon={<UploadOutlined />}>Click to Upload Driver&apos;s License</Button>
+              <Button icon={<UploadOutlined />}>Click to Upload Driver's License</Button>
+            </Upload>
+          </Form.Item>
+
+          <Form.Item
+            name="photoUrl"
+            valuePropName="fileList"
+            getValueFromEvent={(e) => Array.isArray(e) ? e : e && e.fileList}
+            rules={[{ required: true, message: 'Please upload your photo!' }]}
+          >
+            <Upload name="photoUrl" listType="picture">
+              <Button icon={<UploadOutlined />}>Click to Upload Driver's Photo</Button>
             </Upload>
           </Form.Item>
 
