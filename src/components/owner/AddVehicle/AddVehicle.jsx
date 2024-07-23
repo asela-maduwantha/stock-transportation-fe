@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Form, Input, Button, Upload, Select, Switch, message } from 'antd';
+import { Form, Input, Button, Upload, Select, Radio, message } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../../config/firebaseconfig';
@@ -94,7 +94,8 @@ const AddVehicle = () => {
           regNo,
           capacity: Number(capacity),
           chargePerKm: Number(chargePerKm),
-          ownerId
+          ownerId,
+          heavyVehicle: rest.heavyVehicle === 'true'
         });
         setUploading(false);
         message.success('Vehicle added successfully!');
@@ -168,8 +169,15 @@ const AddVehicle = () => {
             <Input placeholder="Charge Per Km" />
           </Form.Item>
 
-          <Form.Item name="heavyVehicle" valuePropName="checked">
-            <Switch checkedChildren="Heavy" unCheckedChildren="Light" />
+          <Form.Item 
+            name="heavyVehicle" 
+            label="Vehicle Type"
+            rules={[{ required: true, message: 'Please select the vehicle type!' }]}
+          >
+            <Radio.Group>
+              <Radio value="true">Heavy</Radio>
+              <Radio value="false">Light</Radio>
+            </Radio.Group>
           </Form.Item>
 
           <Form.Item name="vehiclePhoto" valuePropName="fileList" getValueFromEvent={(e) => Array.isArray(e) ? e : e && e.fileList} rules={[{ required: true, message: 'Please upload your vehicle photo!' }]}>

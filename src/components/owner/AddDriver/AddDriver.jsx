@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Form, Input, Button, Upload, message, Switch } from 'antd';
+import { Form, Input, Button, Upload, message, Radio } from 'antd';
 import { EyeInvisibleOutlined, EyeTwoTone, UploadOutlined } from '@ant-design/icons';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../../config/firebaseconfig'; // Adjust the import path as needed
@@ -201,7 +201,7 @@ const AddDriver = () => {
             name="licenseUrl"
             valuePropName="fileList"
             getValueFromEvent={(e) => Array.isArray(e) ? e : e && e.fileList}
-            rules={[{ required: true, message: 'Please upload your driver&apos;s license!' }]}
+            rules={[{ required: true, message: 'Please upload your driver\'s license!' }]}
           >
             <Upload name="licenseUrl" listType="picture">
               <Button icon={<UploadOutlined />}>Click to Upload Driver&apos;s License</Button>
@@ -221,10 +221,13 @@ const AddDriver = () => {
 
           <Form.Item
             name="heavyVehicleLic"
-            valuePropName="checked"
             label="Heavy Vehicle License"
+            rules={[{ required: true, message: 'Please select an option for Heavy Vehicle License!' }]}
           >
-            <Switch />
+            <Radio.Group>
+              <Radio value={true}>Yes</Radio>
+              <Radio value={false}>No</Radio>
+            </Radio.Group>
           </Form.Item>
 
           <Form.Item
