@@ -15,9 +15,10 @@ const OwnerUnassignedVehicles = () => {
 
     const fetchUnassignedVehicles = useCallback(async () => {
         try {
-            const response = await httpService.get(`/owner/unassignedVehicles/${ownerId}`);
+            const response = await httpService.get(`/owner/unassignedVehi/${ownerId}`);
             setVehicles(response.data);
         } catch (error) {
+            console.log(error)
             message.error('Failed to fetch unassigned vehicles.');
         }
     }, [ownerId]);
