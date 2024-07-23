@@ -128,8 +128,12 @@ const OwnerUnassignedVehicles = () => {
                     </Form.Item>
                     {selectedDriver && (
                         <div style={{ textAlign: 'center', marginTop: '16px' }}>
-                            <img src={selectedDriver.driverImage || 'https://via.placeholder.com/150'} alt="Driver" style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px' }} />
-                            <p>{selectedDriver.firstName} {selectedDriver.lastName}</p>
+                            <img src={selectedDriver.photoUrl || 'https://via.placeholder.com/150'} alt="Driver" style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px' }} />
+                            <p><strong>Name:</strong> {selectedDriver.firstName} {selectedDriver.lastName}</p>
+                            <p><strong>Address:</strong> {selectedDriver.address}</p>
+                            <p><strong>Phone:</strong> {selectedDriver.phoneNumber}</p>
+                            <p><strong>Email:</strong> {selectedDriver.email}</p>
+                            <p><strong>Heavy Vehicle License:</strong> {selectedDriver.heavyVehicleLic ? 'Yes' : 'No'}</p>
                         </div>
                     )}
                 </Form>
