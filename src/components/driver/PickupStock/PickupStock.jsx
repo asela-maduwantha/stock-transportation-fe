@@ -1,9 +1,8 @@
+// src/components/PickupStock/PickupStock.jsx
 import React, { useEffect, useState } from 'react';
-import {  Button, Card, Avatar, message, Modal, Input, Row, Col } from 'antd';
-import { LoadScript, GoogleMap, DirectionsService, DirectionsRenderer, Marker } from '@react-google-maps/api';
+import { Button, Card, Avatar, message, Modal, Input, Row, Col } from 'antd';
+import { GoogleMap, DirectionsService, DirectionsRenderer, Marker, useJsApiLoader } from '@react-google-maps/api';
 import moment from 'moment';
-
-const apiKey = 'AIzaSyAyRG15a19j3uqI_7uEbQ6CZrp-h2KP0eM';
 
 const customerData = {
   name: 'John Doe',
@@ -62,7 +61,7 @@ const PickupStock = () => {
   };
 
   const handleOtpSubmit = () => {
-    if (otp === '1234') {  // Replace with actual OTP verification logic
+    if (otp === '1234') { // Replace with actual OTP verification logic
       setPickupConfirmed(true);
       setIsOtpModalVisible(false);
       message.success('Pickup confirmed!');
@@ -75,6 +74,14 @@ const PickupStock = () => {
     const url = `https://www.google.com/maps/dir/?api=1&origin=${driverLocation.lat},${driverLocation.lng}&destination=${customerData.pickupLocation.lat},${customerData.pickupLocation.lng}&travelmode=driving`;
     window.open(url, '_blank');
   };
+
+  // Use the useJsApiLoader hook
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'AIzaSyAyRG15a19j3uqI_7uEbQ6CZrp-h2KP0eM', 
+    libraries: ['places'],
+  });
+
+  if (!isLoaded) return <div>Loading...</div>;
 
   return (
     <div className="pickup-stock-container">
@@ -93,56 +100,54 @@ const PickupStock = () => {
               <p>Pickup Time: {moment().add(30, 'minutes').format('MMMM Do YYYY, h:mm a')}</p>
             </div>
             {driverLocation && (
-              <LoadScript googleMapsApiKey={apiKey}>
-                <GoogleMap
-                  id="direction-map"
-                  mapContainerStyle={{ height: '400px', width: '100%' }}
-                  zoom={14}
-                  center={driverLocation}
-                  options={{ gestureHandling: 'greedy' }}
-                >
-                  <Marker
-                    position={driverLocation}
-                    icon={{
-                      url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-                    }}
-                    label="You"
-                  />
-                  <Marker
-                    position={customerData.pickupLocation}
-                    icon={{
-                      url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
-                    }}
-                    label="Customer"
-                  />
-                  <DirectionsService
+              <GoogleMap
+                id="direction-map"
+                mapContainerStyle={{ height: '400px', width: '100%' }}
+                zoom={14}
+                center={driverLocation}
+                options={{ gestureHandling: 'greedy' }}
+              >
+                <Marker
+                  position={driverLocation}
+                  icon={{
+                    url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+                  }}
+                  label="You"
+                />
+                <Marker
+                  position={customerData.pickupLocation}
+                  icon={{
+                    url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+                  }}
+                  label="Customer"
+                />
+                <DirectionsService
+                  options={{
+                    destination: customerData.pickupLocation,
+                    origin: driverLocation,
+                    travelMode: 'DRIVING',
+                  }}
+                  callback={handleDirectionsCallback}
+                />
+                {directionsResponse && (
+                  <DirectionsRenderer
                     options={{
-                      destination: customerData.pickupLocation,
-                      origin: driverLocation,
-                      travelMode: 'DRIVING',
+                      directions: directionsResponse,
+                      polylineOptions: {
+                        strokeColor: '#ff2527',
+                        strokeOpacity: 0.8,
+                        strokeWeight: 5,
+                      },
+                      markerOptions: {
+                        visible: true,
+                        icon: {
+                          url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+                        },
+                      },
                     }}
-                    callback={handleDirectionsCallback}
                   />
-                  {directionsResponse && (
-                    <DirectionsRenderer
-                      options={{
-                        directions: directionsResponse,
-                        polylineOptions: {
-                          strokeColor: '#ff2527',
-                          strokeOpacity: 0.8,
-                          strokeWeight: 5,
-                        },
-                        markerOptions: {
-                          visible: true,
-                          icon: {
-                            url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
-                          },
-                        },
-                      }}
-                    />
-                  )}
-                </GoogleMap>
-              </LoadScript>
+                )}
+              </GoogleMap>
             )}
             {directionsResponse && (
               <div style={{ textAlign: 'center', marginTop: '20px' }}>

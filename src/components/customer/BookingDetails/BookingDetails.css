@@ -1,0 +1,25 @@
+.booking-details {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.location-input, .date-picker, .time-picker, .capacity-select, .loading-time-select {
+    width: 100%;
+}
+
+.return-trip-checkbox, .share-space-checkbox {
+    margin-top: 16px;
+}
+
+.confirm-button {
+    background-color: #FDB940;
+    color: #000;
+    border: none;
+}
+
+@media (max-width: 768px) {
+    .booking-details {
+        padding: 16px;
+    }
+}

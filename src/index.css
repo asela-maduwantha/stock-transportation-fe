@@ -11,3 +11,11 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.ant-btn-primary {
+  background-color: #FDB940;
+  border-color: #FDB940;
+  transition: opacity 0.3s ease; 
+}
+
+
