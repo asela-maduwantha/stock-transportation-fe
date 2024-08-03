@@ -50,3 +50,43 @@
 .ant-upload-list-picture-card-container:hover {
   border-color: #fdb940 !important;
 }
+
+
+/* Hide Lottie animation on mobile view */
+@media (max-width: 767px) {
+  .user-reg-img {
+    display: none;
+  }
+
+  .registration-container {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px;
+  }
+
+  .owner-reg-form {
+    margin: 0;
+    max-width: 100%;
+  }
+}
+
+/* Adjust form elements for mobile view */
+@media (max-width: 767px) {
+  .ant-input,
+  .ant-select-selector,
+  .ant-input-password,
+  .ant-upload-list-picture-card-container {
+    height: 40px !important;
+    line-height: 40px;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .ant-form-item {
+    margin-bottom: 12px;
+  }
+
+  .ant-btn {
+    width: 100%;
+  }
+}

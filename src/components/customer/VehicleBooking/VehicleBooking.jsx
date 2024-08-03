@@ -1,7 +1,6 @@
 // src/components/VehicleBooking/VehicleBooking.jsx
 import React, { useState } from 'react';
 import { Layout, Typography, Button } from 'antd';
-import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
 import VehicleSelection from '../VehicleSelection/VehicleSelection';
 import BookingDetails from '../BookingDetails/BookingDetails';
 
@@ -21,14 +20,7 @@ const VehicleBooking = () => {
         setBookingStep(1);
     };
 
-    // Google Maps setup
-    const { isLoaded } = useJsApiLoader({
-        googleMapsApiKey: 'AIzaSyAyRG15a19j3uqI_7uEbQ6CZrp-h2KP0eM', 
-        libraries: ['places'],
-    });
-
-    const center = { lat: -34.397, lng: 150.644 };
-    const containerStyle = { width: '100%', height: '400px' };
+ 
 
     return (
         <Layout style={{ minHeight: '100vh', backgroundColor: '#f0f2f5', width: '100%' }}>
@@ -46,17 +38,7 @@ const VehicleBooking = () => {
                             Back to Vehicle Selection
                         </Button>
                         <BookingDetails selectedVehicle={selectedVehicle} />
-                        {isLoaded ? (
-                            <GoogleMap
-                                mapContainerStyle={containerStyle}
-                                center={center}
-                                zoom={10}
-                            >
-                                <Marker position={center} />
-                            </GoogleMap>
-                        ) : (
-                            <div>Loading...</div>
-                        )}
+                        
                     </div>
                 )}
             </Content>

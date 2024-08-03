@@ -42,4 +42,31 @@
   .ant-upload-list-picture-card-container:hover {
     border-color: #fdb940 !important;
   }
+
+  /* Hide Lottie animation on mobile view */
+@media (max-width: 767px) {
+  .user-reg-img {
+    display: none;
+  }
+
+  .registration-container {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px;
+  }
+
+  .owner-reg-form {
+    margin: 0;
+    max-width: 100%;
+  }
+
+  .ant-form-item {
+    margin-bottom: 12px;
+  }
+
+  .ant-btn {
+    width: 100%;
+  }
+}
+
   
