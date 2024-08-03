@@ -16,5 +16,29 @@
 
     .ant-btn {
         width: 100%;
+        margin: 4px 0;
+    }
+
+    .ant-card {
+        width: 100%;
     }
 }
+
+@media (max-width: 480px) {
+    .vehicle-image {
+        height: 150px; /* Adjust height for very small screens */
+    }
+
+    .ant-card-meta-title {
+        font-size: 14px; /* Adjust font size for titles */
+    }
+
+    .ant-card-meta-description p {
+        font-size: 12px; /* Adjust font size for description text */
+    }
+
+    .ant-pagination {
+        font-size: 12px; /* Adjust pagination font size */
+    }
+}
+

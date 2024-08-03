@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { Card, Input, Button, Checkbox, DatePicker, TimePicker, Select, Modal, message, Row, Col } from 'antd';
+import { Card, Input, Button, Checkbox, DatePicker, TimePicker, Select, message, Row, Col, Typography } from 'antd';
 import { GoogleMap, Autocomplete, DirectionsRenderer } from '@react-google-maps/api';
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
 import httpService from '../../../services/httpService';
 
 const { Option } = Select;
+const { Title } = Typography;
 
 const BookingDetails = ({ selectedVehicle }) => {
     const [pickupLocation, setPickupLocation] = useState(null);
@@ -16,34 +17,17 @@ const BookingDetails = ({ selectedVehicle }) => {
     const [directions, setDirections] = useState(null);
     const [pickupAutocomplete, setPickupAutocomplete] = useState(null);
     const [dropAutocomplete, setDropAutocomplete] = useState(null);
-    const [isModalVisible, setIsModalVisible] = useState(false);
-    const [capacity, setCapacity] = useState(1);
-    const [shareSpace, setShareSpace] = useState(false);
     const [pickupDate, setPickupDate] = useState(null);
     const [pickupTime, setPickupTime] = useState(null);
     const [calculatedDropDateTime, setCalculatedDropDateTime] = useState(null);
-    const [charge, setCharge] = useState({ vehicleCharge: 0, serviceCharge: 0, total: 0 });
-
+    const [capacity, setCapacity] = useState(1);
+    const [shareSpace, setShareSpace] = useState(false);
+    const [pickupAddress, setPickupAddress] = useState('');
+    const [dropAddress, setDropAddress] = useState('');
+    const [charges, setCharges] = useState(null);
 
     const navigate = useNavigate();
 
-
-
-    const fetchCharges = async () => {
-        console.log(selectedVehicle.id)
-        try {
-            const response = await httpService.get(`/customer/calCharge/${selectedVehicle.id}`, {
-                params: { distance }
-            });
-            if (response.data) {
-                setCharge(response.data)
-            }
-        } catch (error) {
-            console.error('Error fetching charges:', error);
-            message.error('Failed to fetch charge details.');
-        }
-    };
-    
     const onPickupLoad = (autocomplete) => {
         setPickupAutocomplete(autocomplete);
     };
@@ -53,93 +37,37 @@ const BookingDetails = ({ selectedVehicle }) => {
     };
 
     const onPickupPlaceChanged = () => {
-        if (pickupAutocomplete !== null) {
+        if (pickupAutocomplete) {
             const place = pickupAutocomplete.getPlace();
             setPickupLocation({
                 lat: place.geometry.location.lat(),
                 lng: place.geometry.location.lng(),
                 address: place.formatted_address,
             });
-            document.getElementById('pickup-input').value = place.formatted_address;
+            setPickupAddress(place.formatted_address);
         }
     };
 
     const onDropPlaceChanged = () => {
-        if (dropAutocomplete !== null) {
+        if (dropAutocomplete) {
             const place = dropAutocomplete.getPlace();
             setDropLocation({
                 lat: place.geometry.location.lat(),
                 lng: place.geometry.location.lng(),
                 address: place.formatted_address,
             });
-            document.getElementById('drop-input').value = place.formatted_address;
+            setDropAddress(place.formatted_address);
         }
     };
-    const showConfirmationModal = () => {
-        if (pickupLocation && dropLocation && pickupDate && pickupTime) {
-            fetchCharges(); // Fetch charges when showing the modal
-            setIsModalVisible(true);
-        } else {
-            message.error('Please select all booking details.');
-        }
-    };
-    
 
-    const handleOk = async () => {
-        setIsModalVisible(false);
+    const fetchCharges = useCallback(async () => {
         try {
-            const bookingData = {
-                bookingDate: new Date().toISOString(), 
-                pickupTime: pickupTime,
-                handlingTime: 0, 
-                startLong: pickupLocation?.lng || 0,
-                startLat: pickupLocation?.lat || 0,
-                destLong: dropLocation?.lng || 0,
-                destLat: dropLocation?.lat || 0,
-                travellingTime: distance * 60 * 60, 
-                vehicleCharge: charge.vehicleCharge,
-                serviceCharge: charge.serviceCharge,
-                loadingCapacity: shareSpace,
-                isReturnTrip: returnTrip,
-                willingToShare: shareSpace,
-                vehicleId: selectedVehicle.id,
-                customerId: localStorage.getItem('customerId')
-            };
-    
-            const response = await httpService.post('/api/bookings', bookingData);
-    
-            if (response.data.success) {
-                navigate('/payment', {
-                    state: {
-                        bookingId: response.data.bookingId,
-                        vehicle: selectedVehicle,
-                        pickupLocation,
-                        dropLocation,
-                        pickupDate,
-                        pickupTime,
-                        dropDate: calculatedDropDateTime?.date,
-                        dropTime: calculatedDropDateTime?.time,
-                        returnTrip,
-                        distance,
-                        advanceAmount: charge.total * 0.2,
-                        totalPrice: charge.total,
-                    },
-                });
-            } else {
-                message.error('Booking failed. Please try again.');
-            }
+            const response = await httpService.get(`/customer/calCharge/${selectedVehicle.id}?distance=${distance}`);
+            setCharges(response.data);
         } catch (error) {
-            console.error('Booking error:', error);
-            message.error('An error occurred while booking. Please try again.');
+            message.error('Failed to fetch charges.');
         }
-    };
-    
-    
-    
-
-    const handleCancel = () => {
-        setIsModalVisible(false);
-    };
+    }, [distance, selectedVehicle.id]);
 
     useEffect(() => {
         if (pickupLocation && dropLocation && pickupDate && pickupTime) {
@@ -153,22 +81,25 @@ const BookingDetails = ({ selectedVehicle }) => {
                 (result, status) => {
                     if (status === window.google.maps.DirectionsStatus.OK) {
                         setDirections(result);
-                        setDistance(result.routes[0].legs[0].distance.value / 1000);
-                        const travelDuration = result.routes[0].legs[0].duration.value; 
+                        const routeDistance = result.routes[0].legs[0].distance.value / 1000;
+                        setDistance(routeDistance);
+                        const travelDuration = result.routes[0].legs[0].duration.value;
                         const pickupDateTime = moment(`${pickupDate} ${pickupTime}`);
                         const dropDateTime = pickupDateTime.clone().add(travelDuration, 'seconds');
                         setCalculatedDropDateTime({
                             date: dropDateTime.format('YYYY-MM-DD'),
                             time: dropDateTime.format('HH:mm'),
                         });
+                        fetchCharges(); // Fetch charges after calculating distance
                     }
                 }
             );
         }
-    }, [pickupLocation, dropLocation, pickupDate, pickupTime]);
+    }, [pickupLocation, dropLocation, pickupDate, pickupTime, fetchCharges]);
 
     return (
-        <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
+        <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px' }}>
+            <Title level={2}>Booking Details</Title>
             <Row gutter={[16, 16]}>
                 <Col xs={24} md={12}>
                     <Card
@@ -181,7 +112,7 @@ const BookingDetails = ({ selectedVehicle }) => {
                                     <p><strong>Type:</strong> {selectedVehicle.type}</p>
                                     <p><strong>Preferred Area:</strong> {selectedVehicle.preferredArea}</p>
                                     <p><strong>Capacity:</strong> {selectedVehicle.capacity} {selectedVehicle.capacityUnit}</p>
-                                    <p><strong>Charge Per Km:</strong> LKR{selectedVehicle.chargePerKm}</p>
+                                    <p><strong>Charge Per Km:</strong> LKR {selectedVehicle.chargePerKm.toFixed(2)}</p>
                                 </>
                             }
                         />
@@ -189,10 +120,11 @@ const BookingDetails = ({ selectedVehicle }) => {
                 </Col>
                 <Col xs={24} md={12}>
                     <Autocomplete onLoad={onPickupLoad} onPlaceChanged={onPickupPlaceChanged}>
-                        <Input 
-                            id="pickup-input"
+                        <Input
                             placeholder="Enter pickup location"
                             style={{ marginBottom: '16px' }}
+                            value={pickupAddress}
+                            onChange={(e) => setPickupAddress(e.target.value)}
                         />
                     </Autocomplete>
                     <DatePicker
@@ -206,10 +138,11 @@ const BookingDetails = ({ selectedVehicle }) => {
                         onChange={(time, timeString) => setPickupTime(timeString)}
                     />
                     <Autocomplete onLoad={onDropLoad} onPlaceChanged={onDropPlaceChanged}>
-                        <Input 
-                            id="drop-input"
+                        <Input
                             placeholder="Enter drop location"
                             style={{ marginBottom: '16px' }}
+                            value={dropAddress}
+                            onChange={(e) => setDropAddress(e.target.value)}
                         />
                     </Autocomplete>
                     <Select
@@ -257,28 +190,26 @@ const BookingDetails = ({ selectedVehicle }) => {
             </Row>
             <Row>
                 <Col span={24}>
-                    <Button type="primary" block onClick={showConfirmationModal}>
-                        Make Booking
+                  
+                    <Button type="primary" block onClick={() => navigate('/customer/booking-summary', {
+                        state: {
+                            pickupLocation,
+                            dropLocation,
+                            pickupDate,
+                            pickupTime,
+                            returnTrip,
+                            distance,
+                            selectedVehicle,
+                            calculatedDropDateTime,
+                            capacity,
+                            shareSpace,
+                            charges
+                        }
+                    })}>
+                        Proceed to Summary
                     </Button>
                 </Col>
             </Row>
-            <Modal
-    title="Confirm Booking"
-    visible={isModalVisible}
-    onOk={handleOk}
-    onCancel={handleCancel}
-    width={600}
->
-    <p><strong>Pickup Location:</strong> {pickupLocation?.address}</p>
-    <p><strong>Drop Location:</strong> {dropLocation?.address}</p>
-    <p><strong>Pickup Date:</strong> {pickupDate}</p>
-    <p><strong>Pickup Time:</strong> {pickupTime}</p>
-    <p><strong>Return Trip:</strong> {returnTrip ? 'Yes' : 'No'}</p>
-    <p><strong>Distance:</strong> {distance.toFixed(2)} km</p>
-    <p><strong>Drop Date & Time:</strong> {calculatedDropDateTime?.date} {calculatedDropDateTime?.time}</p>
-    <p><strong>Total Price:</strong> LKR {charge.total}</p>
-</Modal>
-
         </div>
     );
 };

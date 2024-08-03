@@ -1,0 +1,51 @@
+/* VehicleBooking.css
+.vehicle-booking-layout {
+    min-height: 100vh;
+    background-color: #f0f2f5;
+    width: 100%;
+}
+
+.vehicle-booking-content {
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.vehicle-booking-title {
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.vehicle-booking-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80vh;
+}
+
+.vehicle-booking-details {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.vehicle-booking-back-button {
+    background-color: #FDB940;
+    border-color: #FDB940;
+    margin-bottom: 16px;
+}
+
+@media (max-width: 768px) {
+    .vehicle-booking-content {
+        padding: 16px;
+    }
+
+    .vehicle-booking-title {
+        font-size: 1.5rem;
+    }
+
+    .vehicle-booking-back-button {
+        font-size: 0.875rem;
+        padding: 8px 16px;
+    }
+} */

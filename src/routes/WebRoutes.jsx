@@ -33,6 +33,7 @@ import AdminSignin from '../components/admin/AdminSignin/AdminSignin';
 import ProtectedRoute from '../services/ProtectedRoute';
 import DriverLayoutPage from '../pages/DriverLayoutPage/DriverLayoutPage';
 import DriverDashboard from '../components/driver/DriverDashboard/DriverDashboard';
+import BookingSummary from '../components/customer/BookingSummary/BookingSummary';
 
 const WebRoutes = () => {
   return (
@@ -110,6 +111,7 @@ const WebRoutes = () => {
           <Route path="cost-calculator" element={<CostCalculator />} />
           <Route path="stock-pickup" element={<CustomerView />} />
           <Route path="profile-settings" element={<ProfileSettings />} />
+          <Route path="booking-summary" element={<BookingSummary />} />
         </Route>
       </Routes>
     </BrowserRouter>

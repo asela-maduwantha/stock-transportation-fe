@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
-import { Row, Col, Form, Input, Button, Typography, message } from 'antd';
+import { Row, Col, Form, Input, Button, Typography, message, Card } from 'antd';
 
 const { Title, Paragraph } = Typography;
 
@@ -33,7 +33,6 @@ const CheckoutForm = ({ totalPrice }) => {
         if (error) {
             message.error(error.message);
         } else {
-            // Send paymentMethod.id to your server to handle payment
             console.log(paymentMethod);
             message.success('Payment successful!');
             // Handle post-payment logic such as storing transaction info
@@ -41,15 +40,15 @@ const CheckoutForm = ({ totalPrice }) => {
     };
 
     return (
-        <Form onFinish={handleSubmit} layout="vertical">
+        <Form onFinish={handleSubmit} layout="vertical" style={{ maxWidth: '400px', margin: '0 auto' }}>
             <Form.Item label="Email" name="email" rules={[{ required: true, type: 'email', message: 'Please enter a valid email' }]}>
                 <Input placeholder="Enter your email" />
             </Form.Item>
             <Form.Item label="Name" name="name" rules={[{ required: true, message: 'Please enter your name' }]}>
                 <Input placeholder="Enter your name" />
             </Form.Item>
-            <Form.Item label="Card Details" name="cardDetails">
-                <CardElement />
+            <Form.Item label="Card Details" name="cardDetails" style={{ marginBottom: '24px' }}>
+                <CardElement options={{ style: { base: { fontSize: '16px', color: '#424770', '::placeholder': { color: '#aab7c4' } } } }} />
             </Form.Item>
             <Form.Item>
                 <Button type="primary" htmlType="submit" disabled={!stripe} block>
@@ -70,10 +69,13 @@ const Payment = () => {
 
     return (
         <Elements stripe={stripePromise}>
-            <Row gutter={[16, 16]} justify="center" style={{ padding: '24px', width: '100%', margin: '0 auto' }}>
-                <Col xs={24} md={12}>
-                    <div style={{ backgroundColor: '#f0f2f5', padding: '24px', borderRadius: '8px', textAlign: 'center' }}>
-                        <Title level={4}>Booking Summary</Title>
+            <Row gutter={[16, 16]} justify="center" style={{ padding: '24px', backgroundColor: '#f0f2f5' }}>
+                <Col xs={24} md={12} lg={10}>
+                    <Card
+                        title={<Title level={4}>Booking Summary</Title>}
+                        bordered={false}
+                        style={{ marginBottom: '24px', borderRadius: '8px' }}
+                    >
                         <img src={vehicle.photo} alt="Vehicle" style={{ width: '100%', height: 'auto', marginBottom: '16px', borderRadius: '8px' }} />
                         <Paragraph><strong>Vehicle:</strong> {vehicle.name}</Paragraph>
                         <Paragraph><strong>Pickup Location:</strong> {pickupLocation}</Paragraph>
@@ -81,13 +83,16 @@ const Payment = () => {
                         <Paragraph><strong>Return Trip:</strong> {returnTrip ? 'Yes' : 'No'}</Paragraph>
                         <Paragraph><strong>Advance Amount:</strong> LKR {advanceAmount}</Paragraph>
                         <Paragraph><strong>Total Price:</strong> LKR {totalPrice}</Paragraph>
-                    </div>
+                    </Card>
                 </Col>
-                <Col xs={24} md={12}>
-                    <div style={{ backgroundColor: '#fff', padding: '24px', borderRadius: '8px' }}>
-                        <Title level={4}>Payment Information</Title>
+                <Col xs={24} md={12} lg={10}>
+                    <Card
+                        title={<Title level={4}>Payment Information</Title>}
+                        bordered={false}
+                        style={{ borderRadius: '8px' }}
+                    >
                         <CheckoutForm totalPrice={totalPrice} />
-                    </div>
+                    </Card>
                 </Col>
             </Row>
         </Elements>

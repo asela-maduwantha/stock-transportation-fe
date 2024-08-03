@@ -1,22 +1,27 @@
-.booking-details-form {
+.booking-summary-card {
     max-width: 800px;
     margin: 0 auto;
     padding: 20px;
 }
 
-.route-info {
+.price-summary {
     margin-top: 20px;
     background-color: #f0f2f5;
     padding: 10px;
     border-radius: 4px;
 }
 
-.submit-button {
+.price-values {
+    text-align: right;
+}
+
+.confirm-button {
     margin-top: 20px;
+    width: 100%;
 }
 
 @media (max-width: 768px) {
-    .booking-details-form {
+    .booking-summary-card {
         padding: 10px;
     }
 }

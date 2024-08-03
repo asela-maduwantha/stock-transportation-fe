@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Input, Pagination, Button } from 'antd';
 import PropTypes from 'prop-types';
+import httpService from '../../../services/httpService';
 import './VehicleSelection.css';
 
 const { Search } = Input;
@@ -15,8 +16,8 @@ const VehicleSelection = ({ onVehicleSelect }) => {
     useEffect(() => {
         const fetchVehicles = async () => {
             try {
-                const response = await fetch('https://stocktrans.azurewebsites.net/customer/vehicles');
-                const data = await response.json();
+                const response = await httpService.get('/customer/vehicles');
+                const data = response.data; // Access the data property
                 setVehicles(data);
             } catch (error) {
                 console.error('Error fetching vehicles:', error);
