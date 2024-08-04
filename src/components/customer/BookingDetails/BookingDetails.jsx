@@ -14,6 +14,8 @@ const BookingDetails = ({ selectedVehicle }) => {
     const [dropLocation, setDropLocation] = useState(null);
     const [returnTrip, setReturnTrip] = useState(false);
     const [distance, setDistance] = useState(0);
+    const [formattedDistance, setFormattedDistance] = useState(null);
+    const [travelTime, setTravelTime] = useState(null);
     const [directions, setDirections] = useState(null);
     const [pickupAutocomplete, setPickupAutocomplete] = useState(null);
     const [dropAutocomplete, setDropAutocomplete] = useState(null);
@@ -69,6 +71,13 @@ const BookingDetails = ({ selectedVehicle }) => {
         }
     }, [distance, selectedVehicle.id]);
 
+    const formatTravelTime = (seconds) => {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const remainingSeconds = seconds % 60;
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    };
+
     useEffect(() => {
         if (pickupLocation && dropLocation && pickupDate && pickupTime) {
             const directionsService = new window.google.maps.DirectionsService();
@@ -83,14 +92,18 @@ const BookingDetails = ({ selectedVehicle }) => {
                         setDirections(result);
                         const routeDistance = result.routes[0].legs[0].distance.value / 1000;
                         setDistance(routeDistance);
-                        const travelDuration = result.routes[0].legs[0].duration.value;
+                        setFormattedDistance(result.routes[0].legs[0].distance.text);
+                        
+                        const travelDurationInSeconds = result.routes[0].legs[0].duration.value;
+                        setTravelTime(formatTravelTime(travelDurationInSeconds));
+                        
                         const pickupDateTime = moment(`${pickupDate} ${pickupTime}`);
-                        const dropDateTime = pickupDateTime.clone().add(travelDuration, 'seconds');
+                        const dropDateTime = pickupDateTime.clone().add(travelDurationInSeconds, 'seconds');
                         setCalculatedDropDateTime({
                             date: dropDateTime.format('YYYY-MM-DD'),
                             time: dropDateTime.format('HH:mm'),
                         });
-                        fetchCharges(); // Fetch charges after calculating distance
+                        fetchCharges();
                     }
                 }
             );
@@ -190,7 +203,12 @@ const BookingDetails = ({ selectedVehicle }) => {
             </Row>
             <Row>
                 <Col span={24}>
-                  
+                    {formattedDistance && (
+                        <p><strong>Distance:</strong> {formattedDistance}</p>
+                    )}
+                    {travelTime && (
+                        <p><strong>Estimated Travel Time:</strong> {travelTime}</p>
+                    )}
                     <Button type="primary" block onClick={() => navigate('/customer/booking-summary', {
                         state: {
                             pickupLocation,
@@ -199,6 +217,8 @@ const BookingDetails = ({ selectedVehicle }) => {
                             pickupTime,
                             returnTrip,
                             distance,
+                            formattedDistance,
+                            travelTime,
                             selectedVehicle,
                             calculatedDropDateTime,
                             capacity,

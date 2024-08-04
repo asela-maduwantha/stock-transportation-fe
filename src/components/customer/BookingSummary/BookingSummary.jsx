@@ -90,7 +90,7 @@ const BookingSummary = () => {
                         cover={
                             <img
                                 alt={selectedVehicle.name}
-                                src={selectedVehicle.photo}
+                                src={selectedVehicle.photoUrl}
                                 style={{ height: 200, objectFit: 'cover' }}
                             />
                         }
