@@ -50,8 +50,8 @@ const WebRoutes = () => {
           <Route path="owner/signin" element={<OwnerSignin />} />
           <Route path="driver/signin" element={<DriverSignin />} />
           <Route path="vehicle/:id" element={<VehicleDetails />} />
-          <Route path="payment" element={<Payment />} />
         </Route>
+        <Route path="/payment" element={<Payment />} />
 
         <Route
           path="/admin/*"

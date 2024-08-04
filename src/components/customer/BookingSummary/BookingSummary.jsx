@@ -1,7 +1,9 @@
 import React from 'react';
-import { Button, Modal, message } from 'antd';
+import { Button, Modal, message, Row, Col, Card, Typography, Divider } from 'antd';
 import { useLocation, useNavigate } from 'react-router-dom';
 import httpService from '../../../services/httpService';
+
+const { Title, Text, Paragraph } = Typography;
 
 const BookingSummary = () => {
     const location = useLocation();
@@ -22,18 +24,17 @@ const BookingSummary = () => {
 
     const handleBooking = async () => {
         try {
-            
             const customerId = localStorage.getItem('customerId');
             const bookingData = {
                 createdAt: new Date().toISOString(),
                 bookingDate: pickupDate,
                 pickupTime: pickupTime,
-                handlingTime: distance * 60, 
+                handlingTime: distance * 60,
                 startLong: pickupLocation.lng,
                 startLat: pickupLocation.lat,
                 destLong: dropLocation.lng,
                 destLat: dropLocation.lat,
-                travellingTime: distance * 60, 
+                travellingTime: distance * 60,
                 vehicleCharge: charges.vehicleCharge,
                 serviceCharge: charges.serviceCharge,
                 loadingCapacity: selectedVehicle.capacity,
@@ -44,21 +45,21 @@ const BookingSummary = () => {
                 customerId: customerId
             };
 
-            console.log(bookingData)
+            console.log(bookingData);
             const response = await httpService.post('/customer/booking', bookingData);
 
             if (response.data.bookingId) {
-                localStorage.setItem('bookingId', response.data.bookingId); 
+                localStorage.setItem('bookingId', response.data.bookingId);
                 message.success('Booking confirmed!');
-               
+                
                 navigate('/payment', {
                     state: {
-                        bookingId:localStorage.getItem('bookingId'),
+                        bookingId: localStorage.getItem('bookingId'),
                         vehicle: selectedVehicle,
                         pickupLocation: pickupLocation.address,
                         dropLocation: dropLocation.address,
                         returnTrip,
-                        advanceAmount: charges.vehicleCharge, 
+                        advanceAmount: charges.vehicleCharge,
                         totalPrice: charges.total
                     }
                 });
@@ -77,27 +78,76 @@ const BookingSummary = () => {
 
     return (
         <Modal
-            title="Booking Summary"
+            title={<Title level={3}>Booking Summary</Title>}
             visible={true}
             footer={null}
             onCancel={handleBack}
+            width={800}
         >
-            <p><strong>Pickup Location:</strong> {pickupLocation?.address}</p>
-            <p><strong>Drop Location:</strong> {dropLocation?.address}</p>
-            <p><strong>Pickup Date:</strong> {pickupDate}</p>
-            <p><strong>Pickup Time:</strong> {pickupTime}</p>
-            <p><strong>Return Trip:</strong> {returnTrip ? 'Yes' : 'No'}</p>
-            <p><strong>Distance:</strong> {distance.toFixed(2)} km</p>
-            <p><strong>Drop Date & Time:</strong> {calculatedDropDateTime?.date} {calculatedDropDateTime?.time}</p>
-            <p><strong>Vehicle Charge:</strong> LKR {charges?.vehicleCharge.toFixed(2)}</p>
-            <p><strong>Service Charge:</strong> LKR {charges?.serviceCharge.toFixed(2)}</p>
-            <p><strong>Total Price:</strong> LKR {charges?.total.toFixed(2)}</p>
-            <Button type="primary" block onClick={handleBooking}>
-                Confirm Booking
-            </Button>
-            <Button style={{ marginTop: '10px' }} block onClick={handleBack}>
-                Back to Details
-            </Button>
+            <Row gutter={[24, 24]}>
+                <Col span={12}>
+                    <Card
+                        cover={
+                            <img
+                                alt={selectedVehicle.name}
+                                src={selectedVehicle.photo}
+                                style={{ height: 200, objectFit: 'cover' }}
+                            />
+                        }
+                        style={{ marginBottom: 24 }}
+                    >
+                        <Title level={4}>{selectedVehicle.name}</Title>
+                        <Paragraph>
+                            <Text strong>Capacity:</Text> {selectedVehicle.capacity}
+                        </Paragraph>
+                    </Card>
+                    <Card title="Trip Details">
+                        <Paragraph>
+                            <Text strong>Pickup Location:</Text> {pickupLocation?.address}
+                        </Paragraph>
+                        <Paragraph>
+                            <Text strong>Drop Location:</Text> {dropLocation?.address}
+                        </Paragraph>
+                        <Paragraph>
+                            <Text strong>Pickup Date:</Text> {pickupDate}
+                        </Paragraph>
+                        <Paragraph>
+                            <Text strong>Pickup Time:</Text> {pickupTime}
+                        </Paragraph>
+                        <Paragraph>
+                            <Text strong>Return Trip:</Text> {returnTrip ? 'Yes' : 'No'}
+                        </Paragraph>
+                        <Paragraph>
+                            <Text strong>Distance:</Text> {distance.toFixed(2)} km
+                        </Paragraph>
+                        <Paragraph>
+                            <Text strong>Drop Date & Time:</Text> {calculatedDropDateTime?.date} {calculatedDropDateTime?.time}
+                        </Paragraph>
+                    </Card>
+                </Col>
+                <Col span={12}>
+                    <Card title="Charges Breakdown">
+                        <Paragraph>
+                            <Text strong>Vehicle Charge:</Text> LKR {charges?.vehicleCharge.toFixed(2)}
+                        </Paragraph>
+                        <Paragraph>
+                            <Text strong>Service Charge:</Text> LKR {charges?.serviceCharge.toFixed(2)}
+                        </Paragraph>
+                        <Divider />
+                        <Paragraph>
+                            <Text strong>Total Price:</Text> <Text type="danger" strong>LKR {charges?.total.toFixed(2)}</Text>
+                        </Paragraph>
+                    </Card>
+                    <div style={{ marginTop: 24 }}>
+                        <Button type="primary" block size="large" onClick={handleBooking}>
+                            Confirm Booking
+                        </Button>
+                        <Button block size="large" onClick={handleBack} style={{ marginTop: 16 }}>
+                            Back to Details
+                        </Button>
+                    </div>
+                </Col>
+            </Row>
         </Modal>
     );
 };
