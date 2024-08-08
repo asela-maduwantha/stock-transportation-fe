@@ -9,6 +9,7 @@ const { Option } = Select;
 const Header = () => {
   const [selectedOption, setSelectedOption] = useState('vehicle-owner');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -43,6 +44,18 @@ const Header = () => {
     setMenuOpen(!menuOpen);
   };
 
+  const signinButtonStyle = {
+    width: '100px',
+    height: '40px',
+    backgroundColor: isHovered ? '#e5a73b' : '#fdb940',
+    color: '#fff',
+    fontSize: '15px',
+    fontWeight: 'normal',
+    border: 'none',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease',
+  };
+
   return (
     <header className="header">
       <div className="logo">
@@ -72,9 +85,12 @@ const Header = () => {
           <Option value="driver">Driver</Option>
         </Select>
         <Button 
-          type="primary" 
+          type="primary"
           onClick={handleSignIn} 
           className="signin-button"
+          style={signinButtonStyle}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
         >
           Sign In
         </Button>

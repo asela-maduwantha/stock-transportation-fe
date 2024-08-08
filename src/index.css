@@ -19,3 +19,18 @@ code {
 }
 
 
+:where(.css-dev-only-do-not-override-3rel02).ant-input-affix-wrapper {
+  position:relative;
+  display:inline-flex;
+  width:100%;
+  min-width:0;
+  padding:0px 11px 0;
+  color:rgba(0, 0, 0, 0.88);
+  font-size:14px;
+  line-height:1.5714285714285714;
+  border-radius:6px;
+  transition:all 0.2s;
+}
+
+
+
