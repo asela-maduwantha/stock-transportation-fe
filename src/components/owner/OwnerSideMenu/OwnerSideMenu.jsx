@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Menu, Layout } from 'antd';
 import {
-  PieChartOutlined,
+  HomeOutlined,
   UserAddOutlined,
   CarOutlined,
+  IdcardOutlined,
   SettingOutlined,
   LogoutOutlined,
   MenuFoldOutlined,
@@ -18,7 +19,7 @@ const { Sider } = Layout;
 const menuItems = [
   {
     key: 'dashboard',
-    icon: <PieChartOutlined />,
+    icon: <HomeOutlined />,
     label: 'Dashboard',
     link: '/owner/dashboard',
   },
@@ -29,6 +30,12 @@ const menuItems = [
     link: '/owner/add-driver',
   },
   {
+    key: 'my-drivers',
+    icon: <IdcardOutlined />,
+    label: 'My Drivers',
+    link: '/owner/drivers',
+  },
+  {
     key: 'add-vehicle',
     icon: <CarOutlined />,
     label: 'Add Vehicle',
@@ -37,8 +44,14 @@ const menuItems = [
   {
     key: 'view-vehicle',
     icon: <CarOutlined />,
-    label: 'My Vehicle',
+    label: 'My Vehicles',
     link: '/owner/vehicles',
+  },
+  {
+    key: 'my-bookings',
+    icon: <CarOutlined />,
+    label: 'My Bookings',
+    link: '/owner/my-bookings',
   },
   {
     key: 'settings',
@@ -82,6 +95,7 @@ const OwnerSideMenu = () => {
             justifyContent: 'center',
             padding: '16px 0',
             cursor: 'pointer',
+            borderBottom: '1px solid #e8e8e8',
           }}
           onClick={toggleCollapsed}
         >

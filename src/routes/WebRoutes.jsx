@@ -16,7 +16,6 @@ import ApproveVehicle from '../components/admin/AproveVehicle/ApproveVehicle';
 import VehicleBooking from '../components/customer/VehicleBooking/VehicleBooking';
 import CustomerLayoutPage from '../pages/CustomerLayoutPage/CustomerLayoutPage';
 import BookingHistory from '../components/customer/BookingHistory/BookingHistory';
-import DriverDetails from '../components/customer/DriverDetails/DriverDetails';
 import CostCalculator from '../components/customer/CostCalculator/CostCalculator';
 import CustomerDashboard from '../components/customer/CustomerDashboard/CustomerDashboard';
 import ProfileSettings from '../components/customer/ProfileSettings/ProfileSettings';
@@ -34,6 +33,8 @@ import ProtectedRoute from '../services/ProtectedRoute';
 import DriverLayoutPage from '../pages/DriverLayoutPage/DriverLayoutPage';
 import DriverDashboard from '../components/driver/DriverDashboard/DriverDashboard';
 import BookingSummary from '../components/customer/BookingSummary/BookingSummary';
+import DriverDetails from '../components/owner/DriverDetails/DriverDetails';
+import BookingsList from '../components/owner/BookingList/BookingList';
 
 const WebRoutes = () => {
   return (
@@ -93,6 +94,8 @@ const WebRoutes = () => {
           <Route path="add-vehicle" element={<AddVehicle />} />
           <Route path="add-driver" element={<AddDriver />} />
           <Route path="vehicles" element={<OwnerVehicles />} />
+          <Route path='drivers' element={<DriverDetails/>}/>
+          <Route path='my-bookings' element={<BookingsList/>}/>
         </Route>
 
         <Route
@@ -107,7 +110,6 @@ const WebRoutes = () => {
           <Route path="dashboard" element={<CustomerDashboard />} />
           <Route path="booking" element={<VehicleBooking />} />
           <Route path="booking-history" element={<BookingHistory />} />
-          <Route path="drivers" element={<DriverDetails />} />
           <Route path="cost-calculator" element={<CostCalculator />} />
           <Route path="stock-pickup" element={<CustomerView />} />
           <Route path="profile-settings" element={<ProfileSettings />} />
