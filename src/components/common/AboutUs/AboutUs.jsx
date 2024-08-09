@@ -1,17 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Row, Col, Card, Button } from 'antd';
 import './AboutUs.css'; 
-import DeliveryImage from '../../../assets/images/man.jpg';
+import DeliveryImage from '../../../assets/images/about.jpg';
 
 const AboutUs = () => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  const buttonStyle = {
+    backgroundColor: '#fdb940',
+    color: '#fff',
+    border: 'none',
+    transition: 'background-color 0.3s ease, opacity 0.3s ease',
+    opacity: isHovered ? 0.8 : 1,
+  };
+
   return (
     <div className="about-us-container">
-      <Row>
-        <Col span={24}>
+      <Row justify="center" className="about-us-header">
+        <Col>
           <h1>About Us</h1>
-          <p>
-            The effective transportation of goods and items is critical to the success of businesses and the satisfaction of individuals relying on timely, cost-effective, and reliable delivery services. However, the current ways of sourcing transportation options often bring issues such as inefficiency, unfair charging, and difficulty in accessing reliable services. These issues can result in delays, increased costs, and dissatisfaction for both vehicle owners and customers.
-          </p>
         </Col>
       </Row>
       <Row gutter={[16, 16]} className="about-us-content">
@@ -27,7 +34,14 @@ const AboutUs = () => {
             <p>
               Currently, there is often a struggle for transport service providers and customers to connect easily. Customers also find it challenging to determine which vehicle best suits their needs and its capacity. Our project aims to resolve these issues by providing a comprehensive solution. Upon completion, customers will be able to access information about transport service providers, including prices and vehicle capacities, and easily book the services they require.
             </p>
-            <Button type="primary">Read More</Button>
+            <Button
+              type="primary"
+              style={buttonStyle}
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+            >
+              Read More
+            </Button>
           </Card>
         </Col>
       </Row>

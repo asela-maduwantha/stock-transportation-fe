@@ -1,48 +1,51 @@
-import React, { useState } from 'react';
-import { Typography, Select, Input, Button, List, Card } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
+import React, { useState, useEffect } from 'react';
+import { Typography, Select, Input, Button, List, Card, Tag, Spin } from 'antd';
+import { SearchOutlined, EnvironmentOutlined, CarOutlined, DollarOutlined } from '@ant-design/icons';
+import axios from 'axios';
 import './HomeSearch.css';
 
 const { Title } = Typography;
 const { Option } = Select;
 
-const vehicleCategories = ['Lorry', 'Freezer', 'Van', 'Tipper Truck', 'Container'];
-
-// Mock data for demonstration
-const mockVehicles = [
-  {
-    id: 1, type: 'Lorry', name: 'Lorry A', capacity: '5 tons', 
-    image: 'https://images.pexels.com/photos/11087837/pexels-photo-11087837.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2', pricePerKm: '10 USD', 
-    ownerName: 'John Doe', driverName: 'Mike Smith'
-  },
-  {
-    id: 2, type: 'Freezer', name: 'Freezer B', capacity: '2 tons', 
-    image: 'https://images.pexels.com/photos/11087837/pexels-photo-11087837.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2', pricePerKm: '15 USD', 
-    ownerName: 'Jane Roe', driverName: 'Alice Johnson'
-  },
-  {
-    id: 3, type: 'Van', name: 'Van C', capacity: '1 ton', 
-    image: 'https://images.pexels.com/photos/2533092/pexels-photo-2533092.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2', pricePerKm: '8 USD', 
-    ownerName: 'James Bond', driverName: 'David Brown'
-  },
-  {
-    id: 4, type: 'Tipper Truck', name: 'Tipper D', capacity: '3 tons', 
-    image: 'https://media.istockphoto.com/id/474221742/photo/truck-tipping-gravel.webp?s=2048x2048&w=is&k=20&c=e9OP00U461TzIap_BEwL6A2Z1oHP1tbA9EAEMKzDlwk=', pricePerKm: '12 USD', 
-    ownerName: 'Emma White', driverName: 'Chris Green'
-  },
-];
+const vehicleCategories = ['Select','All', 'Lorry', 'Freezer', 'Van', 'Tipper Truck', 'Container'];
 
 const HomeSearch = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [category, setCategory] = useState('All');
+  const [category, setCategory] = useState('Select');
   const [vehicles, setVehicles] = useState([]);
+  const [filteredVehicles, setFilteredVehicles] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      try {
+        const response = await axios.get('https://stocktrans.azurewebsites.net/customer/vehicles');
+        setVehicles(response.data);
+        setFilteredVehicles(response.data);
+      } catch (error) {
+        console.error('Error fetching vehicle data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVehicles();
+  }, []);
+
+  useEffect(() => {
+    const filtered = vehicles.filter(vehicle => 
+      (category === 'All' || vehicle.type === category) &&
+      vehicle.preferredArea.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredVehicles(filtered);
+  }, [searchTerm, category, vehicles]);
 
   const handleSearch = () => {
-    const filteredVehicles = mockVehicles.filter(vehicle => 
+    const filtered = vehicles.filter(vehicle => 
       (category === 'All' || vehicle.type === category) &&
-      vehicle.name.toLowerCase().includes(searchTerm.toLowerCase())
+      vehicle.preferredArea.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    setVehicles(filteredVehicles);
+    setFilteredVehicles(filtered);
   };
 
   return (
@@ -53,66 +56,66 @@ const HomeSearch = () => {
           Experience the ease and efficiency of stock transportation with Gulf Transportation Solution.
         </Title>
         <div className="search-container">
-          <Select 
-            defaultValue="All" 
-            style={{ width: 150 }}
-            onChange={(value) => setCategory(value)}
-            bordered={false}
-            className="category-select"
-          >
-            <Option value="All">All Categories</Option>
-            {vehicleCategories.map(cat => (
-              <Option key={cat} value={cat}>{cat}</Option>
-            ))}
-          </Select>
-          <Input 
-            placeholder="Search vehicles" 
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
-          <Button 
-            type="primary" 
-            icon={<SearchOutlined />}
-            onClick={handleSearch}
-            className="search-button"
-          >
-            Search
-          </Button>
+          <div className="search-wrapper">
+            <Select 
+              defaultValue="Select" 
+              onChange={(value) => setCategory(value)}
+              className="category-select"
+              bordered={false}
+            >
+              {vehicleCategories.map(cat => (
+                <Option key={cat} value={cat}>{cat}</Option>
+              ))}
+            </Select>
+            <div className="divider"></div>
+            <Input 
+              placeholder="Search by preferred area" 
+              onChange={(e) => setSearchTerm(e.target.value)}
+              prefix={<EnvironmentOutlined style={{ color: '#bfbfbf' }} />}
+              className="search-input"
+              bordered={false}
+            />
+            <Button 
+              type="primary" 
+              icon={<SearchOutlined />}
+              onClick={handleSearch}
+              className="search-button"
+              disabled={category === 'Select'}
+            >
+              Search
+            </Button>
+          </div>
         </div>
 
-        {vehicles.length > 0 && (
+        {loading ? (
+          <div className="loading-container">
+            <Spin size="large" />
+          </div>
+        ) : filteredVehicles.length > 0 ? (
           <List
             grid={{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 3, xl: 3, xxl: 3 }}
-            dataSource={vehicles}
+            dataSource={filteredVehicles}
             className="vehicle-list"
             renderItem={item => (
               <List.Item>
                 <Card 
                   hoverable
-                  cover={<img alt={item.name} src={item.image} />}
-                  actions={[
-                    <Button type="primary" className="book-button" key='book-now'>
-                      Book Now
-                    </Button>
-                  ]}
+                  cover={<img alt={item.name} src={item.photoUrl} className="vehicle-image" />}
                   className="vehicle-card"
                 >
-                  <Card.Meta 
-                    title={item.name} 
-                    description={(
-                      <div>
-                        <p><strong>Type:</strong> {item.type}</p>
-                        <p><strong>Capacity:</strong> {item.capacity}</p>
-                        <p><strong>Price per km:</strong> {item.pricePerKm}</p>
-                        <p><strong>Owner:</strong> {item.ownerName}</p>
-                        <p><strong>Driver:</strong> {item.driverName}</p>
-                      </div>
-                    )} 
-                  />
+                  <Tag color="blue" className="vehicle-type">{item.type}</Tag>
+                  <Title level={4}>{item.preferredArea}</Title>
+                  <div className="vehicle-details">
+                    <span><CarOutlined /> Capacity: {item.capacity} {item.capacityUnit}</span>
+                    <span><DollarOutlined /> {item.chargePerKm} LKR/km</span>
+                  </div>
+                  <Button type="primary" className="book-button">Book Now</Button>
                 </Card>
               </List.Item>
             )}
           />
+        ) : (
+          <div className="no-results">No vehicles found</div>
         )}
       </div>
     </div>

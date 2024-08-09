@@ -1,69 +1,110 @@
 .about-us-container {
-    padding: 40px;
-    background: #364d79;
-    color: #fff;
+  padding: 40px;
+  background: #364d79;
+  color: #fff;
+  font-family: 'Roboto', sans-serif;
+}
+
+.about-us-header {
+  margin-bottom: 40px;
+}
+
+.about-us-header h1 {
+  font-size: 2.5em;
+  text-align: center;
+  margin: 0;
+}
+
+.about-us-content {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.about-us-image {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  max-width: 800px;
+  margin-bottom: 20px;
+}
+
+.about-us-card {
+  background: #fff;
+  color: #000;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: left;
+  width: 100%;
+  max-width: 600px;
+}
+
+.about-us-card h2 {
+  font-size: 1.8em;
+  margin-bottom: 16px;
+}
+
+.about-us-card p {
+  font-size: 1em;
+  margin-bottom: 16px;
+}
+
+.about-us-card button {
+  margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+  .about-us-header {
     text-align: center;
-    font-family: 'Roboto', sans-serif;
+    margin-bottom: 30px;
   }
-  
-  .about-us-container h1 {
-    font-size: 3em; /* Adjust as needed */
+
+  .about-us-header h1 {
+    font-size: 2em;
+  }
+
+  .about-us-content {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .about-us-image {
+    max-width: 100%;
     margin-bottom: 20px;
   }
-  
-  .about-us-container p {
-    font-size: 1.1em; /* Adjust as needed */
-  }
-  
-  .about-us-content {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .about-us-image {
-    width: 100%;
-    height: auto;
-    border-radius: 8px;
-  }
-  
+
   .about-us-card {
-    background: #fff;
-    color: #000;
-    border-radius: 8px;
-    padding: 20px;
-    text-align: left;
+    padding: 15px;
   }
-  
+
   .about-us-card h2 {
-    font-size: 1.8em; /* Adjust as needed */
-    margin-bottom: 16px;
+    font-size: 1.5em;
   }
-  
+
   .about-us-card p {
-    font-size: 1em; /* Adjust as needed */
-    margin-bottom: 16px;
+    font-size: 0.9em;
   }
-  
-  .about-us-card button {
-    margin-top: 20px;
+}
+
+@media (max-width: 480px) {
+  .about-us-header h1 {
+    font-size: 1.5em;
   }
-  
-  @media (max-width: 768px) {
-    .about-us-container h1 {
-      font-size: 2em;
-    }
-  
-    .about-us-container p {
-      font-size: 1em;
-    }
-  
-    .about-us-card h2 {
-      font-size: 1.5em;
-    }
-  
-    .about-us-card p {
-      font-size: 0.9em;
-    }
+
+  .about-us-image {
+    max-width: 100%;
   }
-  
+
+  .about-us-card {
+    padding: 10px;
+  }
+
+  .about-us-card h2 {
+    font-size: 1.3em;
+  }
+
+  .about-us-card p {
+    font-size: 0.8em;
+  }
+}

@@ -1,6 +1,10 @@
 import React from 'react';
-import { Card, Avatar, Carousel } from 'antd';
-import './ReviewPortal.css'; 
+import { Card, Avatar } from 'antd';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Pagination, Autoplay } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/pagination';
+import './ReviewPortal.css';
 import ManImg from '../../../assets/images/man.jpg';
 
 const { Meta } = Card;
@@ -18,12 +22,6 @@ const ReviewPortal = () => {
       title: 'CEO at XYZ',
       photoUrl: ManImg,
       reviewText: 'A Computer Science graduate who likes to make things simpler. When he\'s not working, you can find him surfing the web, learning facts, tricks and life hacks. He also enjoys movies in his leisure time.',
-    },
-    {
-      name: 'John Doe',
-      title: 'CEO at ABC Company',
-      photoUrl: ManImg,
-      reviewText: "The results we've achieved using this platform's marketing services are exceptional. Our campaigns are more effective, and the team's insights are invaluable.",
     },
     {
       name: 'Jane Roe',
@@ -47,36 +45,46 @@ const ReviewPortal = () => {
 
   return (
     <div className='review-portal-container'>
-      <h1 className='review-portal-title'>Reviews</h1>
-      <Carousel
-  autoplay
-  dots={true}
-  className='review-carousel'
-  slidesToShow={3}
-  slidesToScroll={1}
-  responsive={[
-    { breakpoint: 768, settings: { slidesToShow: 1 } },
-    { breakpoint: 1024, settings: { slidesToShow: 2 } }
-  ]}
->
-
+      <h1 className='review-portal-title'>What Our Clients Say</h1>
+      <Swiper
+        modules={[Pagination, Autoplay]}
+        spaceBetween={30}
+        slidesPerView={1}
+        pagination={{ clickable: true }}
+        autoplay={{ delay: 5000, disableOnInteraction: false }}
+        breakpoints={{
+          640: {
+            slidesPerView: 1,
+            spaceBetween: 20,
+          },
+          768: {
+            slidesPerView: 2,
+            spaceBetween: 30,
+          },
+          1024: {
+            slidesPerView: 3,
+            spaceBetween: 40,
+          },
+        }}
+        className='review-swiper'
+      >
         {reviews.map((review, index) => (
-          <div key={index} className='carousel-item'>
+          <SwiperSlide key={index}>
             <Card className='review-card' bordered={false}>
               <Meta
-                avatar={<Avatar src={review.photoUrl} size={64} shape="circle" />}
-                title={review.name}
-                description={(
+                avatar={<Avatar src={review.photoUrl} size={64} />}
+                title={<h3 className="review-name">{review.name}</h3>}
+                description={
                   <>
-                    <p>{review.title}</p>
+                    <p className="review-title">{review.title}</p>
                     <p className="review-text">{review.reviewText}</p>
                   </>
-                )}
+                }
               />
             </Card>
-          </div>
+          </SwiperSlide>
         ))}
-      </Carousel>
+      </Swiper>
     </div>
   );
 };
