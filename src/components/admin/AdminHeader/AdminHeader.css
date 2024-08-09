@@ -1,26 +1,15 @@
 .admin-header {
-  height: 60px;
-  display: flex;
-  align-items: center;
-  padding: 0 20px; /* Adjusted for better spacing on smaller screens */
+  padding: 5px 10px;
+  height: 50px;
   background-color: #ffffff;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  justify-content: space-between;
 }
 
-.logo img {
+.logo {
   height: 40px;
-  max-width: 100%; /* Ensure logo scales appropriately */
-}
-
-.logout-container {
-  display: flex;
-  align-items: center;
 }
 
 .logout-btn {
-  width: 100px;
-  height: 40px;
   background-color: #fdb940;
   color: #ffffff;
   font-size: 15px;
@@ -34,15 +23,14 @@
   color: #ffffff;
 }
 
-/* Mobile responsiveness */
 @media (max-width: 768px) {
   .admin-header {
-    padding: 0 10px; /* Reduced padding for smaller screens */
-    height: 50px; /* Reduced height */
+    padding: 0 10px;
+    height: 50px;
   }
 
-  .logo img {
-    height: 30px; /* Reduced logo size */
+  .logo {
+    height: 30px;
   }
 
   .logout-btn {
@@ -54,22 +42,18 @@
 
 @media (max-width: 480px) {
   .admin-header {
-    flex-direction: column; /* Stack elements vertically on very small screens */
-    height: auto; /* Allow height to adjust */
-    align-items: flex-start; /* Align items to the start */
+    flex-direction: column;
+    height: auto;
+    align-items: flex-start;
   }
 
-  .logo img {
-    height: 25px; /* Further reduce logo size */
+  .logo {
+    height: 25px;
   }
 
   .logout-btn {
     width: 70px;
     height: 30px;
-    font-size: 12px; /* Smaller font size for very small screens */
-  }
-
-  .space {
-    display: none; /* Hide spacing div to save space */
+    font-size: 12px;
   }
 }

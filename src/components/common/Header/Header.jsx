@@ -47,13 +47,14 @@ const Header = () => {
   const signinButtonStyle = {
     width: '100px',
     height: '40px',
-    backgroundColor: isHovered ? '#e5a73b' : '#fdb940',
+    backgroundColor: isHovered ? '#fdb940' : '#fdb940',
     color: '#fff',
     fontSize: '15px',
     fontWeight: 'normal',
     border: 'none',
     cursor: 'pointer',
-    transition: 'background-color 0.3s ease',
+    transition: 'background-color 0.3s ease, opacity 0.3s ease',
+    opacity: isHovered ? '0.8' : '1',
   };
 
   return (
