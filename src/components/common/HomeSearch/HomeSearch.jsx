@@ -115,7 +115,7 @@ const HomeSearch = () => {
             )}
           />
         ) : (
-          <div className="no-results">No vehicles found</div>
+          <div className="no-results"></div>
         )}
       </div>
     </div>
