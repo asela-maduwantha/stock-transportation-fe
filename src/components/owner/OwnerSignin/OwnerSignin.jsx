@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
 import { Button, Input, message } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import httpService from '../../../services/httpService';
 import OwnerImg from '../../../assets/images/ownersignin.jpg';
 
-// Custom hook to detect screen size
+
 const useScreenSize = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
@@ -25,7 +25,7 @@ const OwnerSignin = () => {
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
-  const isMobile = useScreenSize(); // Use custom hook to detect mobile
+  const isMobile = useScreenSize(); 
 
   const handleSignIn = async () => {
     if (!userName || !password) {
@@ -112,6 +112,12 @@ const OwnerSignin = () => {
     borderColor: '#fdb940',
   };
 
+  const forgotPasswordLinkStyle = {
+    marginTop: '16px',
+    textAlign: 'center',
+    color: '#fdb940',
+  };
+
   return (
     <div style={containerStyle}>
       <div style={formContainerStyle}>
@@ -148,6 +154,9 @@ const OwnerSignin = () => {
           >
             Sign In
           </Button>
+          <Link to="/owner/forgot-password" style={forgotPasswordLinkStyle}>
+            Forgot Password?
+          </Link>
         </div>
       </div>
     </div>

@@ -38,6 +38,7 @@ import BookingsList from '../components/owner/BookingList/BookingList';
 import AssignedTrips from '../components/driver/AssignedTripes/AssignedTrips';
 import Vehicles from '../components/driver/Vehicles/Vehicles';
 import Help from '../components/driver/Help/Help';
+import OwnerForgotPassword from '../components/owner/OwnerForgotPassword/OwnerForgotPassword';
 
 const WebRoutes = () => {
   return (
@@ -54,6 +55,7 @@ const WebRoutes = () => {
           <Route path="owner/signin" element={<OwnerSignin />} />
           <Route path="driver/signin" element={<DriverSignin />} />
           <Route path="vehicle/:id" element={<VehicleDetails />} />
+          <Route path='/owner/forgot-password' element={<OwnerForgotPassword/>}/>
         </Route>
         <Route path="/payment" element={<Payment />} />
 
@@ -104,6 +106,7 @@ const WebRoutes = () => {
           <Route path="vehicles" element={<OwnerVehicles />} />
           <Route path='drivers' element={<DriverDetails/>}/>
           <Route path='my-bookings' element={<BookingsList/>}/>
+          
         </Route>
 
         <Route
