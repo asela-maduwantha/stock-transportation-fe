@@ -1,7 +1,8 @@
-import React from 'react';
-import { Card, Row, Col, Statistic } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Card, Row, Col, Statistic, Pagination } from 'antd';
 import { Line, Pie } from 'react-chartjs-2';
 import { UserOutlined, CarOutlined, AreaChartOutlined, DollarOutlined } from '@ant-design/icons';
+import Slider from 'react-slick';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -13,6 +14,9 @@ import {
   Legend,
   ArcElement,
 } from 'chart.js';
+
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
 
 ChartJS.register(
   CategoryScale,
@@ -26,6 +30,18 @@ ChartJS.register(
 );
 
 const VehicleOwnerDashboard = () => {
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [currentGraphPage, setCurrentGraphPage] = useState(1);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const driverData = [
     { driver: 'Driver A', trips: 30 },
     { driver: 'Driver B', trips: 20 },
@@ -131,73 +147,119 @@ const VehicleOwnerDashboard = () => {
     maintainAspectRatio: false,
   };
 
+  const carouselSettings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+  };
+
+  const statisticCards = [
+    {
+      title: "Total Drivers",
+      value: driverData.length,
+      prefix: <UserOutlined style={{ color: '#3f8600' }} />,
+    },
+    {
+      title: "Total Vehicles",
+      value: vehicleData.length,
+      prefix: <CarOutlined style={{ color: '#cf1322' }} />,
+    },
+    {
+      title: "Total Trips",
+      value: tripData.reduce((acc, curr) => acc + curr.trips, 0),
+      prefix: <AreaChartOutlined style={{ color: '#1890ff' }} />,
+    },
+    {
+      title: "Total Revenue",
+      value: revenueData.reduce((acc, curr) => acc + curr.revenue, 0),
+      prefix: <DollarOutlined style={{ color: '#ffa940' }} />,
+      formatter: value => `$${value}`,
+    },
+  ];
+
+  const graphs = [
+    {
+      title: "Trips Over Time",
+      component: <Line data={tripChartData} options={tripChartOptions} />,
+    },
+    {
+      title: "Trips per Driver",
+      component: <Pie data={pieChartData} options={pieChartOptions} />,
+    },
+    {
+      title: "Revenue per Driver",
+      component: <Pie data={revenueChartData} options={pieChartOptions} />,
+    },
+  ];
+
   return (
     <div style={{ padding: '20px' }}>
-      <Row gutter={[16, 16]}>
-        <Col span={6}>
-          <Card>
-            <Statistic 
-              title="Total Drivers" 
-              value={driverData.length} 
-              prefix={<UserOutlined style={{ color: '#3f8600' }} />} 
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic 
-              title="Total Vehicles" 
-              value={vehicleData.length} 
-              prefix={<CarOutlined style={{ color: '#cf1322' }} />} 
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic 
-              title="Total Trips" 
-              value={tripData.reduce((acc, curr) => acc + curr.trips, 0)} 
-              prefix={<AreaChartOutlined style={{ color: '#1890ff' }} />} 
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic 
-              title="Total Revenue" 
-              value={`$${revenueData.reduce((acc, curr) => acc + curr.revenue, 0)}`} 
-              prefix={<DollarOutlined style={{ color: '#ffa940' }} />} 
-            />
-          </Card>
-        </Col>
-      </Row>
+      {isMobile ? (
+        <Slider {...carouselSettings}>
+          {statisticCards.map((card, index) => (
+            <div key={index}>
+              <Card>
+                <Statistic 
+                  title={card.title} 
+                  value={card.value} 
+                  prefix={card.prefix}
+                  formatter={card.formatter}
+                />
+              </Card>
+            </div>
+          ))}
+        </Slider>
+      ) : (
+        <Row gutter={[16, 16]}>
+          {statisticCards.map((card, index) => (
+            <Col span={6} key={index}>
+              <Card>
+                <Statistic 
+                  title={card.title} 
+                  value={card.value} 
+                  prefix={card.prefix}
+                  formatter={card.formatter}
+                />
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      )}
 
-      <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>
-        <Col span={12}>
-          <Card title="Trips Over Time" style={{ height: '300px' }}>
-            <div style={{ height: '240px' }}>
-              <Line data={tripChartData} options={tripChartOptions} />
-            </div>
-          </Card>
-        </Col>
-        <Col span={12}>
-          <Card title="Trips per Driver" style={{ height: '300px' }}>
-            <div style={{ height: '240px' }}>
-              <Pie data={pieChartData} options={pieChartOptions} />
-            </div>
-          </Card>
-        </Col>
-      </Row>
-
-      <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>
-        <Col span={12} offset={6}>
-          <Card title="Revenue per Driver" style={{ height: '300px' }}>
-            <div style={{ height: '240px' }}>
-              <Pie data={revenueChartData} options={pieChartOptions} />
-            </div>
-          </Card>
-        </Col>
-      </Row>
+      <div style={{ marginTop: '20px' }}>
+        {isMobile ? (
+          <>
+            <Card 
+              title={graphs[currentGraphPage - 1].title} 
+              style={{ height: '300px' }}
+            >
+              <div style={{ height: '240px' }}>
+                {graphs[currentGraphPage - 1].component}
+              </div>
+            </Card>
+            <Pagination 
+              current={currentGraphPage} 
+              total={graphs.length * 10} 
+              onChange={setCurrentGraphPage}
+              style={{ marginTop: '10px', textAlign: 'center' }}
+            />
+          </>
+        ) : (
+          <Row gutter={[16, 16]}>
+            {graphs.map((graph, index) => (
+              <Col span={index === 2 ? 12 : 12} offset={index === 2 ? 6 : 0} key={index}>
+                <Card title={graph.title} style={{ height: '300px' }}>
+                  <div style={{ height: '240px' }}>
+                    {graph.component}
+                  </div>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        )}
+      </div>
     </div>
   );
 };
