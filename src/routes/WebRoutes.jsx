@@ -35,6 +35,9 @@ import DriverDashboard from '../components/driver/DriverDashboard/DriverDashboar
 import BookingSummary from '../components/customer/BookingSummary/BookingSummary';
 import DriverDetails from '../components/owner/DriverDetails/DriverDetails';
 import BookingsList from '../components/owner/BookingList/BookingList';
+import AssignedTrips from '../components/driver/AssignedTripes/AssignedTrips';
+import Vehicles from '../components/driver/Vehicles/Vehicles';
+import Help from '../components/driver/Help/Help';
 
 const WebRoutes = () => {
   return (
@@ -79,6 +82,11 @@ const WebRoutes = () => {
         >
           <Route path="dashboard" element={<DriverDashboard />} />
           <Route path="pickup-stock" element={<PickupStock />} />
+         
+      <Route path="assigned-trips" element={<AssignedTrips />} />
+      <Route path="vehicles" element={<Vehicles />} />
+      <Route path="help" element={<Help />} />
+ 
         </Route>
 
         <Route
