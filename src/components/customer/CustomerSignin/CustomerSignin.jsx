@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
 import { Button, Input, Form, message } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import httpService from '../../../services/httpService';
 import CustomerImg from '../../../assets/images/ownersignin.jpg'; 
 
@@ -114,6 +114,13 @@ const CustomerSignin = () => {
     borderColor: '#fdb940',
   };
 
+  const forgotPasswordLinkStyle = {
+    display: 'block',
+    textAlign: 'center',
+    marginTop: '16px',
+    color: '#fdb940',
+  };
+
   return (
     <div style={containerStyle}>
       <div style={formContainerStyle}>
@@ -161,6 +168,9 @@ const CustomerSignin = () => {
               </Button>
             </Form.Item>
           </Form>
+          <Link to="/customer/forgot-password" style={forgotPasswordLinkStyle}>
+            Forgot Password?
+          </Link>
         </div>
       </div>
     </div>

@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
-import { Button, Input, Form, message } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import { Button, Input, message } from 'antd';
+import { useNavigate, Link } from 'react-router-dom';
 import httpService from '../../../services/httpService';
-import DriverImg from '../../../assets/images/ownersignin.jpg'; 
-
+import DriverImg from '../../../assets/images/ownersignin.jpg';
 
 const useScreenSize = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -22,39 +21,38 @@ const useScreenSize = () => {
 };
 
 const DriverSignin = () => {
-  const [loading, setLoading] = useState(false);
+  const [userName, setUserName] = useState('');
+  const [password, setPassword] = useState('');
   const navigate = useNavigate();
-  const isMobile = useScreenSize(); // Use custom hook to detect mobile
+  const isMobile = useScreenSize();
 
-  const onFinish = async (values) => {
-    setLoading(true);
+  const handleSignIn = async () => {
+    if (!userName || !password) {
+      message.error('Please provide both username and password.');
+      return;
+    }
+
     try {
-      const response = await httpService.post('/driver/signin', values);
-      localStorage.setItem('driverId', response.data.id);
+      const response = await httpService.post('/driver/signin', { userName, password });
+      const { id } = response.data;
+      localStorage.setItem('driverId', id);
       localStorage.setItem('token', response.data.access_token);
       localStorage.setItem('userRole', 'driver');
+
       message.success('Sign-in successful!');
       navigate('/driver/dashboard');
     } catch (error) {
-      if (error.response && error.response.status === 404) {
-        message.error('Driver not found.');
-      } else if (error.response && error.response.status === 406) {
-        message.error('Mismatched credentials.');
-      } else {
-        message.error('Sign-in failed.');
-      }
-      console.error(error);
-    } finally {
-      setLoading(false);
+      console.error('Error signing in:', error);
+      message.error('Failed to sign in. Please check your credentials and try again.');
     }
   };
 
   const containerStyle = {
+    width: '100%',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     minHeight: '90vh',
-    padding: '20px',
     backgroundColor: '#f0f2f5',
   };
 
@@ -113,6 +111,12 @@ const DriverSignin = () => {
     borderColor: '#fdb940',
   };
 
+  const forgotPasswordLinkStyle = {
+    marginTop: '16px',
+    textAlign: 'center',
+    color: '#fdb940',
+  };
+
   return (
     <div style={containerStyle}>
       <div style={formContainerStyle}>
@@ -125,41 +129,33 @@ const DriverSignin = () => {
         </div>
         <div style={formStyle}>
           <h1 style={titleStyle}>Driver Signin</h1>
-          <Form onFinish={onFinish}>
-            <Form.Item
-              name="userName"
-              rules={[{ required: true, message: 'Please input your username!' }]}
-            >
-              <Input
-                prefix={<MailOutlined style={iconStyle} />}
-                placeholder="Username"
-                size="large"
-                style={inputStyle}
-              />
-            </Form.Item>
-            <Form.Item
-              name="password"
-              rules={[{ required: true, message: 'Please input your password!' }]}
-            >
-              <Input.Password
-                prefix={<LockOutlined style={iconStyle} />}
-                placeholder="Password"
-                size="large"
-                style={inputStyle}
-              />
-            </Form.Item>
-            <Form.Item>
-              <Button
-                type="primary"
-                htmlType="submit"
-                size="large"
-                style={buttonStyle}
-                loading={loading}
-              >
-                Sign In
-              </Button>
-            </Form.Item>
-          </Form>
+          <Input
+            prefix={<MailOutlined style={iconStyle} />}
+            placeholder="Username"
+            size="large"
+            style={inputStyle}
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
+          />
+          <Input.Password
+            prefix={<LockOutlined style={iconStyle} />}
+            placeholder="Password"
+            size="large"
+            style={inputStyle}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <Button
+            type="primary"
+            size="large"
+            style={buttonStyle}
+            onClick={handleSignIn}
+          >
+            Sign In
+          </Button>
+          <Link to="/driver/forgot-password" style={forgotPasswordLinkStyle}>
+            Forgot Password?
+          </Link>
         </div>
       </div>
     </div>

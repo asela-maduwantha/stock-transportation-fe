@@ -39,6 +39,8 @@ import AssignedTrips from '../components/driver/AssignedTripes/AssignedTrips';
 import Vehicles from '../components/driver/Vehicles/Vehicles';
 import Help from '../components/driver/Help/Help';
 import OwnerForgotPassword from '../components/owner/OwnerForgotPassword/OwnerForgotPassword';
+import DriverForgotPassword from '../components/driver/DriverForgotPassword/DriverForgotPassword';
+import CustomerForgotPassword from '../components/customer/CustomerForgotPassword/CustomerForgotPassword';
 
 const WebRoutes = () => {
   return (
@@ -56,6 +58,8 @@ const WebRoutes = () => {
           <Route path="driver/signin" element={<DriverSignin />} />
           <Route path="vehicle/:id" element={<VehicleDetails />} />
           <Route path='/owner/forgot-password' element={<OwnerForgotPassword/>}/>
+          <Route path='/customer/forgot-password' element={<CustomerForgotPassword/>}/>
+          <Route path='/driver/forgot-password' element={<DriverForgotPassword/>}/>
         </Route>
         <Route path="/payment" element={<Payment />} />
 
