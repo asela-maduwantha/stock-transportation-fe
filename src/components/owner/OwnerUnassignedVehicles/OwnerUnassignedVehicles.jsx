@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Row, Col, Typography, Select, Button, Modal, Form, message, Input, Empty } from 'antd';
+import { Card, Row, Col, Typography, Select, Button, Modal, Form, message, Input, Empty, Spin } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import httpService from '../../../services/httpService';
 
@@ -15,6 +15,7 @@ const OwnerUnassignedVehicles = () => {
     const [assignDriverModalVisible, setAssignDriverModalVisible] = useState(false);
     const [selectedDriver, setSelectedDriver] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [driversLoading, setDriversLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const ownerId = localStorage.getItem('ownerId');
 
@@ -23,20 +24,23 @@ const OwnerUnassignedVehicles = () => {
             const response = await httpService.get(`/owner/unassignedVehi/${ownerId}`);
             setVehicles(response.data);
             setFilteredVehicles(response.data);
-            setLoading(false);
         } catch (error) {
             console.log(error);
             message.error('Failed to fetch unassigned vehicles.');
+        } finally {
             setLoading(false);
         }
     }, [ownerId]);
 
     const fetchUnassignedDrivers = useCallback(async () => {
+        setDriversLoading(true);
         try {
             const response = await httpService.get(`/owner/unassignedDrivers/${ownerId}`);
             setDrivers(response.data);
         } catch (error) {
             message.error('Failed to fetch unassigned drivers.');
+        } finally {
+            setDriversLoading(false);
         }
     }, [ownerId]);
 
@@ -99,7 +103,7 @@ const OwnerUnassignedVehicles = () => {
                 style={{ marginBottom: '20px', width: '100%', maxWidth: '400px' }}
             />
             {loading ? (
-                <div>Loading...</div>
+                <Spin tip="Loading vehicles..." size="large" />
             ) : filteredVehicles.length > 0 ? (
                 <Row gutter={[16, 16]}>
                     {filteredVehicles.map(vehicle => (
@@ -144,31 +148,35 @@ const OwnerUnassignedVehicles = () => {
                     </Button>,
                 ]}
             >
-                <Form layout="vertical">
-                    <Form.Item label="Select Driver">
-                        <Select
-                            placeholder="Select driver"
-                            onChange={(value) => setSelectedDriver(filteredDrivers.find(driver => driver.id.toString() === value))}
-                            style={{ width: '100%' }}
-                        >
-                            {filteredDrivers.map(driver => (
-                                <Option key={driver.id} value={driver.id.toString()}>
-                                    {driver.firstName} {driver.lastName}
-                                </Option>
-                            ))}
-                        </Select>
-                    </Form.Item>
-                    {selectedDriver && (
-                        <div style={{ textAlign: 'center', marginTop: '16px' }}>
-                            <img src={selectedDriver.photoUrl || 'https://via.placeholder.com/150'} alt="Driver" style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px' }} />
-                            <p><strong>Name:</strong> {selectedDriver.firstName} {selectedDriver.lastName}</p>
-                            <p><strong>Address:</strong> {selectedDriver.address}</p>
-                            <p><strong>Phone:</strong> {selectedDriver.phoneNumber}</p>
-                            <p><strong>Email:</strong> {selectedDriver.email}</p>
-                            <p><strong>Heavy Vehicle License:</strong> {selectedDriver.heavyVehicleLic ? 'Yes' : 'No'}</p>
-                        </div>
-                    )}
-                </Form>
+                {driversLoading ? (
+                    <Spin tip="Loading drivers..." size="large" />
+                ) : (
+                    <Form layout="vertical">
+                        <Form.Item label="Select Driver">
+                            <Select
+                                placeholder="Select driver"
+                                onChange={(value) => setSelectedDriver(filteredDrivers.find(driver => driver.id.toString() === value))}
+                                style={{ width: '100%' }}
+                            >
+                                {filteredDrivers.map(driver => (
+                                    <Option key={driver.id} value={driver.id.toString()}>
+                                        {driver.firstName} {driver.lastName}
+                                    </Option>
+                                ))}
+                            </Select>
+                        </Form.Item>
+                        {selectedDriver && (
+                            <div style={{ textAlign: 'center', marginTop: '16px' }}>
+                                <img src={selectedDriver.photoUrl || 'https://via.placeholder.com/150'} alt="Driver" style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px' }} />
+                                <p><strong>Name:</strong> {selectedDriver.firstName} {selectedDriver.lastName}</p>
+                                <p><strong>Address:</strong> {selectedDriver.address}</p>
+                                <p><strong>Phone:</strong> {selectedDriver.phoneNumber}</p>
+                                <p><strong>Email:</strong> {selectedDriver.email}</p>
+                                <p><strong>Heavy Vehicle License:</strong> {selectedDriver.heavyVehicleLic ? 'Yes' : 'No'}</p>
+                            </div>
+                        )}
+                    </Form>
+                )}
             </Modal>
         </div>
     );

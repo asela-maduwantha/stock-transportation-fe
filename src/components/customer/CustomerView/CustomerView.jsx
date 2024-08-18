@@ -1,6 +1,5 @@
-// src/components/CustomerView/CustomerView.jsx
 import React, { useEffect, useState } from 'react';
-import { Card, Avatar, Row, Col } from 'antd';
+import { Card, Avatar, Row, Col, Spin } from 'antd';
 import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
 import moment from 'moment';
 
@@ -56,65 +55,67 @@ const CustomerView = () => {
     libraries: ['places'],
   });
 
-  if (!isLoaded) return <div>Loading...</div>;
-
   return (
-    <div className="customer-view-container">
-      <Row gutter={[16, 16]} justify="center">
-        <Col xs={24} md={12}>
-          <Card title="Driver Details" className="driver-card">
-            <div className="driver-details" style={{ display: 'flex', alignItems: 'center' }}>
-              <Avatar size={64} src={driverData.photo} />
-              <div className="driver-info" style={{ marginLeft: '16px' }}>
-                <h3>{driverData.name}</h3>
-                <p>Vehicle: {driverData.vehicle}</p>
-                <p>Mobile: {driverData.mobile}</p>
+    <Spin spinning={!isLoaded} tip="Loading map...">
+      <div className="customer-view-container">
+        <Row gutter={[16, 16]} justify="center">
+          <Col xs={24} md={12}>
+            <Card title="Driver Details" className="driver-card">
+              <div className="driver-details" style={{ display: 'flex', alignItems: 'center' }}>
+                <Avatar size={64} src={driverData.photo} />
+                <div className="driver-info" style={{ marginLeft: '16px' }}>
+                  <h3>{driverData.name}</h3>
+                  <p>Vehicle: {driverData.vehicle}</p>
+                  <p>Mobile: {driverData.mobile}</p>
+                </div>
               </div>
-            </div>
-            <div className="pickup-details" style={{ marginTop: '16px' }}>
-              <p>Current Date and Time: {currentTime}</p>
-              <p>Pickup Location: {customerData.address}</p>
-            </div>
-            <GoogleMap
-              id="driver-movement-map"
-              mapContainerStyle={mapContainerStyle}
-              zoom={14}
-              center={{
-                lat: (driverLocation.lat + customerData.pickupLocation.lat) / 2,
-                lng: (driverLocation.lng + customerData.pickupLocation.lng) / 2,
-              }}
-              options={{ gestureHandling: 'greedy' }}
-            >
-              <Marker
-                position={driverLocation}
-                icon={{
-                  url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-                }}
-                label={{
-                  text: 'Driver',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                }}
-              />
-              <Marker
-                position={customerData.pickupLocation}
-                icon={{
-                  url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
-                }}
-                label={{
-                  text: 'Stock',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                }}
-              />
-            </GoogleMap>
-            <div style={{ textAlign: 'center', marginTop: '20px' }}>
-              <p>OTP: {driverData.otp}</p>
-            </div>
-          </Card>
-        </Col>
-      </Row>
-    </div>
+              <div className="pickup-details" style={{ marginTop: '16px' }}>
+                <p>Current Date and Time: {currentTime}</p>
+                <p>Pickup Location: {customerData.address}</p>
+              </div>
+              {isLoaded && (
+                <GoogleMap
+                  id="driver-movement-map"
+                  mapContainerStyle={mapContainerStyle}
+                  zoom={14}
+                  center={{
+                    lat: (driverLocation.lat + customerData.pickupLocation.lat) / 2,
+                    lng: (driverLocation.lng + customerData.pickupLocation.lng) / 2,
+                  }}
+                  options={{ gestureHandling: 'greedy' }}
+                >
+                  <Marker
+                    position={driverLocation}
+                    icon={{
+                      url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+                    }}
+                    label={{
+                      text: 'Driver',
+                      fontSize: '16px',
+                      fontWeight: 'bold',
+                    }}
+                  />
+                  <Marker
+                    position={customerData.pickupLocation}
+                    icon={{
+                      url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+                    }}
+                    label={{
+                      text: 'Stock',
+                      fontSize: '16px',
+                      fontWeight: 'bold',
+                    }}
+                  />
+                </GoogleMap>
+              )}
+              <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                <p>OTP: {driverData.otp}</p>
+              </div>
+            </Card>
+          </Col>
+        </Row>
+      </div>
+    </Spin>
   );
 };
 

@@ -1,6 +1,5 @@
-// src/components/PickupStock/PickupStock.jsx
 import React, { useEffect, useState } from 'react';
-import { Button, Card, Avatar, message, Modal, Input, Row, Col } from 'antd';
+import { Button, Card, Avatar, message, Modal, Input, Row, Col, Spin } from 'antd';
 import { GoogleMap, DirectionsService, DirectionsRenderer, Marker, useJsApiLoader } from '@react-google-maps/api';
 import moment from 'moment';
 
@@ -18,6 +17,7 @@ const PickupStock = () => {
   const [driverLocation, setDriverLocation] = useState(null);
   const [isOtpModalVisible, setIsOtpModalVisible] = useState(false);
   const [otp, setOtp] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -35,14 +35,17 @@ const PickupStock = () => {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
           });
+          setLoading(false);
         },
         (error) => {
           message.error('Unable to retrieve your location.');
           console.error(error);
+          setLoading(false);
         }
       );
     } else {
       message.error('Geolocation is not supported by this browser.');
+      setLoading(false);
     }
   }, []);
 
@@ -75,115 +78,114 @@ const PickupStock = () => {
     window.open(url, '_blank');
   };
 
-  // Use the useJsApiLoader hook
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: 'AIzaSyAyRG15a19j3uqI_7uEbQ6CZrp-h2KP0eM', 
     libraries: ['places'],
   });
 
-  if (!isLoaded) return <div>Loading...</div>;
-
   return (
-    <div className="pickup-stock-container">
-      <Row gutter={[16, 16]} justify="center">
-        <Col xs={24} md={12}>
-          <Card title="Pickup Stock from Customer" className="pickup-card">
-            <div className="customer-details" style={{ display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
-              <Avatar size={64} src={customerData.photo} />
-              <div className="customer-info" style={{ textAlign: 'center', marginTop: '16px' }}>
-                <h3>{customerData.name}</h3>
-                <p>{customerData.address}</p>
+    <Spin spinning={loading || !isLoaded} tip="Loading Trip Details">
+      <div className="pickup-stock-container">
+        <Row gutter={[16, 16]} justify="center">
+          <Col xs={24} md={12}>
+            <Card title="Pickup Stock from Customer" className="pickup-card">
+              <div className="customer-details" style={{ display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
+                <Avatar size={64} src={customerData.photo} />
+                <div className="customer-info" style={{ textAlign: 'center', marginTop: '16px' }}>
+                  <h3>{customerData.name}</h3>
+                  <p>{customerData.address}</p>
+                </div>
               </div>
-            </div>
-            <div className="pickup-details" style={{ marginTop: '16px', textAlign: 'center' }}>
-              <p>Current Date and Time: {currentTime}</p>
-              <p>Pickup Time: {moment().add(30, 'minutes').format('MMMM Do YYYY, h:mm a')}</p>
-            </div>
-            {driverLocation && (
-              <GoogleMap
-                id="direction-map"
-                mapContainerStyle={{ height: '400px', width: '100%' }}
-                zoom={14}
-                center={driverLocation}
-                options={{ gestureHandling: 'greedy' }}
-              >
-                <Marker
-                  position={driverLocation}
-                  icon={{
-                    url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-                  }}
-                  label="You"
-                />
-                <Marker
-                  position={customerData.pickupLocation}
-                  icon={{
-                    url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
-                  }}
-                  label="Customer"
-                />
-                <DirectionsService
-                  options={{
-                    destination: customerData.pickupLocation,
-                    origin: driverLocation,
-                    travelMode: 'DRIVING',
-                  }}
-                  callback={handleDirectionsCallback}
-                />
-                {directionsResponse && (
-                  <DirectionsRenderer
-                    options={{
-                      directions: directionsResponse,
-                      polylineOptions: {
-                        strokeColor: '#ff2527',
-                        strokeOpacity: 0.8,
-                        strokeWeight: 5,
-                      },
-                      markerOptions: {
-                        visible: true,
-                        icon: {
-                          url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
-                        },
-                      },
+              <div className="pickup-details" style={{ marginTop: '16px', textAlign: 'center' }}>
+                <p>Current Date and Time: {currentTime}</p>
+                <p>Pickup Time: {moment().add(30, 'minutes').format('MMMM Do YYYY, h:mm a')}</p>
+              </div>
+              {driverLocation && (
+                <GoogleMap
+                  id="direction-map"
+                  mapContainerStyle={{ height: '400px', width: '100%' }}
+                  zoom={14}
+                  center={driverLocation}
+                  options={{ gestureHandling: 'greedy' }}
+                >
+                  <Marker
+                    position={driverLocation}
+                    icon={{
+                      url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
                     }}
+                    label="You"
                   />
-                )}
-              </GoogleMap>
-            )}
-            {directionsResponse && (
-              <div style={{ textAlign: 'center', marginTop: '20px' }}>
-                <Button
-                  type="primary"
-                  onClick={handlePickupConfirm}
-                  style={{ backgroundColor: '#fdb940', borderColor: '#fdb940', marginBottom: '10px', width: '100%' }}
-                >
-                  Pickup Confirm
-                </Button>
-                <Button
-                  type="default"
-                  onClick={handleOpenGoogleMaps}
-                  style={{ width: '100%' }}
-                >
-                  Open in Google Maps
-                </Button>
-              </div>
-            )}
-            {pickupConfirmed && <p style={{ textAlign: 'center', color: 'green' }}>Pickup has been confirmed!</p>}
-          </Card>
-        </Col>
-      </Row>
-      <Modal
-        title="Enter OTP"
-        visible={isOtpModalVisible}
-        onOk={handleOtpSubmit}
-        onCancel={() => setIsOtpModalVisible(false)}
-      >
-        <Input
-          placeholder="Enter OTP"
-          value={otp}
-          onChange={(e) => setOtp(e.target.value)}
-        />
-      </Modal>
-    </div>
+                  <Marker
+                    position={customerData.pickupLocation}
+                    icon={{
+                      url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+                    }}
+                    label="Customer"
+                  />
+                  <DirectionsService
+                    options={{
+                      destination: customerData.pickupLocation,
+                      origin: driverLocation,
+                      travelMode: 'DRIVING',
+                    }}
+                    callback={handleDirectionsCallback}
+                  />
+                  {directionsResponse && (
+                    <DirectionsRenderer
+                      options={{
+                        directions: directionsResponse,
+                        polylineOptions: {
+                          strokeColor: '#ff2527',
+                          strokeOpacity: 0.8,
+                          strokeWeight: 5,
+                        },
+                        markerOptions: {
+                          visible: true,
+                          icon: {
+                            url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+                          },
+                        },
+                      }}
+                    />
+                  )}
+                </GoogleMap>
+              )}
+              {directionsResponse && (
+                <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                  <Button
+                    type="primary"
+                    onClick={handlePickupConfirm}
+                    style={{ backgroundColor: '#fdb940', borderColor: '#fdb940', marginBottom: '10px', width: '100%' }}
+                  >
+                    Pickup Confirm
+                  </Button>
+                  <Button
+                    type="default"
+                    onClick={handleOpenGoogleMaps}
+                    style={{ width: '100%' }}
+                  >
+                    Open in Google Maps
+                  </Button>
+                </div>
+              )}
+              {pickupConfirmed && <p style={{ textAlign: 'center', color: 'green' }}>Pickup has been confirmed!</p>}
+            </Card>
+          </Col>
+        </Row>
+        <Modal
+          title="Enter OTP"
+          visible={isOtpModalVisible}
+          onOk={handleOtpSubmit}
+          onCancel={() => setIsOtpModalVisible(false)}
+        >
+          <Input
+            placeholder="Enter OTP"
+            value={otp}
+            onChange={(e) => setOtp(e.target.value)}
+          />
+        </Modal>
+      </div>
+    </Spin>
   );
 };
 

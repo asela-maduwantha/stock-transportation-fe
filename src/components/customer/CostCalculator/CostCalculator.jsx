@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Row, Col, Card, Select, Switch, Button } from 'antd';
-import { LoadScript, GoogleMap, Marker, Autocomplete, DirectionsService, DirectionsRenderer } from '@react-google-maps/api';
-import './CostCalculator.css';
+import { Row, Col, Card, Select, Switch, Button, Typography, Spin } from 'antd';
+import { GoogleMap, Marker, Autocomplete, DirectionsService, DirectionsRenderer } from '@react-google-maps/api';
+import GoogleMapsLoader from '../../../services/GoogleMapsLoader';
 
 const { Option } = Select;
-
-const libraries = ['places'];
+const { Text } = Typography;
 
 const containerStyle = {
   width: '100%',
@@ -17,6 +16,36 @@ const center = {
   lng: 80.7718
 };
 
+const cardStyle = {
+  width: '100%',
+  maxWidth: '600px',
+  margin: '20px auto',
+  padding: '20px',
+  backgroundColor: '#f0f2f5',
+  borderRadius: '8px',
+  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+};
+
+const labelStyle = {
+  fontWeight: 'bold',
+  marginBottom: '8px',
+  display: 'block'
+};
+
+const totalCostStyle = {
+  fontSize: '24px',
+  color: '#1890ff',
+  marginTop: '8px'
+};
+
+const rowStyle = {
+  marginBottom: '16px'
+};
+
+const inputStyle = {
+  width: '100%'
+};
+
 const CostCalculator = () => {
   const [vehicleType, setVehicleType] = useState('');
   const [pickupLocation, setPickupLocation] = useState(null);
@@ -24,6 +53,7 @@ const CostCalculator = () => {
   const [isReturnTrip, setIsReturnTrip] = useState(false);
   const [distance, setDistance] = useState(0);
   const [directionsResponse, setDirectionsResponse] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const pickupRef = useRef();
   const dropRef = useRef();
@@ -59,6 +89,7 @@ const CostCalculator = () => {
 
   useEffect(() => {
     if (pickupLocation && dropLocation) {
+      setLoading(true);
       const service = new window.google.maps.DistanceMatrixService();
       service.getDistanceMatrix(
         {
@@ -67,6 +98,7 @@ const CostCalculator = () => {
           travelMode: 'DRIVING',
         },
         (response, status) => {
+          setLoading(false);
           if (status === 'OK') {
             setDistance(response.rows[0].elements[0].distance.value / 1000); // distance in km
           }
@@ -76,12 +108,12 @@ const CostCalculator = () => {
   }, [pickupLocation, dropLocation]);
 
   return (
-    <LoadScript googleMapsApiKey="AIzaSyAyRG15a19j3uqI_7uEbQ6CZrp-h2KP0eM" libraries={libraries}>
-      <div className="trip-cost-calculator">
-        <Card title="Trip Cost Calculator" className="calculator-card">
-          <Row gutter={[16, 16]}>
+    <GoogleMapsLoader>
+      <div style={{ padding: '20px' }}>
+        <Card title="Trip Cost Calculator" style={cardStyle}>
+          <Row gutter={[16, 16]} style={rowStyle}>
             <Col span={12}>
-              <label>Select Vehicle Type:</label>
+              <label style={labelStyle}>Select Vehicle Type:</label>
               <Select
                 value={vehicleType}
                 onChange={value => setVehicleType(value)}
@@ -91,41 +123,43 @@ const CostCalculator = () => {
                   <Option key={type} value={type}>{type}</Option>
                 ))}
               </Select>
-              <p>Price per km: LKR {vehiclePrices[vehicleType]}</p>
+              <Text>Price per km: LKR {vehiclePrices[vehicleType]}</Text>
             </Col>
             <Col span={12}>
-              <label>Pickup Location:</label>
+              <label style={labelStyle}>Pickup Location:</label>
               <Autocomplete
                 onLoad={ref => (pickupRef.current = ref)}
                 onPlaceChanged={() => onPlaceChanged(pickupRef, setPickupLocation)}
               >
-                <input type="text" placeholder="Enter pickup location" style={{ width: '100%' }} />
+                <input type="text" placeholder="Enter pickup location" style={inputStyle} />
               </Autocomplete>
             </Col>
             <Col span={12}>
-              <label>Drop Location:</label>
+              <label style={labelStyle}>Drop Location:</label>
               <Autocomplete
                 onLoad={ref => (dropRef.current = ref)}
                 onPlaceChanged={() => onPlaceChanged(dropRef, setDropLocation)}
               >
-                <input type="text" placeholder="Enter drop location" style={{ width: '100%' }} />
+                <input type="text" placeholder="Enter drop location" style={inputStyle} />
               </Autocomplete>
             </Col>
             <Col span={12}>
-              <label>Return Trip:</label>
+              <label style={labelStyle}>Return Trip:</label>
               <Switch
                 checked={isReturnTrip}
                 onChange={checked => setIsReturnTrip(checked)}
               />
             </Col>
             <Col span={24} style={{ textAlign: 'center', marginTop: '16px' }}>
-              <Button type="primary" size="large" onClick={calculateCost}>Calculate Cost</Button>
+              <Button type="primary" size="large" onClick={calculateCost} disabled={loading}>
+                {loading ? <Spin /> : 'Calculate Cost'}
+              </Button>
             </Col>
             <Col span={24} style={{ textAlign: 'center', marginTop: '16px' }}>
               {distance > 0 && (
                 <div>
                   <h3>Total Cost:</h3>
-                  <p className="total-cost">{`LKR ${calculateCost()}`}</p>
+                  <p style={totalCostStyle}>{`LKR ${calculateCost()}`}</p>
                 </div>
               )}
             </Col>
@@ -163,7 +197,7 @@ const CostCalculator = () => {
           </Row>
         </Card>
       </div>
-    </LoadScript>
+    </GoogleMapsLoader>
   );
 };
 

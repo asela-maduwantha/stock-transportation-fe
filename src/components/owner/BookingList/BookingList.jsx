@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Table, Button, Modal } from 'antd';
+import { Table, Button, Modal, Spin } from 'antd';
 import httpService from '../../../services/httpService';
 import { GoogleMap, Marker, DirectionsService, DirectionsRenderer } from '@react-google-maps/api';
 import GoogleMapsLoader from '../../../services/GoogleMapsLoader'; 
@@ -12,6 +12,7 @@ const containerStyle = {
 const BookingsList = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [mapLoading, setMapLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [showMap, setShowMap] = useState(false);
@@ -51,6 +52,7 @@ const BookingsList = () => {
   };
 
   const handleViewMore = async (booking) => {
+    setMapLoading(true);
     const geocoder = new window.google.maps.Geocoder();
 
     try {
@@ -65,6 +67,8 @@ const BookingsList = () => {
       setShowMap(true);
     } catch (error) {
       console.error('Error fetching location names:', error);
+    } finally {
+      setMapLoading(false);
     }
   };
 
@@ -157,7 +161,7 @@ const BookingsList = () => {
     },
   ];
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <Spin tip="Loading bookings..." size="large" />;
   if (error) return <p>Error: {error}</p>;
 
   return (
@@ -189,7 +193,9 @@ const BookingsList = () => {
             <p><strong>Loading Capacity:</strong> {selectedBooking.loadingCapacity} tons</p>
             <p><strong>Start Location:</strong> {selectedBooking.startLocation}</p>
             <p><strong>End Location:</strong> {selectedBooking.endLocation}</p>
-            {renderMap()}
+            <Spin spinning={mapLoading} tip="Loading map..." size="large">
+              {renderMap()}
+            </Spin>
           </div>
         )}
       </Modal>

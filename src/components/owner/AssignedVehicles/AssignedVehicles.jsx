@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Modal, message, Input, Row, Col, Empty } from 'antd';
+import { Card, Button, Modal, message, Input, Row, Col, Empty, Spin } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import httpService from '../../../services/httpService';
 
@@ -69,31 +69,31 @@ const AssignedVehicles = () => {
         onChange={(e) => handleSearch(e.target.value)}
         style={{ marginBottom: '20px', width: '100%', maxWidth: '400px' }}
       />
-      {loading ? (
-        <div>Loading...</div>
-      ) : filteredVehicles.length > 0 ? (
-        <Row gutter={[16, 16]}>
-          {filteredVehicles.map((item) => (
-            <Col xs={24} sm={12} md={8} lg={6} key={item.id}>
-              <Card
-                hoverable
-                cover={<img alt={item.vehicle.type} src={item.vehicle.photoUrl} style={{ height: 200, objectFit: 'cover' }} />}
-                actions={[
-                  <Button key="view" onClick={() => handleViewDriver(item.driver)}>View Driver</Button>,
-                  <Button key="remove" onClick={() => handleRemoveDriver(item.id)}>Remove Driver</Button>,
-                ]}
-              >
-                <Meta
-                  title={`${item.vehicle.type} - ${item.vehicle.regNo}`}
-                  description={`Driver: ${item.driver.firstName} ${item.driver.lastName}`}
-                />
-              </Card>
-            </Col>
-          ))}
-        </Row>
-      ) : (
-        <Empty description="No vehicles found" />
-      )}
+      <Spin spinning={loading} tip="Loading vehicles...">
+        {filteredVehicles.length > 0 ? (
+          <Row gutter={[16, 16]}>
+            {filteredVehicles.map((item) => (
+              <Col xs={24} sm={12} md={8} lg={6} key={item.id}>
+                <Card
+                  hoverable
+                  cover={<img alt={item.vehicle.type} src={item.vehicle.photoUrl} style={{ height: 200, objectFit: 'cover' }} />}
+                  actions={[
+                    <Button key="view" onClick={() => handleViewDriver(item.driver)}>View Driver</Button>,
+                    <Button key="remove" onClick={() => handleRemoveDriver(item.id)}>Remove Driver</Button>,
+                  ]}
+                >
+                  <Meta
+                    title={`${item.vehicle.type} - ${item.vehicle.regNo}`}
+                    description={`Driver: ${item.driver.firstName} ${item.driver.lastName}`}
+                  />
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        ) : (
+          <Empty description="No vehicles found" />
+        )}
+      </Spin>
       <Modal
         title="Driver Details"
         visible={driverModalVisible}
