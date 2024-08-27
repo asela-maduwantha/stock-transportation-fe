@@ -43,7 +43,7 @@ const VehicleSelection = ({ onVehicleSelect }) => {
 
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-    const filterButtons = ['Car', 'Lorry', 'Freezer', 'Van', 'Tipper Truck', 'Container', 'Tuk'];
+    const filterButtons = ['Lorry', 'Freezer', 'Van', 'Tipper Truck', 'Container'];
 
     return (
         <>

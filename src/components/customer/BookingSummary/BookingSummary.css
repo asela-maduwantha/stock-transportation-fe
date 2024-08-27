@@ -1,27 +1,38 @@
-.booking-summary-card {
-    max-width: 800px;
+.booking-summary-container {
+    max-width: 1000px;
     margin: 0 auto;
     padding: 20px;
 }
 
-.price-summary {
-    margin-top: 20px;
-    background-color: #f0f2f5;
-    padding: 10px;
-    border-radius: 4px;
+.booking-summary-card {
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.price-values {
-    text-align: right;
+.ant-card-head-title {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.ant-timeline-item-content {
+    padding-bottom: 20px;
 }
 
 .confirm-button {
     margin-top: 20px;
-    width: 100%;
+}
+
+.confirm-button .ant-btn {
+    font-weight: bold;
 }
 
 @media (max-width: 768px) {
-    .booking-summary-card {
+    .booking-summary-container {
         padding: 10px;
+    }
+    
+    .ant-card {
+        margin-bottom: 15px;
     }
 }
