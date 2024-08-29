@@ -2,69 +2,63 @@ import React, { useState } from "react";
 import { Button, Menu, Dropdown } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  PieChartOutlined,
-  DesktopOutlined,
+  DashboardOutlined,
   ContainerOutlined,
-  UserOutlined,
   CarOutlined,
-  CalculatorOutlined,
+  UserOutlined,
+  InfoCircleOutlined,
+  LogoutOutlined,
   MenuOutlined,
 } from "@ant-design/icons";
 import Logo from "../../../assets/Logo.png";
-import "./CustomerHeader.css";
+import "./DriverHeader.css";
 
-const CustomerHeader = () => {
+const DriverHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = () => {
     localStorage.clear();
-    navigate("/customer/signin");
+    navigate("/driver/signin");
   };
 
   const menuItems = [
     {
       key: "dashboard",
-      icon: <PieChartOutlined />,
+      icon: <DashboardOutlined />,
       label: "Dashboard",
-      link: "/customer/dashboard",
+      link: "/driver/dashboard",
     },
     {
-      key: "book",
-      icon: <DesktopOutlined />,
-      label: "Book Vehicle",
-      link: "/customer/booking",
-    },
-    {
-      key: "booking-history",
-      icon: <ContainerOutlined />,
-      label: "Booking History",
-      link: "/customer/booking-history",
-    },
-    {
-      key: "pickup-view",
+      key: "pickup-stock",
       icon: <ContainerOutlined />,
       label: "Stock Pending Pickup",
-      link: "/customer/stock-pickup",
+      link: "/driver/pickup-stock",
     },
     {
-      key: "drivers",
+      key: "assigned-trips",
       icon: <CarOutlined />,
-      label: "Drivers",
-      link: "/customer/drivers",
+      label: "Assigned Trips",
+      link: "/driver/assigned-trips",
     },
     {
-      key: "costcalculator",
-      icon: <CalculatorOutlined />,
-      label: "Cost Calculator",
-      link: "/customer/cost-calculator",
+      key: "vehicles",
+      icon: <CarOutlined />,
+      label: "Vehicles",
+      link: "/driver/vehicles",
     },
     {
       key: "profile-settings",
       icon: <UserOutlined />,
       label: "Profile Settings",
-      link: "/customer/profile-settings",
+      link: "/driver/profile-settings",
+    },
+    {
+      key: "help",
+      icon: <InfoCircleOutlined />,
+      label: "Help",
+      link: "/driver/help",
     },
   ];
 
@@ -78,7 +72,7 @@ const CustomerHeader = () => {
   const mobileMenu = (
     <Menu>
       {renderMenuItems()}
-      <Menu.Item key="logout" onClick={handleLogout}>
+      <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={handleLogout}>
         Logout
       </Menu.Item>
     </Menu>
@@ -96,9 +90,8 @@ const CustomerHeader = () => {
     transition: "background-color 0.3s ease, opacity 0.3s ease",
     opacity: isHovered ? "0.8" : "1",
   };
-
   return (
-    <header className="customer-header">
+    <header className="driver-header">
       <div className="logo-container">
         <img src={Logo} alt="Logo" className="logo" />
       </div>
@@ -131,4 +124,4 @@ const CustomerHeader = () => {
   );
 };
 
-export default CustomerHeader;
+export default DriverHeader;

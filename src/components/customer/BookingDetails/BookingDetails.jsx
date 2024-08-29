@@ -22,7 +22,7 @@ import {
 import moment from "moment";
 import { useNavigate } from "react-router-dom";
 import httpService from "../../../services/httpService";
-
+import './BookingDetails.css'
 const { Option } = Select;
 const { Title } = Typography;
 

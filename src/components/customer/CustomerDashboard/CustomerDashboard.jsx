@@ -62,62 +62,41 @@ const CustomerDashboard = () => {
         beginAtZero: true,
       },
     },
+    responsive: true,
+    maintainAspectRatio: false,
   };
 
   return (
     <div className="dashboard" style={{ padding: '25px' }}>
       <Row gutter={[16, 16]}>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="Total Trips"
-              value={totalTrips}
-              prefix={<CarOutlined />}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="Completed Trips"
-              value={completedTrips}
-              prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: '#52c41a' }}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="Canceled Trips"
-              value={canceledTrips}
-              prefix={<CloseCircleOutlined />}
-              valueStyle={{ color: '#f5222d' }}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="Total Drivers"
-              value={totalDrivers}
-              prefix={<UserOutlined />}
-              valueStyle={{ color: '#fa8c16' }}
-            />
-          </Card>
-        </Col>
+        {[
+          { title: "Total Trips", value: totalTrips, prefix: <CarOutlined />, color: '#1890ff' },
+          { title: "Completed Trips", value: completedTrips, prefix: <CheckCircleOutlined />, color: '#52c41a' },
+          { title: "Canceled Trips", value: canceledTrips, prefix: <CloseCircleOutlined />, color: '#f5222d' },
+          { title: "Total Drivers", value: totalDrivers, prefix: <UserOutlined />, color: '#fa8c16' },
+        ].map((stat, index) => (
+          <Col xs={24} sm={12} md={6} key={index}>
+            <Card>
+              <Statistic
+                title={stat.title}
+                value={stat.value}
+                prefix={stat.prefix}
+                valueStyle={{ color: stat.color }}
+              />
+            </Card>
+          </Col>
+        ))}
       </Row>
 
       <Divider />
 
       <Row gutter={[16, 16]}>
-        <Col span={12}>
+        <Col xs={24} md={12}>
           <Card title="Recent Trips">
             <p>No recent trips.</p>
           </Card>
         </Col>
-        <Col span={12}>
+        <Col xs={24} md={12}>
           <Card title="Actions">
             <Button type="primary" href='/customer/booking'>Book a Trip</Button>
           </Card>
@@ -129,7 +108,9 @@ const CustomerDashboard = () => {
       <Row gutter={[16, 16]}>
         <Col span={24}>
           <Card title="Monthly Trips Chart">
-            <Bar data={chartData} options={chartOptions} />
+            <div style={{ height: '300px' }}>
+              <Bar data={chartData} options={chartOptions} />
+            </div>
           </Card>
         </Col>
       </Row>

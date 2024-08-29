@@ -1,0 +1,72 @@
+.driver-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .logo-container {
+    flex: 0 0 auto;
+  }
+  
+  .logo {
+    height: 40px;
+    width: auto;
+  }
+  
+  .main-nav {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .desktop-menu {
+    border-bottom: none;
+  }
+  
+  .actions {
+    display: flex;
+    align-items: center;
+  }
+  
+  .logout-btn {
+    background-color: #fdb940;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: opacity 0.3s ease;
+  }
+  
+  .logout-btn:hover {
+    opacity: 0.8;
+  }
+  
+  .mobile-menu-toggle {
+    display: none;
+  }
+  
+  @media (max-width: 768px) {
+    .driver-header {
+      flex-wrap: wrap;
+    }
+  
+    .main-nav {
+      display: none;
+    }
+  
+    .desktop-only {
+      display: none;
+    }
+  
+    .mobile-menu-toggle {
+      display: block;
+    }
+  
+    .actions {
+      margin-left: auto;
+    }
+  }
