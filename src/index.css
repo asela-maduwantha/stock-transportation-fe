@@ -45,3 +45,8 @@ code {
   border-radius:6px;
   transition:all 0.2s;
 }
+
+.ant-form-item-required::before {
+  content: '';
+  display: none;
+}

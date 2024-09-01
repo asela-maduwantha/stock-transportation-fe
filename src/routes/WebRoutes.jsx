@@ -41,6 +41,9 @@ import Help from '../components/driver/Help/Help';
 import OwnerForgotPassword from '../components/owner/OwnerForgotPassword/OwnerForgotPassword';
 import DriverForgotPassword from '../components/driver/DriverForgotPassword/DriverForgotPassword';
 import CustomerForgotPassword from '../components/customer/CustomerForgotPassword/CustomerForgotPassword';
+import SharedBookings from '../components/customer/SharedBookings/SharedBookings';
+import SharedBookingDetails from '../components/customer/SharedBookingDetails/SharedBookingDetails';
+import SharedBookingSummary from '../components/customer/SharedBookingSummary/SharedBookingSummary';
 
 const WebRoutes = () => {
   return (
@@ -129,6 +132,10 @@ const WebRoutes = () => {
           <Route path="stock-pickup" element={<CustomerView />} />
           <Route path="profile-settings" element={<ProfileSettings />} />
           <Route path="booking-summary" element={<BookingSummary />} />
+          <Route path="shared-booking" element={<SharedBookings />} />
+          <Route path="shared-booking-details" element={<SharedBookingDetails />} />
+          <Route path="shared-booking-summary" element={<SharedBookingSummary />} />
+
         </Route>
       </Routes>
     </BrowserRouter>

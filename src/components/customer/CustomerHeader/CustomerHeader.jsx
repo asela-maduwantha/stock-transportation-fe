@@ -6,7 +6,6 @@ import {
   DesktopOutlined,
   ContainerOutlined,
   UserOutlined,
-  CarOutlined,
   CalculatorOutlined,
   MenuOutlined,
 } from "@ant-design/icons";
@@ -37,6 +36,12 @@ const CustomerHeader = () => {
       link: "/customer/booking",
     },
     {
+      key: "shared-booking",
+      icon: <ContainerOutlined />,
+      label: "Shared- Bookings",
+      link: "/customer/shared-booking",
+    },
+    {
       key: "booking-history",
       icon: <ContainerOutlined />,
       label: "Booking History",
@@ -47,12 +52,6 @@ const CustomerHeader = () => {
       icon: <ContainerOutlined />,
       label: "Stock Pending Pickup",
       link: "/customer/stock-pickup",
-    },
-    {
-      key: "drivers",
-      icon: <CarOutlined />,
-      label: "Drivers",
-      link: "/customer/drivers",
     },
     {
       key: "costcalculator",

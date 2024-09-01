@@ -17,7 +17,7 @@ const VehicleSelection = ({ onVehicleSelect }) => {
         const fetchVehicles = async () => {
             try {
                 const response = await httpService.get('/customer/vehicles');
-                const data = response.data; // Access the data property
+                const data = response.data; 
                 setVehicles(data);
             } catch (error) {
                 console.error('Error fetching vehicles:', error);
@@ -79,10 +79,10 @@ const VehicleSelection = ({ onVehicleSelect }) => {
                             onClick={() => onVehicleSelect(vehicle)}
                         >
                             <Card.Meta
-                                title={`Vehicle ID: ${vehicle.id}`}
+                                title={`Type: ${vehicle.type}`}
                                 description={
                                     <>
-                                        <p><strong>Type:</strong> {vehicle.type}</p>
+                                        
                                         <p><strong>Capacity:</strong> {vehicle.capacity} {vehicle.capacityUnit}</p>
                                         <p><strong>Charge Per Km:</strong> LKR  {vehicle.chargePerKm}</p>
                                         <Button type="primary" onClick={() => onVehicleSelect(vehicle)} block>Select</Button>
