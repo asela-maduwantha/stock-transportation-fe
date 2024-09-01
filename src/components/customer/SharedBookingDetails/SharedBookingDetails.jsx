@@ -48,10 +48,16 @@ const SharedBookingDetails = () => {
   }, [selectedBooking]);
 
   const getRoute = async () => {
-    const directionsService = new window.google.maps.DirectionsService();
+    if (!selectedBooking || !selectedBooking.nearbyCities || selectedBooking.nearbyCities.length < 2) {
+      console.error("Invalid or missing nearby cities");
+      return;
+    }
+  
     const origin = selectedBooking.nearbyCities[0];
     const destination = selectedBooking.nearbyCities[selectedBooking.nearbyCities.length - 1];
-
+  
+    const directionsService = new window.google.maps.DirectionsService();
+  
     directionsService.route(
       {
         origin: origin,
@@ -70,7 +76,7 @@ const SharedBookingDetails = () => {
 
   useEffect(() => {
     getRoute();
-  }, []);
+  });
 
   const isLocationOnRoute = (location, route) => {
     const routeBounds = route.bounds;
