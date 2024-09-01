@@ -1,10 +1,10 @@
 import React from 'react';
-import { Button, message, Row, Col, Card, Typography, Divider, Timeline, Tag, Statistic } from 'antd';
+import { Button, message, Row, Col, Card, Typography, Divider, Table, Space, Statistic } from 'antd';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { CarOutlined, EnvironmentOutlined, ClockCircleOutlined, DollarOutlined, LoadingOutlined } from '@ant-design/icons';
+import { CarOutlined } from '@ant-design/icons';
 import httpService from '../../../services/httpService';
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 
 const BookingSummary = () => {
     const location = useLocation();
@@ -80,109 +80,151 @@ const BookingSummary = () => {
         navigate('/customer/booking');
     };
 
+    const data = [
+        {
+            key: "1",
+            label: "Pickup Location",
+            value: pickupLocation?.address,
+        },
+        {
+            key: "2",
+            label: "Dropoff Location",
+            value: dropLocation?.address,
+        },
+        {
+            key: "3",
+            label: "Pickup Date & Time",
+            value: `${pickupDate} at ${pickupTime}`,
+        },
+        {
+            key: "4",
+            label: "Calculated Drop Date & Time",
+            value: `${calculatedDropDateTime?.date} at ${calculatedDropDateTime?.time}`,
+        },
+        {
+            key: "5",
+            label: "Total Distance",
+            value: `${distance.toFixed(2)} km`,
+        },
+        {
+            key: "6",
+            label: "Return Trip",
+            value: returnTrip ? "Yes" : "No",
+        },
+        {
+            key: "7",
+            label: "Loading Time",
+            value: `${loadingTime} minutes`,
+        },
+        {
+            key: "8",
+            label: "Unloading Time",
+            value: `${unloadingTime} minutes`,
+        },
+        {
+            key: "9",
+            label: "Willing to Share",
+            value: shareSpace ? "Yes" : "No",
+        },
+    ];
+
+    const columns = [
+        {
+            title: "",
+            dataIndex: "label",
+            key: "label",
+            render: (text) => <Text strong>{text}</Text>,
+        },
+        {
+            title: "",
+            dataIndex: "value",
+            key: "value",
+            render: (text) => <Text>{text}</Text>,
+        },
+    ];
+
     return (
-        <div className="booking-summary-container">
-            <Title level={2} style={{ textAlign: 'center', marginBottom: 24 }}>Booking Summary</Title>
+        <div style={{ padding: "24px", backgroundColor: "#f0f2f5", minHeight: "100vh" }}>
             <Row gutter={[24, 24]} justify="center">
                 <Col xs={24} lg={12}>
-                    <Card
-                        hoverable
-                        cover={
-                            <img
-                                alt={selectedVehicle.name}
-                                src={selectedVehicle.photoUrl}
-                                style={{ height: 200, objectFit: 'cover' }}
-                            />
-                        }
-                        style={{ marginBottom: 24 }}
-                    >
-                        <Title level={4}>{selectedVehicle.name}</Title>
-                        <Tag color="blue" icon={<CarOutlined />} style={{ fontSize: '14px', padding: '3px 8px' }}>
-                            Capacity: {selectedVehicle.capacity}
-                        </Tag>
-                    </Card>
-                    
-                    <Card title={<Title level={4}><EnvironmentOutlined /> Trip Details</Title>} className="booking-summary-card">
-                        <Timeline>
-                            <Timeline.Item color="green" dot={<LoadingOutlined style={{ fontSize: '16px' }} />}>
-                                <Text strong>Pickup:</Text> {pickupLocation?.address}
-                                <br />
-                                <Text type="secondary">{pickupDate} at {pickupTime}</Text>
-                                <br />
-                                <Text type="secondary">Loading Time: {loadingTime} minutes</Text>
-                            </Timeline.Item>
-                            <Timeline.Item color="red" dot={<LoadingOutlined style={{ fontSize: '16px' }} />}>
-                                <Text strong>Drop-off:</Text> {dropLocation?.address}
-                                <br />
-                                <Text type="secondary">{calculatedDropDateTime?.date} at {calculatedDropDateTime?.time}</Text>
-                                <br />
-                                <Text type="secondary">Unloading Time: {unloadingTime} minutes</Text>
-                            </Timeline.Item>
-                        </Timeline>
-                        <Divider dashed />
-                        <Row gutter={[16, 16]}>
-                            <Col span={12}>
-                                <Statistic 
-                                    title="Total Distance" 
-                                    value={`${distance.toFixed(2)} km`}
-                                    prefix={<ClockCircleOutlined />} 
-                                />
-                            </Col>
-                            <Col span={12}>
-                                <Statistic 
-                                    title="Return Trip" 
-                                    value={returnTrip ? "Yes" : "No"}
-                                    valueStyle={{ color: returnTrip ? '#3f8600' : '#cf1322' }}
-                                />
-                            </Col>
-                        </Row>
-                        <Paragraph style={{ marginTop: 16 }}>
-                            <Text strong>Willing to Share:</Text> {shareSpace ? <Tag color="green">Yes</Tag> : <Tag color="red">No</Tag>}
-                        </Paragraph>
-                    </Card>
+                    <Title level={2} style={{ textAlign: "center", marginBottom: "24px" }}>
+                        Booking Summary
+                    </Title>
                 </Col>
+            </Row>
+
+            <Row gutter={[24, 24]} justify="center">
                 <Col xs={24} lg={12}>
-                    <Card 
-                        title={<Title level={4}><DollarOutlined /> Charges Breakdown</Title>} 
-                        className="booking-summary-card"
-                        style={{ backgroundColor: '#f6ffed', border: '1px solid #b7eb8f', marginBottom: 24 }}
-                    >
+                    <Card hoverable style={{ marginBottom: "24px" }}>
+                        <Title level={4} style={{ marginBottom: "16px" }}>
+                            {selectedVehicle.name}
+                        </Title>
+                        <Space style={{ marginBottom: "16px" }}>
+                            <CarOutlined />
+                            <Text strong>Capacity:</Text>
+                            <Text>{`${selectedVehicle.capacity}`}</Text>
+                        </Space>
+                        <Table
+                            dataSource={data}
+                            columns={columns}
+                            pagination={false}
+                            showHeader={false}
+                            size="small"
+                            bordered={false}
+                        />
+                        <Divider style={{ margin: "24px 0" }} />
                         <Row gutter={[16, 16]}>
                             <Col span={12}>
-                                <Statistic 
-                                    title="Vehicle Charge" 
+                                <Statistic
+                                    title="Vehicle Charge"
                                     value={charges?.vehicleCharge.toFixed(2)}
-                                    prefix="LKR" 
+                                    prefix="LKR"
+                                    valueStyle={{ fontSize: "14px" }}
                                 />
                             </Col>
                             <Col span={12}>
-                                <Statistic 
-                                    title="Service Charge" 
+                                <Statistic
+                                    title="Service Charge"
                                     value={charges?.serviceCharge.toFixed(2)}
-                                    prefix="LKR" 
+                                    prefix="LKR"
+                                    valueStyle={{ fontSize: "14px" }}
                                 />
                             </Col>
                         </Row>
-                        <Divider style={{ margin: '24px 0' }} />
+                        <Divider style={{ margin: "24px 0" }} />
                         <Row>
                             <Col span={24}>
-                                <Statistic 
-                                    title="Total Price" 
+                                <Statistic
+                                    title="Total Price"
                                     value={charges?.total.toFixed(2)}
                                     prefix="LKR"
-                                    valueStyle={{ color: '#3f8600', fontSize: '24px' }}
+                                    valueStyle={{ color: "#3f8600", fontSize: "18px" }}
                                 />
                             </Col>
                         </Row>
+                        <Divider style={{ margin: "24px 0" }} />
+                        <Row gutter={[16, 16]}>
+                            <Col span={24}>
+                                <Button
+                                    type="primary"
+                                    block
+                                    size="large"
+                                    onClick={handleBooking}
+                                    style={{ height: "48px", fontSize: "16px", marginBottom: "16px" }}
+                                >
+                                    Proceed to Payment
+                                </Button>
+                                <Button
+                                    block
+                                    size="large"
+                                    onClick={handleBack}
+                                    style={{ height: "48px", fontSize: "16px" }}
+                                >
+                                    Cancel Booking
+                                </Button>
+                            </Col>
+                        </Row>
                     </Card>
-                    <div className="confirm-button">
-                        <Button type="primary" block size="large" onClick={handleBooking} style={{ height: '48px', fontSize: '18px', marginBottom: '16px' }}>
-                            Proceed to Payment
-                        </Button>
-                        <Button block size="large" onClick={handleBack} style={{ height: '48px', fontSize: '16px' }}>
-                            Cancel Booking
-                        </Button>
-                    </div>
                 </Col>
             </Row>
         </div>

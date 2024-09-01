@@ -35,6 +35,7 @@ const SharedBookingDetails = () => {
   const [isDropoffValid, setIsDropoffValid] = useState(false);
   const [pickupLocation, setPickupLocation] = useState("");
   const [dropoffLocation, setDropoffLocation] = useState("");
+  const [route, setRoute] = useState(null);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -46,21 +47,39 @@ const SharedBookingDetails = () => {
     }
   }, [selectedBooking]);
 
-  const isWithin5km = (point1, point2) => {
-    const R = 6371; // Earth's radius in km
-    const dLat = (point2.lat - point1.lat) * Math.PI / 180;
-    const dLon = (point2.lng - point1.lng) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(point1.lat * Math.PI / 180) * Math.cos(point2.lat * Math.PI / 180) * 
-              Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    const distance = R * c;
-    return distance <= 5;
+  const getRoute = async () => {
+    const directionsService = new window.google.maps.DirectionsService();
+    const origin = selectedBooking.nearbyCities[0];
+    const destination = selectedBooking.nearbyCities[selectedBooking.nearbyCities.length - 1];
+
+    directionsService.route(
+      {
+        origin: origin,
+        destination: destination,
+        travelMode: window.google.maps.TravelMode.DRIVING,
+      },
+      (result, status) => {
+        if (status === window.google.maps.DirectionsStatus.OK) {
+          setRoute(result.routes[0]);
+        } else {
+          console.error(`Error fetching directions ${result}`);
+        }
+      }
+    );
+  };
+
+  useEffect(() => {
+    getRoute();
+  }, []);
+
+  const isLocationOnRoute = (location, route) => {
+    const routeBounds = route.bounds;
+    const locationLatLng = new window.google.maps.LatLng(location.lat, location.lng);
+    return routeBounds.contains(locationLatLng);
   };
 
   const validateLocation = async (location, isPickup) => {
     const geocoder = new window.google.maps.Geocoder();
-    const nearbyCities = selectedBooking.nearbyCities;
     
     try {
       const result = await new Promise((resolve, reject) => {
@@ -75,33 +94,19 @@ const SharedBookingDetails = () => {
         lng: result.geometry.location.lng()
       };
 
-      const cityToCheck = isPickup ? nearbyCities[0] : nearbyCities[nearbyCities.length - 1];
-      
-      const cityResult = await new Promise((resolve, reject) => {
-        geocoder.geocode({ address: cityToCheck }, (results, status) => {
-          if (status === "OK") resolve(results[0]);
-          else reject(status);
-        });
-      });
-
-      const cityCoords = {
-        lat: cityResult.geometry.location.lat(),
-        lng: cityResult.geometry.location.lng()
-      };
-
-      const isValid = isWithin5km(locationCoords, cityCoords);
-
-      if (isPickup) {
-        setIsPickupValid(isValid);
-      } else {
-        setIsDropoffValid(isValid);
+      if (route) {
+        const isValid = isLocationOnRoute(locationCoords, route);
+        if (isPickup) {
+          setIsPickupValid(isValid);
+        } else {
+          setIsDropoffValid(isValid);
+        }
+        if (!isValid) {
+          message.error(`${isPickup ? 'Pickup' : 'Dropoff'} location must be on the route`);
+        }
       }
 
-      if (!isValid) {
-        message.error(`${isPickup ? 'Pickup' : 'Dropoff'} location must be within 5km of ${cityToCheck}`);
-      }
-
-      return isValid;
+      return true;
     } catch (error) {
       console.error("Geocoding error:", error);
       message.error("Error validating location");
@@ -124,6 +129,7 @@ const SharedBookingDetails = () => {
         if (status === window.google.maps.DirectionsStatus.OK) {
           setDirections(result);
           const route = result.routes[0];
+          setDistance(route.legs[0].distance.value);
           setDistance(route.legs[0].distance.value / 1000);
           setDuration(route.legs[0].duration.value / 60);
           calculateCharge();
