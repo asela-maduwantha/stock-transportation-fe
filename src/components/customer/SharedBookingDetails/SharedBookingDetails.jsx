@@ -36,6 +36,11 @@ const SharedBookingDetails = () => {
   const [pickupLocation, setPickupLocation] = useState("");
   const [dropoffLocation, setDropoffLocation] = useState("");
   const [route, setRoute] = useState(null);
+  const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+
+useEffect(() => {
+  setIsButtonDisabled(!isPickupValid || !isDropoffValid);
+}, [isPickupValid, isDropoffValid]);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -48,16 +53,21 @@ const SharedBookingDetails = () => {
   }, [selectedBooking]);
 
   const getRoute = async () => {
-    if (!selectedBooking || !selectedBooking.nearbyCities || selectedBooking.nearbyCities.length < 2) {
+    if (
+      !selectedBooking ||
+      !selectedBooking.nearbyCities ||
+      selectedBooking.nearbyCities.length < 2
+    ) {
       console.error("Invalid or missing nearby cities");
       return;
     }
-  
+
     const origin = selectedBooking.nearbyCities[0];
-    const destination = selectedBooking.nearbyCities[selectedBooking.nearbyCities.length - 1];
-  
+    const destination =
+      selectedBooking.nearbyCities[selectedBooking.nearbyCities.length - 1];
+
     const directionsService = new window.google.maps.DirectionsService();
-  
+
     directionsService.route(
       {
         origin: origin,
@@ -80,13 +90,16 @@ const SharedBookingDetails = () => {
 
   const isLocationOnRoute = (location, route) => {
     const routeBounds = route.bounds;
-    const locationLatLng = new window.google.maps.LatLng(location.lat, location.lng);
+    const locationLatLng = new window.google.maps.LatLng(
+      location.lat,
+      location.lng
+    );
     return routeBounds.contains(locationLatLng);
   };
 
   const validateLocation = async (location, isPickup) => {
     const geocoder = new window.google.maps.Geocoder();
-    
+
     try {
       const result = await new Promise((resolve, reject) => {
         geocoder.geocode({ address: location }, (results, status) => {
@@ -97,7 +110,7 @@ const SharedBookingDetails = () => {
 
       const locationCoords = {
         lat: result.geometry.location.lat(),
-        lng: result.geometry.location.lng()
+        lng: result.geometry.location.lng(),
       };
 
       if (route) {
@@ -108,7 +121,9 @@ const SharedBookingDetails = () => {
           setIsDropoffValid(isValid);
         }
         if (!isValid) {
-          message.error(`${isPickup ? 'Pickup' : 'Dropoff'} location must be on the route`);
+          message.error(
+            `${isPickup ? "Pickup" : "Dropoff"} location must be on the route`
+          );
         }
       }
 
@@ -235,7 +250,7 @@ const SharedBookingDetails = () => {
     }
   };
 
-  const proceedButtonStyle = {
+  const enabledButtonStyle = {
     backgroundColor: isHovered ? "#fdb940" : "#fdb940",
     color: "#fff",
     fontSize: "15px",
@@ -245,6 +260,14 @@ const SharedBookingDetails = () => {
     transition: "background-color 0.3s ease, opacity 0.3s ease",
     opacity: isHovered ? "0.8" : "1",
   };
+  
+  const disabledButtonStyle = {
+    ...enabledButtonStyle,
+    opacity: 0.5,
+    cursor: 'not-allowed',
+    backgroundColor: "#ccc",
+  };
+
 
   return (
     <div className="booking-details-form">
@@ -352,7 +375,7 @@ const SharedBookingDetails = () => {
                   />
                 </Autocomplete>
               </Form.Item>
-              
+
               <Form.Item
                 name="dropoffLocation"
                 label={<Text strong>Dropoff Location</Text>}
@@ -364,7 +387,9 @@ const SharedBookingDetails = () => {
                 ]}
               >
                 <Autocomplete
-                  onLoad={(autocomplete) => setDropoffAutocomplete(autocomplete)}
+                  onLoad={(autocomplete) =>
+                    setDropoffAutocomplete(autocomplete)
+                  }
                   onPlaceChanged={handleDropoffSelect}
                 >
                   <Input
@@ -375,7 +400,7 @@ const SharedBookingDetails = () => {
                   />
                 </Autocomplete>
               </Form.Item>
-              
+
               <Row gutter={16}>
                 <Col span={12}>
                   <Form.Item
@@ -418,15 +443,17 @@ const SharedBookingDetails = () => {
                 </Col>
               </Row>
               <Form.Item>
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  style={proceedButtonStyle}
-                  onMouseEnter={() => setIsHovered(true)}
-                  onMouseLeave={() => setIsHovered(false)}
-                >
-                  Proceed to Summary
-                </Button>
+              <Button
+  type="primary"
+  htmlType="submit"
+  style={isButtonDisabled ? disabledButtonStyle : enabledButtonStyle}
+  onMouseEnter={() => setIsHovered(true)}
+  onMouseLeave={() => setIsHovered(false)}
+  disabled={isButtonDisabled}
+  title={isButtonDisabled ? "Please select valid pickup and dropoff locations" : ""}
+>
+  Proceed to Summary
+</Button>
               </Form.Item>
             </Form>
           </Card>
