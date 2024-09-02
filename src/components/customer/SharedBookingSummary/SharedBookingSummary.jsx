@@ -50,7 +50,7 @@ const SharedBookingSummary = () => {
             message.success("Booking confirmed successfully!");
 
             // Navigate to the Payment component and pass the needed data
-            navigate("/customer/payment", {
+            navigate("/payment", {
                 state: {
                     bookingId: bookingData.bookingId,
                     vehicle: bookingData.selectedVehicle,

@@ -88,8 +88,8 @@ const CheckoutForm = ({ totalPrice, bookingId }) => {
                 await axios.post(`https://stocktrans.azurewebsites.net/customer/payment/${bookingId}`, paymentData);
             
                 setModalContent({
-                    title: 'Payment Successful',
-                    description: 'Your payment was successful. Your booking is confirmed.',
+                    title: 'Thank You!',
+                    description: 'Your payment was successful. Your booking is confirmed. Thank you for choosing us!',
                     success: true,
                 });
                 setIsModalVisible(true);
@@ -174,12 +174,15 @@ const CheckoutForm = ({ totalPrice, bookingId }) => {
                 onOk={() => setIsModalVisible(false)}
                 onCancel={() => setIsModalVisible(false)}
                 footer={[
-                    <Button key="dashboard" type="primary" onClick={() => navigate('/dashboard')}>
-                        Go to Dashboard
-                    </Button>,
-                    <Button key="close" onClick={() => setIsModalVisible(false)}>
-                        Close
-                    </Button>,
+                    modalContent.success ? (
+                        <Button key="dashboard" type="primary" onClick={() => navigate('/dashboard')}>
+                            Go to Dashboard
+                        </Button>
+                    ) : (
+                        <Button key="close" onClick={() => setIsModalVisible(false)}>
+                            Close
+                        </Button>
+                    ),
                 ]}
             >
                 <p>{modalContent.description}</p>
@@ -248,7 +251,7 @@ const Payment = () => {
                         bordered={false}
                         style={{ borderRadius: '8px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)' }}
                     >
-                        <CheckoutForm totalPrice={totalPrice} bookingId={bookingId} />
+                        <CheckoutForm totalPrice={advanceAmount} bookingId={bookingId} />
                     </Card>
                 </Col>
             </Row>

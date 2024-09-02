@@ -63,7 +63,7 @@ const BookingSummary = () => {
                         pickupLocation: pickupLocation.address,
                         dropLocation: dropLocation.address,
                         returnTrip,
-                        advanceAmount: charges.vehicleCharge,
+                        advanceAmount: charges.advancePayment,
                         totalPrice: charges.total
                     }
                 });
