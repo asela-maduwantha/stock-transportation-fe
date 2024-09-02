@@ -23,9 +23,13 @@ import {
 } from "@react-google-maps/api";
 import moment from "moment";
 import { useNavigate } from "react-router-dom";
-import { EnvironmentOutlined,  ShareAltOutlined, SwapOutlined } from "@ant-design/icons";
+import {
+  EnvironmentOutlined,
+  ShareAltOutlined,
+  SwapOutlined,
+} from "@ant-design/icons";
 import httpService from "../../../services/httpService";
-import './BookingDetails.css'
+import "./BookingDetails.css";
 
 const { Option } = Select;
 const { Title, Text } = Typography;
@@ -88,20 +92,16 @@ const BookingDetails = ({ selectedVehicle }) => {
 
   const fetchCharges = useCallback(async () => {
     try {
-      const response = await httpService.post(
-        `/customer/calCharge`, 
-        {
-          vehicleId: selectedVehicle.id,
-          distance: distance,
-          returnTrip : returnTrip
-        }
-      );
+      const response = await httpService.post(`/customer/calCharge`, {
+        vehicleId: selectedVehicle.id,
+        distance: distance,
+        returnTrip: returnTrip,
+      });
       setCharges(response.data);
     } catch (error) {
       message.error("Failed to fetch charges.");
     }
   }, [distance, selectedVehicle.id, returnTrip]);
-  
 
   const formatTravelTime = (seconds) => {
     const hours = Math.floor(seconds / 3600);
@@ -154,7 +154,6 @@ const BookingDetails = ({ selectedVehicle }) => {
     }
   }, [pickupLocation, dropLocation, pickupDate, pickupTime, fetchCharges]);
 
-
   const proceedButtonStyle = {
     backgroundColor: isHovered ? "#fdb940" : "#fdb940",
     color: "#fff",
@@ -168,119 +167,172 @@ const BookingDetails = ({ selectedVehicle }) => {
 
   return (
     <div className="booking-details-form">
-    <Title level={2}>Booking Details</Title>
-    <Row gutter={[24, 24]}>
-      <Col xs={24} lg={12}>
-        <Card
-          cover={
-            <img
-              alt={selectedVehicle.type}
-              src={selectedVehicle.photoUrl}
-              style={{ objectFit: "cover", height: "300px" }}
-            />
-          }
-        >
-          <Card.Meta
-            title={<Title level={3}>{selectedVehicle.type}</Title>}
-            description={
-              <Space direction="vertical" size="small">
-                <Text><strong>Type:</strong> {selectedVehicle.type}</Text>
-                <Text><strong>Preferred Area:</strong> {selectedVehicle.preferredArea}</Text>
-                <Text><strong>Capacity:</strong> {selectedVehicle.capacity} {selectedVehicle.capacityUnit}</Text>
-                <Text><strong>Charge Per Km:</strong> LKR {selectedVehicle.chargePerKm.toFixed(2)}</Text>
-              </Space>
+      <Title level={2}>Booking Details</Title>
+      <Row gutter={[24, 24]}>
+        <Col xs={24} lg={12}>
+          <Card
+            cover={
+              <img
+                alt={selectedVehicle.type}
+                src={selectedVehicle.photoUrl}
+                style={{ objectFit: "cover", height: "300px" }}
+              />
             }
-          />
-        </Card>
-      </Col>
-      <Col xs={24} lg={12}>
-        <Card title={<Title level={4}>Trip Information</Title>} className="booking-details-card">
-          <Form layout="vertical">
-            <Form.Item label={<Text strong>Pickup Location</Text>}>
-              <Autocomplete onLoad={onPickupLoad} onPlaceChanged={onPickupPlaceChanged}>
-                <Input
-                  prefix={<EnvironmentOutlined />}
-                  placeholder="Enter pickup location"
-                  value={pickupAddress}
-                  onChange={(e) => setPickupAddress(e.target.value)}
-                />
-              </Autocomplete>
-            </Form.Item>
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item label={<Text strong>Pickup Date</Text>}>
-                  <DatePicker
-                    style={{ width: "100%" }}
-                    onChange={(date, dateString) => setPickupDate(dateString)}
-                    disabledDate={(current) => current && current < moment().startOf("day")}
+          >
+            <Card.Meta
+              title={<Title level={3}>{selectedVehicle.type}</Title>}
+              description={
+                <Space direction="vertical" size="small">
+                  <Text>
+                    <strong>Type:</strong> {selectedVehicle.type}
+                  </Text>
+                  <Text>
+                    <strong>Preferred Area:</strong>{" "}
+                    {selectedVehicle.preferredArea}
+                  </Text>
+                  <Text>
+                    <strong>Capacity:</strong> {selectedVehicle.capacity}{" "}
+                    {selectedVehicle.capacityUnit}
+                  </Text>
+                  <Text>
+                    <strong>Charge Per Km:</strong> LKR{" "}
+                    {selectedVehicle.chargePerKm.toFixed(2)}
+                  </Text>
+                </Space>
+              }
+            />
+          </Card>
+        </Col>
+        <Col xs={24} lg={12}>
+          <Card
+            title={<Title level={4}>Trip Information</Title>}
+            className="booking-details-card"
+          >
+            <Form layout="vertical">
+              <Form.Item label={<Text strong>Pickup Location</Text>}>
+                <Autocomplete
+                  onLoad={onPickupLoad}
+                  onPlaceChanged={onPickupPlaceChanged}
+                >
+                  <Input
+                    prefix={<EnvironmentOutlined />}
+                    placeholder="Enter pickup location"
+                    value={pickupAddress}
+                    onChange={(e) => setPickupAddress(e.target.value)}
                   />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item label={<Text strong>Pickup Time</Text>}>
-                  <TimePicker
-                    style={{ width: "100%" }}
-                    onChange={(time, timeString) => setPickupTime(timeString)}
+                </Autocomplete>
+              </Form.Item>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item label={<Text strong>Pickup Date</Text>}>
+                    <DatePicker
+                      style={{ width: "100%" }}
+                      onChange={(date, dateString) => setPickupDate(dateString)}
+                      disabledDate={(current) =>
+                        current && current < moment().startOf("day")
+                      }
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item label={<Text strong>Pickup Time</Text>}>
+                    <TimePicker
+                      style={{ width: "100%" }}
+                      onChange={(time, timeString) => setPickupTime(timeString)}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Form.Item label={<Text strong>Drop-off Location</Text>}>
+                <Autocomplete
+                  onLoad={onDropLoad}
+                  onPlaceChanged={onDropPlaceChanged}
+                >
+                  <Input
+                    prefix={<EnvironmentOutlined />}
+                    placeholder="Enter drop-off location"
+                    value={dropAddress}
+                    onChange={(e) => setDropAddress(e.target.value)}
                   />
+                </Autocomplete>
+              </Form.Item>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item label={<Text strong>Loading Time</Text>}>
+                    <Select
+                      value={loadingTime}
+                      onChange={(value) => setLoadingTime(value)}
+                    >
+                      <Option value={15}>15 mins</Option>
+                      <Option value={30}>30 mins</Option>
+                      <Option value={60}>1 hour</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item label={<Text strong>Unloading Time</Text>}>
+                    <Select
+                      value={unloadingTime}
+                      onChange={(value) => setUnloadingTime(value)}
+                    >
+                      <Option value={15}>15 mins</Option>
+                      <Option value={30}>30 mins</Option>
+                      <Option value={60}>1 hour</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Form.Item label={<Text strong>Capacity Utilization</Text>}>
+                <Select
+                  style={{ width: "100%" }}
+                  value={capacity}
+                  onChange={(value) => {
+                    setCapacity(value);
+                    setShareSpace(value < 1);
+                  }}
+                >
+                  <Option value={0.3}>1/3 of vehicle capacity</Option>
+                  <Option value={0.5}>1/2 of vehicle capacity</Option>
+                  <Option value={1}>Full vehicle capacity</Option>
+                </Select>
+              </Form.Item>
+              {capacity < 1 && (
+                <Form.Item>
+                  <Checkbox
+                    checked={shareSpace}
+                    onChange={(e) => setShareSpace(e.target.checked)}
+                    disabled={returnTrip} // Add this prop to disable the checkbox when returnTrip is true
+                  >
+                    <Space>
+                      <ShareAltOutlined />
+                      <Text>Willing to Share</Text>
+                      <Popover
+                        content="Sharing space with another customer allows you to split the cost but might increase the travel time."
+                        title="Willing to Share"
+                        trigger="click"
+                      >
+                        <a href="#">More Info</a>
+                      </Popover>
+                    </Space>
+                  </Checkbox>
                 </Form.Item>
-              </Col>
-            </Row>
-            <Form.Item label={<Text strong>Drop-off Location</Text>}>
-              <Autocomplete onLoad={onDropLoad} onPlaceChanged={onDropPlaceChanged}>
-                <Input
-                  prefix={<EnvironmentOutlined />}
-                  placeholder="Enter drop-off location"
-                  value={dropAddress}
-                  onChange={(e) => setDropAddress(e.target.value)}
-                />
-              </Autocomplete>
-            </Form.Item>
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item label={<Text strong>Loading Time</Text>}>
-                  <Select value={loadingTime} onChange={(value) => setLoadingTime(value)}>
-                    <Option value={15}>15 mins</Option>
-                    <Option value={30}>30 mins</Option>
-                    <Option value={60}>1 hour</Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item label={<Text strong>Unloading Time</Text>}>
-                  <Select value={unloadingTime} onChange={(value) => setUnloadingTime(value)}>
-                    <Option value={15}>15 mins</Option>
-                    <Option value={30}>30 mins</Option>
-                    <Option value={60}>1 hour</Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-            </Row>
-            <Form.Item label={<Text strong>Capacity Utilization</Text>}>
-              <Select
-                style={{ width: "100%" }}
-                value={capacity}
-                onChange={(value) => {
-                  setCapacity(value);
-                  setShareSpace(value < 1);
-                }}
-              >
-                <Option value={0.3}>1/3 of vehicle capacity</Option>
-                <Option value={0.5}>1/2 of vehicle capacity</Option>
-                <Option value={1}>Full vehicle capacity</Option>
-              </Select>
-            </Form.Item>
-            {capacity < 1 && (
+              )}
               <Form.Item>
                 <Checkbox
-                  checked={shareSpace}
-                  onChange={(e) => setShareSpace(e.target.checked)}
+                  checked={returnTrip}
+                  onChange={(e) => {
+                    setReturnTrip(e.target.checked);
+                    if (e.target.checked) {
+                      setShareSpace(false); // Reset shareSpace to false when returnTrip is checked
+                    }
+                  }}
                 >
                   <Space>
-                    <ShareAltOutlined />
-                    <Text>Willing to Share</Text>
+                    <SwapOutlined />
+                    <Text>Return Trip</Text>
                     <Popover
-                      content="Sharing space with another customer allows you to split the cost but might increase the travel time."
-                      title="Willing to Share"
+                      content="A return trip allows you to book the vehicle for a round trip, potentially saving on overall costs."
+                      title="Return Trip"
                       trigger="click"
                     >
                       <a href="#">More Info</a>
@@ -288,29 +340,10 @@ const BookingDetails = ({ selectedVehicle }) => {
                   </Space>
                 </Checkbox>
               </Form.Item>
-            )}
-            <Form.Item>
-              <Checkbox
-                checked={returnTrip}
-                onChange={(e) => setReturnTrip(e.target.checked)}
-              >
-                <Space>
-                  <SwapOutlined />
-                  <Text>Return Trip</Text>
-                  <Popover
-                    content="A return trip allows you to book the vehicle for a round trip, potentially saving on overall costs."
-                    title="Return Trip"
-                    trigger="click"
-                  >
-                    <a href="#">More Info</a>
-                  </Popover>
-                </Space>
-              </Checkbox>
-            </Form.Item>
-          </Form>
-        </Card>
-      </Col>
-    </Row>
+            </Form>
+          </Card>
+        </Col>
+      </Row>
       <Row>
         <Col span={24}>
           <div style={{ height: "400px", width: "100%", marginBottom: "16px" }}>
