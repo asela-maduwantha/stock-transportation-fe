@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Space, DatePicker, Input, Row, Col, Tag, Empty, Spin, message } from 'antd';
 import { CalendarOutlined, EnvironmentOutlined, ClockCircleOutlined, CarOutlined } from '@ant-design/icons';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import httpService from '../../../services/httpService';
 
 const { Search } = Input;
 
@@ -21,7 +21,7 @@ const SharedBookings = () => {
   const fetchSharedBookings = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('https://stocktrans.azurewebsites.net/customer/sharedBookings');
+      const response = await httpService.get('/customer/sharedBookings');
       setSharedBookings(response.data);
       setFilteredBookings(response.data);
     } catch (error) {

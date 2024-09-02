@@ -5,7 +5,7 @@ import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import { Row, Col, Form, Input, Button, Typography,  Card, Divider, Space, Modal } from 'antd';
-import axios from 'axios';
+import httpService from '../../../services/httpService';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -37,7 +37,7 @@ const CheckoutForm = ({ totalPrice, bookingId }) => {
 
         try {
             // Step 1: Create Payment Intent
-            const paymentIntentResponse = await axios.post('https://stocktrans.azurewebsites.net/customer/paymentIntent', {
+            const paymentIntentResponse = await httpService.post('/customer/paymentIntent', {
                 amount: totalPrice,
             });
 
@@ -85,7 +85,7 @@ const CheckoutForm = ({ totalPrice, bookingId }) => {
                     amount: paymentIntent.amount , 
                 };
                 console.log(paymentIntent)
-                await axios.post(`https://stocktrans.azurewebsites.net/customer/payment/${bookingId}`, paymentData);
+                await httpService.post(`/customer/payment/${bookingId}`, paymentData);
             
                 setModalContent({
                     title: 'Thank You!',

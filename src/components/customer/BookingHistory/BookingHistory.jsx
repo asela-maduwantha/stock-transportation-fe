@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Tag, Rate, Space, Select, DatePicker, Row, Col, Empty, Spin, Button, Pagination, Modal, Input } from 'antd';
 import { CalendarOutlined, EnvironmentOutlined, ClockCircleOutlined, CarOutlined, DollarOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import httpService from '../../../services/httpService'
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -23,7 +23,7 @@ const BookingHistory = () => {
     const fetchBookings = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('https://stocktrans.azurewebsites.net/customer/myBookings/d5b83319-e344-4edb-83b2-edc6890ef5b0');
+        const response = await httpService.get('/customer/myBookings/d5b83319-e344-4edb-83b2-edc6890ef5b0');
         const bookingsWithLocations = await Promise.all(response.data.map(async booking => {
           const startLocation = await getLocationName(booking.startLat, booking.startLong);
           const destLocation = await getLocationName(booking.destLat, booking.destLong);

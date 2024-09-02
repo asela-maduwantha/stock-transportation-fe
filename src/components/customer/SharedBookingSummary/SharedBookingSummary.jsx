@@ -12,7 +12,7 @@ import {
   Table,
 } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
+import httpService from "../../../services/httpService";
 import { CarOutlined } from "@ant-design/icons";
 
 const { Title, Text } = Typography;
@@ -30,8 +30,8 @@ const SharedBookingSummary = () => {
   const confirmBooking = async () => {
     setIsLoading(true);
     try {
-        const response = await axios.post(
-            "https://stocktrans.azurewebsites.net/customer/sharedBooking",
+        const response = await httpService.post(
+            "/customer/sharedBooking",
             {
                 bookingId: bookingData.bookingId,
                 startLong: bookingData.startLong,

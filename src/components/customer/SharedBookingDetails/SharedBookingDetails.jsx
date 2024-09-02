@@ -14,7 +14,7 @@ import {
 } from "antd";
 import { Autocomplete } from "@react-google-maps/api";
 import { EnvironmentOutlined } from "@ant-design/icons";
-import axios from "axios";
+import httpService from "../../../services/httpService";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const { Option } = Select;
@@ -163,8 +163,8 @@ const SharedBookingDetails = () => {
   
   const calculateCharge = async (distance) => {
     try {
-      const response = await axios.post(
-        "https://stocktrans.azurewebsites.net/customer/calCharge",
+      const response = await httpService.post(
+        "/customer/calCharge",
         {
           vehicleId: selectedBooking.vehicle.id,
           distance: distance,
