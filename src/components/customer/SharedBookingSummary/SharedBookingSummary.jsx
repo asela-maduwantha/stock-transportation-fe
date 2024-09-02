@@ -30,36 +30,48 @@ const SharedBookingSummary = () => {
   const confirmBooking = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.post(
-        "https://stocktrans.azurewebsites.net/customer/sharedBooking",
-        {
-          bookingId: bookingData.bookingId,
-          startLong: bookingData.startLong,
-          startLat: bookingData.startLat,
-          destLong: bookingData.destLong,
-          destLat: bookingData.destLat,
-          travellingTime: bookingData.travellingTime,
-          avgHandlingTime: bookingData.avgHandlingTime,
-          vehicleCharge: bookingData.vehicleCharge,
-          serviceCharge: bookingData.serviceCharge,
-          status: "upcoming",
-          isCancelled: false,
-        }
-      );
+        const response = await axios.post(
+            "https://stocktrans.azurewebsites.net/customer/sharedBooking",
+            {
+                bookingId: bookingData.bookingId,
+                startLong: bookingData.startLong,
+                startLat: bookingData.startLat,
+                destLong: bookingData.destLong,
+                destLat: bookingData.destLat,
+                travellingTime: bookingData.travellingTime,
+                avgHandlingTime: bookingData.avgHandlingTime,
+                vehicleCharge: bookingData.vehicleCharge,
+                serviceCharge: bookingData.serviceCharge,
+                customerId: localStorage.getItem("customerId")
+            }
+        );
 
-      if (response.status === 200) {
-        message.success("Booking confirmed successfully!");
-        navigate("/customer/dashboard");
-      } else {
-        throw new Error("Failed to confirm booking");
-      }
+        if (response.status === 200) {
+            message.success("Booking confirmed successfully!");
+
+            // Navigate to the Payment component and pass the needed data
+            navigate("/customer/payment", {
+                state: {
+                    bookingId: bookingData.bookingId,
+                    vehicle: bookingData.selectedVehicle,
+                    pickupLocation: bookingData.pickupLocation,
+                    dropLocation: bookingData.dropoffLocation,
+                    returnTrip: false, // Set this based on your logic
+                    advanceAmount: bookingData.advancePayment, // Adjust this if you have an advance amount
+                    totalPrice: bookingData.vehicleCharge + bookingData.serviceCharge
+                }
+            });
+        } else {
+            throw new Error("Failed to confirm booking");
+        }
     } catch (error) {
-      console.error("Error confirming booking:", error);
-      message.error("Failed to confirm booking. Please try again.");
+        console.error("Error confirming booking:", error);
+        message.error("Failed to confirm booking. Please try again.");
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
-  };
+};
+
 
   const data = [
     {
@@ -199,6 +211,16 @@ const SharedBookingSummary = () => {
                 <Statistic
                   title="Total Price"
                   value={(bookingData.vehicleCharge + bookingData.serviceCharge).toFixed(2)}
+                  prefix="LKR"
+                  valueStyle={{ color: "#3f8600", fontSize: "18px" }}
+                />
+              </Col>
+            </Row>
+            <Row style={{ marginBottom: "24px" }}>
+              <Col span={24}>
+                <Statistic
+                  title="Advance Payment"
+                  value={(bookingData.advancePayment).toFixed(2)}
                   prefix="LKR"
                   valueStyle={{ color: "#3f8600", fontSize: "18px" }}
                 />

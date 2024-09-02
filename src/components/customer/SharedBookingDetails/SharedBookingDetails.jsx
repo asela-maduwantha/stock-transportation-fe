@@ -38,9 +38,9 @@ const SharedBookingDetails = () => {
   const [route, setRoute] = useState(null);
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
 
-useEffect(() => {
-  setIsButtonDisabled(!isPickupValid || !isDropoffValid);
-}, [isPickupValid, isDropoffValid]);
+  useEffect(() => {
+    setIsButtonDisabled(!isPickupValid || !isDropoffValid || !charge);
+  }, [isPickupValid, isDropoffValid, charge]);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -139,7 +139,7 @@ useEffect(() => {
     const directionsService = new window.google.maps.DirectionsService();
     const origin = form.getFieldValue("pickupLocation");
     const destination = form.getFieldValue("dropoffLocation");
-
+  
     directionsService.route(
       {
         origin: origin,
@@ -150,18 +150,18 @@ useEffect(() => {
         if (status === window.google.maps.DirectionsStatus.OK) {
           setDirections(result);
           const route = result.routes[0];
-          setDistance(route.legs[0].distance.value);
-          setDistance(route.legs[0].distance.value / 1000);
+          const distanceInKm = route.legs[0].distance.value / 1000;
+          setDistance(distanceInKm);
           setDuration(route.legs[0].duration.value / 60);
-          calculateCharge();
+          calculateCharge(distanceInKm);
         } else {
           console.error(`Error fetching directions ${result}`);
         }
       }
     );
   };
-
-  const calculateCharge = async () => {
+  
+  const calculateCharge = async (distance) => {
     try {
       const response = await axios.post(
         "https://stocktrans.azurewebsites.net/customer/calCharge",
@@ -172,6 +172,7 @@ useEffect(() => {
         }
       );
       setCharge(response.data);
+      setIsButtonDisabled(false); 
     } catch (error) {
       console.error("Error calculating charge:", error);
       message.error("Failed to calculate charge");
@@ -184,7 +185,7 @@ useEffect(() => {
     setPickupLocation(address);
     form.setFieldsValue({ pickupLocation: address });
     validateLocation(address, true).then((isValid) => {
-      if (isValid) {
+      if (isValid ) {
         calculateRoute();
       }
     });
@@ -196,7 +197,7 @@ useEffect(() => {
     setDropoffLocation(address);
     form.setFieldsValue({ dropoffLocation: address });
     validateLocation(address, false).then((isValid) => {
-      if (isValid) {
+      if (isValid ) {
         calculateRoute();
       }
     });
@@ -229,6 +230,7 @@ useEffect(() => {
         avgHandlingTime: loadingTime + unloadingTime,
         vehicleCharge: charge?.vehicleCharge,
         serviceCharge: charge?.serviceCharge,
+        advancePayment: charge?.advancePayment,
         status: "upcoming",
         isCancelled: false,
         capacity: values.capacity,
