@@ -15,6 +15,7 @@ import {
   Row,
   Col,
   Select,
+  Tooltip,
 } from "antd";
 import {
   EnvironmentOutlined,
@@ -146,25 +147,30 @@ const AssignedTrips = () => {
         className="events"
         style={{ listStyle: "none", padding: 0, margin: 0 }}
       >
-        {listData.map((item) => (
-          <li key={item.id} style={{ marginBottom: "2px" }}>
-            <Badge
-              status={item.willingToShare ? "success" : "warning"}
-              style={{ whiteSpace: "normal", fontSize: "10px" }}
-            >
-              <div>
-                <CarOutlined
-                  style={{
-                    color: item.willingToShare ? "#52c41a" : "#faad14",
-                  }}
-                />
-                <span>{` Trip ${item.isReturnTrip ? "(Return)" : ""}`}</span>
-                <br />
-                <span>{item.willingToShare ? "(Shared)" : "(Not Shared)"}</span>
-              </div>
-            </Badge>
-          </li>
+        {listData.slice(0, 3).map((item, index) => (
+          <Tooltip
+            key={item.id}
+            title={`${item.startAddress} to ${item.destAddress}`}
+            placement="topLeft"
+          >
+            <li style={{ marginBottom: "2px" }}>
+              <Badge
+                status={item.willingToShare ? "success" : "warning"}
+                text={
+                  <div style={{ fontSize: "10px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <CarOutlined style={{ color: item.willingToShare ? "#52c41a" : "#faad14" }} />
+                    <span>{` Trip ${index + 1}${item.isReturnTrip ? " (R)" : ""}`}</span>
+                  </div>
+                }
+              />
+            </li>
+          </Tooltip>
         ))}
+        {listData.length > 3 && (
+          <li style={{ fontSize: "10px", color: "#1890ff" }}>
+            +{listData.length - 3} more
+          </li>
+        )}
       </ul>
     );
   };
@@ -286,7 +292,6 @@ const AssignedTrips = () => {
         dateCellRender={dateCellRender}
         onSelect={onSelect}
         value={dayjs().year(selectedYear).month(selectedMonth)}
-        fullscreen={true}
         style={{
           width: "100%",
           margin: "0 auto",
@@ -297,138 +302,138 @@ const AssignedTrips = () => {
         }}
         headerRender={() => null}
       />
-<Modal
-  title={
-    <Title level={4}>{`Trips on ${selectedDate.format("MMMM D, YYYY")}`}</Title>
-  }
-  open={isModalVisible}
-  onOk={handleOk}
-  onCancel={handleCancel}
-  footer={[
-    <Button key="back" onClick={handleCancel}>
-      Close
-    </Button>,
-    <Button
-      key="navigate"
-      type="primary"
-      icon={<CompassOutlined />}
-      onClick={handleNavigate}
-      disabled={!selectedTrip}
-    >
-      Navigate
-    </Button>,
-  ]}
-  width="80%"
->
-  <Row gutter={[16, 16]}>
-    <Col xs={24} md={12}>
-      <List
-        dataSource={getListData(selectedDate)}
-        renderItem={(item) => (
-          <List.Item key={item.id}>
-            <Card
-              hoverable
-              style={{ marginBottom: "16px" }}
-              onClick={() => handleTripSelect(item)}
-            >
-              <Row gutter={[16, 16]}>
-                <Col xs={24}>
-                  <Space direction="vertical" size="small">
-                    <Text strong>
-                      <EnvironmentOutlined style={{ color: "#1890ff" }} /> Start:
-                    </Text>
-                    <Text>{item.startAddress}</Text>
-                  </Space>
-                </Col>
-                <Col xs={24}>
-                  <Space direction="vertical" size="small">
-                    <Text strong>
-                      <EnvironmentOutlined style={{ color: "#52c41a" }} /> Destination:
-                    </Text>
-                    <Text>{item.destAddress}</Text>
-                  </Space>
-                </Col>
-                <Col xs={12}>
-                  <Space>
-                    <ClockCircleOutlined style={{ color: "#faad14" }} />
-                    <Text strong>Pickup:</Text>
-                    <Text>{item.pickupTime}</Text>
-                  </Space>
-                </Col>
-                <Col xs={12}>
-                  <Space>
-                    <ClockCircleOutlined style={{ color: "#722ed1" }} />
-                    <Text strong>Travel Time:</Text>
-                    <Text>{item.travellingTime.toFixed(2)} min</Text>
-                  </Space>
-                </Col>
-                <Col xs={12}>
-                  <Space>
-                    <CarOutlined style={{ color: "#eb2f96" }} />
-                    <Text strong>Load:</Text>
-                    <Text>{item.loadingCapacity} kg</Text>
-                  </Space>
-                </Col>
-                <Col xs={12}>
-                  <Space>
-                    <SyncOutlined spin={item.isReturnTrip} style={{ color: "#13c2c2" }} />
-                    <Tag color={item.isReturnTrip ? "green" : "blue"}>
-                      {item.isReturnTrip ? "Return Trip" : "One Way"}
-                    </Tag>
-                    <TeamOutlined style={{ color: "#fa8c16" }} />
-                    <Tag color={item.willingToShare ? "green" : "red"}>
-                      {item.willingToShare ? "Willing to Share" : "Not Sharing"}
-                    </Tag>
-                  </Space>
-                </Col>
-              </Row>
-            </Card>
-          </List.Item>
-        )}
-      />
-    </Col>
-    <Col xs={24} md={12}>
-      {selectedTrip && sharedBookingDetails ? (
-        <Card>
-          <Row gutter={[16, 16]}>
-            <Col xs={24}>
-              <Space direction="vertical" size="small">
-                <Text strong>
-                  <EnvironmentOutlined style={{ color: "#1890ff" }} /> Start:
-                </Text>
-                <Text>{sharedBookingDetails.startAddress}</Text>
-              </Space>
-            </Col>
-            <Col xs={24}>
-              <Space direction="vertical" size="small">
-                <Text strong>
-                  <EnvironmentOutlined style={{ color: "#52c41a" }} /> Destination:
-                </Text>
-                <Text>{sharedBookingDetails.destAddress}</Text>
-              </Space>
-            </Col>
-            <Col xs={12}>
-              <Space>
-                <ClockCircleOutlined style={{ color: "#722ed1" }} />
-                <Text strong>Travel Time:</Text>
-                <Text>{(sharedBookingDetails.travellingTime / 60).toFixed(2)} hours</Text>
-              </Space>
-            </Col>
-            <Col xs={12}>
-              <Space>
-                <ClockCircleOutlined style={{ color: "#faad14" }} />
-                <Text strong>Avg. Handling Time:</Text>
-                <Text>{sharedBookingDetails.avgHandlingTime} minutes</Text>
-              </Space>
-            </Col>
-          </Row>
-        </Card>
-      ) : (
-        <Text>No shared booking details available.</Text>
-      )}
-    </Col>
-  </Row>
-</Modal>
+      <Modal
+        title={
+          <Title level={4}>{`Trips on ${selectedDate.format("MMMM D, YYYY")}`}</Title>
+        }
+        open={isModalVisible}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        footer={[
+          <Button key="back" onClick={handleCancel}>
+            Close
+          </Button>,
+          <Button
+            key="navigate"
+            type="primary"
+            icon={<CompassOutlined />}
+            onClick={handleNavigate}
+            disabled={!selectedTrip}
+          >
+            Navigate
+          </Button>,
+        ]}
+        width="80%"
+      >
+        <Row gutter={[16, 16]}>
+          <Col xs={24} md={12}>
+            <List
+              dataSource={getListData(selectedDate)}
+              renderItem={(item) => (
+                <List.Item key={item.id}>
+                  <Card
+                    hoverable
+                    style={{ marginBottom: "16px", width: "100%" }}
+                    onClick={() => handleTripSelect(item)}
+                  >
+                    <Row gutter={[16, 16]}>
+                      <Col xs={24}>
+                        <Space direction="vertical" size="small">
+                          <Text strong>
+                            <EnvironmentOutlined style={{ color: "#1890ff" }} /> Start:
+                          </Text>
+                          <Text>{item.startAddress}</Text>
+                        </Space>
+                      </Col>
+                      <Col xs={24}>
+                        <Space direction="vertical" size="small">
+                          <Text strong>
+                            <EnvironmentOutlined style={{ color: "#52c41a" }} /> Destination:
+                          </Text>
+                          <Text>{item.destAddress}</Text>
+                        </Space>
+                      </Col>
+                      <Col xs={12}>
+                        <Space>
+                          <ClockCircleOutlined style={{ color: "#faad14" }} />
+                          <Text strong>Pickup:</Text>
+                          <Text>{item.pickupTime}</Text>
+                        </Space>
+                      </Col>
+                      <Col xs={12}>
+                        <Space>
+                          <ClockCircleOutlined style={{ color: "#722ed1" }} />
+                          <Text strong>Travel Time:</Text>
+                          <Text>{item.travellingTime.toFixed(2)} min</Text>
+                        </Space>
+                      </Col>
+                      <Col xs={12}>
+                        <Space>
+                          <CarOutlined style={{ color: "#eb2f96" }} />
+                          <Text strong>Load:</Text>
+                          <Text>{item.loadingCapacity} kg</Text>
+                        </Space>
+                      </Col>
+                      <Col xs={12}>
+                        <Space>
+                          <SyncOutlined spin={item.isReturnTrip} style={{ color: "#13c2c2" }} />
+                          <Tag color={item.isReturnTrip ? "green" : "blue"}>
+                            {item.isReturnTrip ? "Return Trip" : "One Way"}
+                          </Tag>
+                          <TeamOutlined style={{ color: "#fa8c16" }} />
+                          <Tag color={item.willingToShare ? "green" : "red"}>
+                            {item.willingToShare ? "Willing to Share" : "Not Sharing"}
+                          </Tag>
+                        </Space>
+                      </Col>
+                    </Row>
+                  </Card>
+                </List.Item>
+              )}
+            />
+          </Col>
+          <Col xs={24} md={12}>
+            {selectedTrip && sharedBookingDetails ? (
+              <Card>
+                <Row gutter={[16, 16]}>
+                  <Col xs={24}>
+                    <Space direction="vertical" size="small">
+                      <Text strong>
+                        <EnvironmentOutlined style={{ color: "#1890ff" }} /> Start:
+                      </Text>
+                      <Text>{sharedBookingDetails.startAddress}</Text>
+                    </Space>
+                  </Col>
+                  <Col xs={24}>
+                    <Space direction="vertical" size="small">
+                      <Text strong>
+                        <EnvironmentOutlined style={{ color: "#52c41a" }} /> Destination:
+                      </Text>
+                      <Text>{sharedBookingDetails.destAddress}</Text>
+                    </Space>
+                  </Col>
+                  <Col xs={12}>
+                    <Space>
+                      <ClockCircleOutlined style={{ color: "#722ed1" }} />
+                      <Text strong>Travel Time:</Text>
+                      <Text>{(sharedBookingDetails.travellingTime / 60).toFixed(2)} hours</Text>
+                    </Space>
+                  </Col>
+                  <Col xs={12}>
+                    <Space>
+                      <ClockCircleOutlined style={{ color: "#faad14" }} />
+                      <Text strong>Avg. Handling Time:</Text>
+                      <Text>{sharedBookingDetails.avgHandlingTime} minutes</Text>
+                    </Space>
+                  </Col>
+                </Row>
+              </Card>
+            ) : (
+              <Text>No shared booking details available.</Text>
+            )}
+          </Col>
+        </Row>
+      </Modal>
     </Card>
   );
 };

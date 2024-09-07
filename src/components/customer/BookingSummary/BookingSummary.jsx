@@ -22,6 +22,7 @@ const BookingSummary = () => {
         calculatedDropDateTime,
         shareSpace,
         loadingTime,
+        capacity,
         unloadingTime
     } = location.state || {};
 
@@ -39,7 +40,7 @@ const BookingSummary = () => {
                 travellingTime: distance * 60,
                 vehicleCharge: charges.vehicleCharge,
                 serviceCharge: charges.serviceCharge,
-                loadingCapacity: selectedVehicle.capacity,
+                loadingCapacity: capacity,
                 isReturnTrip: returnTrip,
                 willingToShare: shareSpace,
                 avgHandlingTime: loadingTime + unloadingTime,

@@ -301,7 +301,7 @@ const BookingDetails = ({ selectedVehicle }) => {
                   <Checkbox
                     checked={shareSpace}
                     onChange={(e) => setShareSpace(e.target.checked)}
-                    disabled={returnTrip} // Add this prop to disable the checkbox when returnTrip is true
+                    disabled={returnTrip} 
                   >
                     <Space>
                       <ShareAltOutlined />
