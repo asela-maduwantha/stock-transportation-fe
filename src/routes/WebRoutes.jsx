@@ -44,6 +44,8 @@ import CustomerForgotPassword from '../components/customer/CustomerForgotPasswor
 import SharedBookings from '../components/customer/SharedBookings/SharedBookings';
 import SharedBookingDetails from '../components/customer/SharedBookingDetails/SharedBookingDetails';
 import SharedBookingSummary from '../components/customer/SharedBookingSummary/SharedBookingSummary';
+import SharedBookingNavigations from '../components/driver/SharedBookingNavigations/SharedBookingNavigations';
+import NormalBookingNavigation from '../components/driver/NormalBookingNavigation/NormalBookingNavigation';
 
 const WebRoutes = () => {
   return (
@@ -94,6 +96,8 @@ const WebRoutes = () => {
          
       <Route path="assigned-trips" element={<AssignedTrips />} />
       <Route path="vehicles" element={<Vehicles />} />
+      <Route path='shared-booking-navigations' element={<SharedBookingNavigations/>}/>
+      <Route path='normal-booking-navigations' element={<NormalBookingNavigation/>}/>
       <Route path="help" element={<Help />} />
  
         </Route>

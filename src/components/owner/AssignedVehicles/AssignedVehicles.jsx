@@ -47,7 +47,7 @@ const AssignedVehicles = () => {
 
   const handleRemoveDriver = async (assignId) => {
     try {
-      await httpService.post(`/owner/unassignDriver/${assignId}`);
+      await httpService.delete(`/owner/unassignDriver/${assignId}`);
       message.success('Driver removed successfully');
       fetchAssignedVehicles(); // Refresh the list
     } catch (error) {
