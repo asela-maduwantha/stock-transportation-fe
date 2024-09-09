@@ -5,10 +5,10 @@ import {
   DashboardOutlined,
   ContainerOutlined,
   CarOutlined,
-  UserOutlined,
-  InfoCircleOutlined,
-  LogoutOutlined,
+  SettingOutlined,
+  QuestionCircleOutlined,
   MenuOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons";
 import Logo from "../../../assets/Logo.png";
 import "./DriverHeader.css";
@@ -50,13 +50,13 @@ const DriverHeader = () => {
     },
     {
       key: "profile-settings",
-      icon: <UserOutlined />,
+      icon: <SettingOutlined />,
       label: "Profile Settings",
       link: "/driver/profile-settings",
     },
     {
       key: "help",
-      icon: <InfoCircleOutlined />,
+      icon: <QuestionCircleOutlined />,
       label: "Help",
       link: "/driver/help",
     },
@@ -90,6 +90,7 @@ const DriverHeader = () => {
     transition: "background-color 0.3s ease, opacity 0.3s ease",
     opacity: isHovered ? "0.8" : "1",
   };
+
   return (
     <header className="driver-header">
       <div className="logo-container">

@@ -2,11 +2,13 @@ import React, { useState } from "react";
 import { Button, Menu, Dropdown } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  PieChartOutlined,
-  DesktopOutlined,
-  ContainerOutlined,
+  DashboardOutlined,
+  CarOutlined,
+  CarFilled,
+  ShareAltOutlined,
+  HistoryOutlined,
+  StockOutlined,
   UserOutlined,
-  CalculatorOutlined,
   MenuOutlined,
 } from "@ant-design/icons";
 import Logo from "../../../assets/Logo.png";
@@ -25,37 +27,37 @@ const CustomerHeader = () => {
   const menuItems = [
     {
       key: "dashboard",
-      icon: <PieChartOutlined />,
+      icon: <DashboardOutlined />,
       label: "Dashboard",
       link: "/customer/dashboard",
     },
     {
       key: "book",
-      icon: <DesktopOutlined />,
+      icon: <CarOutlined />,
       label: "Book Vehicle",
       link: "/customer/booking",
     },
     {
       key: "shared-booking",
-      icon: <ContainerOutlined />,
-      label: "Shared- Bookings",
+      icon: <CarFilled />,
+      label: "Make Shared Booking",
       link: "/customer/shared-booking",
     },
     {
       key: "booking-history",
-      icon: <ContainerOutlined />,
+      icon: <HistoryOutlined />,
       label: "Booking History",
       link: "/customer/booking-history",
     },
     {
       key: "pickup-view",
-      icon: <ContainerOutlined />,
+      icon: <StockOutlined />,
       label: "Stock Pending Pickup",
       link: "/customer/stock-pickup",
     },
     {
       key: "sharedbookinghistory",
-      icon: <CalculatorOutlined />,
+      icon: <ShareAltOutlined />,
       label: "Shared Booking History",
       link: "/customer/shared-booking-history",
     },

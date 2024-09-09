@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Space, Select, Row, Col, Pagination, Spin, Empty, message, Modal, Tag } from 'antd';
-import {  CloseCircleOutlined, CarOutlined, CalendarOutlined, ClockCircleOutlined, EnvironmentOutlined, DollarOutlined } from '@ant-design/icons';
+import { CloseCircleOutlined, CarOutlined, CalendarOutlined, ClockCircleOutlined, EnvironmentOutlined, DollarOutlined } from '@ant-design/icons';
 import httpService from '../../../services/httpService';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
 
 const { Option } = Select;
 const { confirm } = Modal;
@@ -15,6 +16,7 @@ const SharedBookingsHistory = () => {
   const [vehicleFilter, setVehicleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const pageSize = 6;
+  const navigate = useNavigate(); // Initialize navigate for programmatic navigation
 
   useEffect(() => {
     const customerId = localStorage.getItem('customerId');
@@ -81,9 +83,13 @@ const SharedBookingsHistory = () => {
   const handleCancelBooking = (id) => {
     confirm({
       title: 'Are you sure you want to cancel this booking?',
+      content: 'Please note that your advance payment will not be refunded.',
       icon: <CloseCircleOutlined />,
+      okText: 'Yes, Cancel',
+      okType: 'danger',
+      cancelText: 'No',
       onOk() {
-        httpService.delete(`/customer/cancelSharedBooking/${id}`)
+        httpService.put(`/customer/cancelSharedBooking/${id}`)
           .then(() => {
             message.success('Booking cancelled successfully');
             setSharedBookings(sharedBookings.filter(booking => booking.id !== id));
@@ -91,6 +97,10 @@ const SharedBookingsHistory = () => {
           .catch(() => message.error('Failed to cancel booking'));
       },
     });
+  };
+
+  const handlePayBalance = (id) => {
+    navigate(`/payment/${id}`); // Use navigate for programmatic navigation
   };
 
   const paginatedBookings = filteredBookings.slice((currentPage - 1) * pageSize, currentPage * pageSize);
@@ -136,12 +146,26 @@ const SharedBookingsHistory = () => {
               <p><EnvironmentOutlined /> To: {addresses[booking.id]?.dest || 'Loading...'}</p>
               <p><ClockCircleOutlined /> Travel Time: {booking.travellingTime} min</p>
               <p><CarOutlined /> Capacity: {booking.vehicle.capacity} {booking.vehicle.capacityUnit}</p>
-              <p><DollarOutlined /> Charge: ${booking.vehicleCharge.toFixed(2)}</p>
+              <p><DollarOutlined /> Charge: LKR {booking.vehicleCharge.toFixed(2)}</p>
 
               {booking.status === 'upcoming' && (
-                <Button type="primary" onClick={() => handleCancelBooking(booking.id)} style={{ marginTop: '16px', width: '100%' }}>
-                  Cancel Booking
-                </Button>
+                <div style={{ marginTop: '16px' }}>
+                 
+                  <Button
+                    type="primary"
+                    onClick={() => handlePayBalance(booking.id)}
+                    style={{ width: '100%' }}
+                  >
+                    Pay Balance
+                  </Button>
+                  <Button
+                    type="primary" danger ghost
+                    onClick={() => handleCancelBooking(booking.id)}
+                    style={{ width: '100%', marginTop: '8px' }}
+                  >
+                    Cancel Booking
+                  </Button>
+                </div>
               )}
             </Card>
           </Col>

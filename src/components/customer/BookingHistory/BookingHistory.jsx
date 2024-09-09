@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Tag, Rate, Space, Select, DatePicker, Row, Col, Empty, Spin, Button, Pagination, Modal, Input } from 'antd';
-import { CalendarOutlined, EnvironmentOutlined, ClockCircleOutlined, CarOutlined, DollarOutlined } from '@ant-design/icons';
-import httpService from '../../../services/httpService'
+import { Card, Tag, Rate, Space, Select, DatePicker, Row, Col, Empty, Spin, Button, Pagination, Modal, Input, message } from 'antd';
+import { CalendarOutlined, EnvironmentOutlined, ClockCircleOutlined, CarOutlined, DollarOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import httpService from '../../../services/httpService';
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -17,6 +17,7 @@ const BookingHistory = () => {
   const [ratingModalVisible, setRatingModalVisible] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
   const [currentBookingId, setCurrentBookingId] = useState(null);
+  const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const pageSize = 6;
 
   useEffect(() => {
@@ -41,7 +42,6 @@ const BookingHistory = () => {
     fetchBookings();
   }, []);
   
-
   const getLocationName = (lat, long) => {
     return new Promise((resolve, reject) => {
       const geocoder = new window.google.maps.Geocoder();
@@ -109,6 +109,22 @@ const BookingHistory = () => {
     setCurrentBookingId(null);
   };
 
+  const handleCancelBooking = (bookingId) => {
+    setCurrentBookingId(bookingId);
+    setCancelModalVisible(true);
+  };
+
+  const confirmCancelBooking = () => {
+    httpService.put(`/customer/cancelBooking/${currentBookingId}`)
+      .then(() => {
+        message.success('Booking cancelled successfully');
+        setBookings(bookings.filter(booking => booking.id !== currentBookingId));
+        setFilteredBookings(filteredBookings.filter(booking => booking.id !== currentBookingId));
+        setCancelModalVisible(false);
+      })
+      .catch(() => message.error('Failed to cancel booking'));
+  };
+
   if (loading) {
     return <Spin size="large" />;
   }
@@ -174,9 +190,14 @@ const BookingHistory = () => {
               <p><DollarOutlined style={{ marginRight: '8px' }} />Charge: LKR {booking.vehicleCharge.toFixed(2)}</p>
               
               {!booking.isPaid && !booking.isCancelled && (
-                <Button type="primary" onClick={() => handlePayBalance(booking.id)} style={{ marginTop: '16px', width: '100%' }}>
-                  Pay Balance
-                </Button>
+                <div style={{ marginTop: '16px' }}>
+                  <Button type="primary" onClick={() => handlePayBalance(booking.id)} style={{ width: '100%', marginBottom: '8px' }}>
+                    Pay Balance
+                  </Button>
+                  <Button type="primary" danger ghost onClick={() => handleCancelBooking(booking.id)} style={{ width: '100%' }}>
+                    Cancel Booking
+                  </Button>
+                </div>
               )}
               
               {booking.isPaid && (
@@ -212,6 +233,18 @@ const BookingHistory = () => {
           rows={4}
           placeholder="Leave a comment (optional)"
         />
+      </Modal>
+
+      <Modal
+        title="Cancel Booking"
+        visible={cancelModalVisible}
+        onOk={confirmCancelBooking}
+        onCancel={() => setCancelModalVisible(false)}
+        okText="Yes, Cancel"
+        cancelText="No"
+        icon={<CloseCircleOutlined />}
+      >
+        <p>Are you sure you want to cancel this booking? Please note that your advance payment will not be refunded.</p>
       </Modal>
     </div>
   );
