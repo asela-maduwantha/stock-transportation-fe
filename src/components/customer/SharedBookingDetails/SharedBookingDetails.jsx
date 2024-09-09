@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Button,
   Form,
@@ -37,14 +37,18 @@ const SharedBookingDetails = () => {
   const [dropoffLocation, setDropoffLocation] = useState("");
   const [route, setRoute] = useState(null);
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
-
-  useEffect(() => {
-    setIsButtonDisabled(!isPickupValid || !isDropoffValid || !charge);
-  }, [isPickupValid, isDropoffValid, charge]);
+  const [firstNearbyLocation, setFirstNearbyLocation] = useState(null);
+  const [lastNearbyLocation, setLastNearbyLocation] = useState(null);
+  const [pickupCoords, setPickupCoords] = useState(null);
+  const [dropoffCoords, setDropoffCoords] = useState(null);
 
   const location = useLocation();
   const navigate = useNavigate();
   const selectedBooking = location.state?.booking;
+
+  useEffect(() => {
+    setIsButtonDisabled(!isPickupValid || !isDropoffValid || !charge);
+  }, [isPickupValid, isDropoffValid, charge]);
 
   useEffect(() => {
     if (!selectedBooking) {
@@ -52,7 +56,30 @@ const SharedBookingDetails = () => {
     }
   }, [selectedBooking]);
 
-  const getRoute = async () => {
+  useEffect(() => {
+    if (selectedBooking && selectedBooking.nearbyCities && selectedBooking.nearbyCities.length >= 2) {
+      getLatLngFromAddress(selectedBooking.nearbyCities[0]).then(coords => setFirstNearbyLocation(coords));
+      getLatLngFromAddress(selectedBooking.nearbyCities[selectedBooking.nearbyCities.length - 1]).then(coords => setLastNearbyLocation(coords));
+    }
+  }, [selectedBooking]);
+
+  const getLatLngFromAddress = async (address) => {
+    const geocoder = new window.google.maps.Geocoder();
+    return new Promise((resolve, reject) => {
+      geocoder.geocode({ address: address }, (results, status) => {
+        if (status === "OK") {
+          resolve({
+            lat: results[0].geometry.location.lat(),
+            lng: results[0].geometry.location.lng(),
+          });
+        } else {
+          reject(status);
+        }
+      });
+    });
+  };
+
+  const getRoute = useCallback(async () => {
     if (
       !selectedBooking ||
       !selectedBooking.nearbyCities ||
@@ -82,56 +109,101 @@ const SharedBookingDetails = () => {
         }
       }
     );
-  };
+  }, [selectedBooking]);
 
   useEffect(() => {
     getRoute();
-  });
+  }, [getRoute]);
 
-  const isLocationOnRoute = (location, route) => {
-    const routeBounds = route.bounds;
-    const locationLatLng = new window.google.maps.LatLng(
-      location.lat,
-      location.lng
+  const calculateDistance = (point1, point2) => {
+    return window.google.maps.geometry.spherical.computeDistanceBetween(
+      new window.google.maps.LatLng(point1.lat, point1.lng),
+      new window.google.maps.LatLng(point2.lat, point2.lng)
     );
+  };
+  
+  const isLocationOnRoute = (location, route) => {
+    if (!route || !route.bounds) return false;
+    const routeBounds = route.bounds;
+    const locationLatLng = new window.google.maps.LatLng(location.lat, location.lng);
     return routeBounds.contains(locationLatLng);
   };
-
+  
   const validateLocation = async (location, isPickup) => {
-    const geocoder = new window.google.maps.Geocoder();
-
     try {
-      const result = await new Promise((resolve, reject) => {
-        geocoder.geocode({ address: location }, (results, status) => {
-          if (status === "OK") resolve(results[0]);
-          else reject(status);
-        });
-      });
-
-      const locationCoords = {
-        lat: result.geometry.location.lat(),
-        lng: result.geometry.location.lng(),
-      };
-
-      if (route) {
-        const isValid = isLocationOnRoute(locationCoords, route);
+      const locationCoords = await getLatLngFromAddress(location);
+  
+      if (route && firstNearbyLocation && lastNearbyLocation) {
+        const isOnRoute = isLocationOnRoute(locationCoords, route);
+        
+        if (!isOnRoute) {
+          message.error(`${isPickup ? "Pickup" : "Dropoff"} location must be on the route`);
+          return false;
+        }
+  
         if (isPickup) {
-          setIsPickupValid(isValid);
+          setPickupCoords(locationCoords);
+          setIsPickupValid(true);
         } else {
-          setIsDropoffValid(isValid);
+          if (!pickupCoords) {
+            message.error("Please set a valid pickup location first");
+            return false;
+          }
+          
+          const pickupDistanceToFirst = calculateDistance(pickupCoords, firstNearbyLocation);
+          const pickupDistanceToLast = calculateDistance(pickupCoords, lastNearbyLocation);
+          const dropoffDistanceToFirst = calculateDistance(locationCoords, firstNearbyLocation);
+          const dropoffDistanceToLast = calculateDistance(locationCoords, lastNearbyLocation);
+          
+          if (dropoffDistanceToFirst < pickupDistanceToFirst || dropoffDistanceToLast > pickupDistanceToLast) {
+            message.error("Dropoff location should be after the pickup location on the route");
+            return false;
+          }
+          
+          setDropoffCoords(locationCoords);
+          console.log(dropoffCoords);
+          setIsDropoffValid(true);
         }
-        if (!isValid) {
-          message.error(
-            `${isPickup ? "Pickup" : "Dropoff"} location must be on the route`
-          );
-        }
+  
+        return true;
       }
-
-      return true;
+  
+      return false;
     } catch (error) {
-      console.error("Geocoding error:", error);
+      console.error("Location validation error:", error);
       message.error("Error validating location");
       return false;
+    }
+  };
+
+
+  const handlePickupSelect = () => {
+    const place = pickupAutocomplete.getPlace();
+    const address = place.formatted_address;
+    setPickupLocation(address);
+    form.setFieldsValue({ pickupLocation: address });
+    validateLocation(address, true).then((isValid) => {
+      if (isValid) {
+        calculateRouteIfBothValid();
+      }
+    });
+  };
+
+  const handleDropoffSelect = () => {
+    const place = dropoffAutocomplete.getPlace();
+    const address = place.formatted_address;
+    setDropoffLocation(address);
+    form.setFieldsValue({ dropoffLocation: address });
+    validateLocation(address, false).then((isValid) => {
+      if (isValid) {
+        calculateRouteIfBothValid();
+      }
+    });
+  };
+
+  const calculateRouteIfBothValid = () => {
+    if (isPickupValid && isDropoffValid) {
+      calculateRoute();
     }
   };
 
@@ -160,7 +232,7 @@ const SharedBookingDetails = () => {
       }
     );
   };
-  
+
   const calculateCharge = async (distance) => {
     try {
       const response = await httpService.post(
@@ -179,30 +251,6 @@ const SharedBookingDetails = () => {
     }
   };
 
-  const handlePickupSelect = () => {
-    const place = pickupAutocomplete.getPlace();
-    const address = place.formatted_address;
-    setPickupLocation(address);
-    form.setFieldsValue({ pickupLocation: address });
-    validateLocation(address, true).then((isValid) => {
-      if (isValid ) {
-        calculateRoute();
-      }
-    });
-  };
-
-  const handleDropoffSelect = () => {
-    const place = dropoffAutocomplete.getPlace();
-    const address = place.formatted_address;
-    setDropoffLocation(address);
-    form.setFieldsValue({ dropoffLocation: address });
-    validateLocation(address, false).then((isValid) => {
-      if (isValid ) {
-        calculateRoute();
-      }
-    });
-  };
-
   const handleSubmit = async (values) => {
     try {
       if (!isPickupValid || !isDropoffValid) {
@@ -216,7 +264,7 @@ const SharedBookingDetails = () => {
       }
 
       if (!charge) {
-        await calculateCharge();
+        await calculateCharge(distance);
       }
 
       const bookingData = {
@@ -270,7 +318,6 @@ const SharedBookingDetails = () => {
     backgroundColor: "#ccc",
   };
 
-
   return (
     <div className="booking-details-form">
       <Title level={2}>Shared Booking Details</Title>
@@ -279,46 +326,46 @@ const SharedBookingDetails = () => {
           <Card
             cover={
               <img
-                alt={selectedBooking.vehicle.type}
-                src={selectedBooking.vehicle.photoUrl}
+                alt={selectedBooking?.vehicle.type}
+                src={selectedBooking?.vehicle.photoUrl}
                 style={{ objectFit: "cover", height: "300px" }}
               />
             }
           >
             <Card.Meta
-              title={<Title level={3}>{selectedBooking.vehicle.type}</Title>}
+              title={<Title level={3}>{selectedBooking?.vehicle.type}</Title>}
               description={
                 <Space direction="vertical" size="small">
                   <Text>
-                    <strong>Type:</strong> {selectedBooking.vehicle.type}
+                    <strong>Type:</strong> {selectedBooking?.vehicle.type}
                   </Text>
                   <Text>
                     <strong>Preferred Area:</strong>{" "}
-                    {selectedBooking.vehicle.preferredArea}
+                    {selectedBooking?.vehicle.preferredArea}
                   </Text>
                   <Text>
                     <strong>Capacity:</strong>{" "}
-                    {selectedBooking.vehicle.capacity}{" "}
-                    {selectedBooking.vehicle.capacityUnit}
+                    {selectedBooking?.vehicle.capacity}{" "}
+                    {selectedBooking?.vehicle.capacityUnit}
                   </Text>
                   <Text>
                     <strong>Free Capacity:</strong>{" "}
-                    {selectedBooking.freeCapacity}{" "}
-                    {selectedBooking.vehicle.capacityUnit}
+                    {selectedBooking?.freeCapacity}{" "}
+                    {selectedBooking?.vehicle.capacityUnit}
                   </Text>
                   <Text>
                     <strong>Booking Date:</strong>{" "}
-                    {new Date(selectedBooking.bookingDate).toLocaleDateString()}
+                    {new Date(selectedBooking?.bookingDate).toLocaleDateString()}
                   </Text>
                   <Text>
-                    <strong>Pickup Time:</strong> {selectedBooking.pickupTime}
+                    <strong>Pickup Time:</strong> {selectedBooking?.pickupTime}
                   </Text>
                   <Text>
-                    <strong>End Time:</strong> {selectedBooking.endTime}
+                    <strong>End Time:</strong> {selectedBooking?.endTime}
                   </Text>
                   <Text>
                     <strong>Nearby Cities:</strong>{" "}
-                    {selectedBooking.nearbyCities.join(", ")}
+                    {selectedBooking?.nearbyCities.join(", ")}
                   </Text>
                 </Space>
               }
