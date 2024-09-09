@@ -46,6 +46,7 @@ import SharedBookingDetails from '../components/customer/SharedBookingDetails/Sh
 import SharedBookingSummary from '../components/customer/SharedBookingSummary/SharedBookingSummary';
 import SharedBookingNavigations from '../components/driver/SharedBookingNavigations/SharedBookingNavigations';
 import NormalBookingNavigation from '../components/driver/NormalBookingNavigation/NormalBookingNavigation';
+import SharedBookingsHistory from '../components/customer/SharedBookingsHistory/SharedBookingsHistory';
 
 const WebRoutes = () => {
   return (
@@ -139,6 +140,7 @@ const WebRoutes = () => {
           <Route path="shared-booking" element={<SharedBookings />} />
           <Route path="shared-booking-details" element={<SharedBookingDetails />} />
           <Route path="shared-booking-summary" element={<SharedBookingSummary />} />
+          <Route path="shared-booking-history" element={<SharedBookingsHistory />} />
 
         </Route>
       </Routes>

@@ -54,10 +54,10 @@ const CustomerHeader = () => {
       link: "/customer/stock-pickup",
     },
     {
-      key: "costcalculator",
+      key: "sharedbookinghistory",
       icon: <CalculatorOutlined />,
-      label: "Cost Calculator",
-      link: "/customer/cost-calculator",
+      label: "Shared Booking History",
+      link: "/customer/shared-booking-history",
     },
     {
       key: "profile-settings",
