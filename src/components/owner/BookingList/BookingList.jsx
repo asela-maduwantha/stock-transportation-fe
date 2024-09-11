@@ -1,203 +1,368 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { Table, Button, Modal, Spin } from 'antd';
-import httpService from '../../../services/httpService';
-import { GoogleMap, Marker, DirectionsService, DirectionsRenderer } from '@react-google-maps/api';
-import GoogleMapsLoader from '../../../services/GoogleMapsLoader'; 
+import React, { useEffect, useState, useCallback, useMemo } from "react";
+import {
+  Card,
+  Button,
+  Modal,
+  Spin,
+  Typography,
+  Space,
+  Tag,
+  Timeline,
+  Tooltip,
+  Tabs,
+  Row,
+  Col,
+  Statistic,
+} from "antd";
+import {
+  CarOutlined,
+  ClockCircleOutlined,
+  DollarOutlined,
+  EnvironmentOutlined,
+  UserOutlined,
+  PhoneOutlined,
+  MailOutlined,
+} from "@ant-design/icons";
+import httpService from "../../../services/httpService";
+import {
+  GoogleMap,
+  Marker,
+  DirectionsService,
+  DirectionsRenderer,
+} from "@react-google-maps/api";
+
+const { Title, Text, Paragraph } = Typography;
+const { TabPane } = Tabs;
 
 const containerStyle = {
-  width: '100%',
-  height: '400px',
+  width: "100%",
+  height: "400px",
 };
 
 const BookingsList = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [mapLoading, setMapLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedBooking, setSelectedBooking] = useState(null);
-  const [showMap, setShowMap] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [directionsResponse, setDirectionsResponse] = useState(null);
 
-  useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        const ownerId = localStorage.getItem('ownerId');
-        const response = await httpService.get(`/owner/myBookings/${ownerId}`);
-        setBookings(response.data);
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBookings();
+  const fetchBookings = useCallback(async () => {
+    try {
+      const ownerId = localStorage.getItem("ownerId");
+      const response = await httpService.get(`/owner/myBookings/${ownerId}`);
+      setBookings(response.data);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const geocodeLatLng = (geocoder, lat, lng) => {
+  useEffect(() => {
+    fetchBookings();
+  }, [fetchBookings]);
+
+  const groupedBookings = useMemo(() => {
+    return bookings.reduce((acc, booking) => {
+      const date = new Date(booking.bookingDate).toLocaleDateString();
+      if (!acc[date]) {
+        acc[date] = [];
+      }
+      acc[date].push(booking);
+      return acc;
+    }, {});
+  }, [bookings]);
+
+  const geocodeLatLng = useCallback((geocoder, lat, lng) => {
     return new Promise((resolve, reject) => {
       const latlng = { lat, lng };
       geocoder.geocode({ location: latlng }, (results, status) => {
-        if (status === 'OK') {
+        if (status === "OK") {
           if (results[0]) {
             resolve(results[0].formatted_address);
           } else {
-            resolve('Unknown');
+            resolve("Unknown");
           }
         } else {
-          reject('Geocoder failed due to: ' + status);
+          reject("Geocoder failed due to: " + status);
         }
       });
     });
-  };
+  }, []);
 
-  const handleViewMore = async (booking) => {
-    setMapLoading(true);
-    const geocoder = new window.google.maps.Geocoder();
+  const handleViewMore = useCallback(
+    async (booking) => {
+      const geocoder = new window.google.maps.Geocoder();
 
-    try {
-      const startLocation = await geocodeLatLng(geocoder, booking.startLat, booking.startLong);
-      const endLocation = await geocodeLatLng(geocoder, booking.destLat, booking.destLong);
+      try {
+        const [startLocation, endLocation] = await Promise.all([
+          geocodeLatLng(geocoder, booking.startLat, booking.startLong),
+          geocodeLatLng(geocoder, booking.destLat, booking.destLong),
+        ]);
 
-      setSelectedBooking({
-        ...booking,
-        startLocation,
-        endLocation,
-      });
-      setShowMap(true);
-    } catch (error) {
-      console.error('Error fetching location names:', error);
-    } finally {
-      setMapLoading(false);
-    }
-  };
+        setSelectedBooking({
+          ...booking,
+          startLocation,
+          endLocation,
+        });
+        setShowModal(true);
+      } catch (error) {
+        console.error("Error fetching location names:", error);
+      }
+    },
+    [geocodeLatLng]
+  );
 
-  const handleCancel = () => {
-    setShowMap(false);
+  const handleCancel = useCallback(() => {
+    setShowModal(false);
     setSelectedBooking(null);
-    setDirectionsResponse(null); // Clear directions
-  };
+    setDirectionsResponse(null);
+  }, []);
 
-  const renderMap = useCallback(() => {
-    if (selectedBooking) {
-      return (
-        <GoogleMapsLoader>
-          <GoogleMap
-            mapContainerStyle={containerStyle}
-            center={{ lat: selectedBooking.startLat, lng: selectedBooking.startLong }}
-            zoom={10}
-          >
-            <Marker position={{ lat: selectedBooking.startLat, lng: selectedBooking.startLong }} label="Start" />
-            <Marker position={{ lat: selectedBooking.destLat, lng: selectedBooking.destLong }} label="End" />
+  const renderMap = useMemo(() => {
+    if (!selectedBooking) return null;
 
-            <DirectionsService
-              options={{
-                origin: { lat: selectedBooking.startLat, lng: selectedBooking.startLong },
-                destination: { lat: selectedBooking.destLat, lng: selectedBooking.destLong },
-                travelMode: 'DRIVING',
-              }}
-              callback={response => {
-                if (response?.status === 'OK') {
-                  setDirectionsResponse(response);
-                } else {
-                  console.error('Error fetching directions:', response);
-                }
-              }}
-            />
+    return (
+      <GoogleMap
+        mapContainerStyle={containerStyle}
+        center={{
+          lat: selectedBooking.startLat,
+          lng: selectedBooking.startLong,
+        }}
+        zoom={10}
+      >
+        <Marker
+          position={{
+            lat: selectedBooking.startLat,
+            lng: selectedBooking.startLong,
+          }}
+          icon={{
+            url: "/path/to/start-icon.png",
+            scaledSize: new window.google.maps.Size(50, 50),
+          }}
+          label="Start"
+        />
+        <Marker
+          position={{
+            lat: selectedBooking.destLat,
+            lng: selectedBooking.destLong,
+          }}
+          icon={{
+            url: "/path/to/end-icon.png",
+            scaledSize: new window.google.maps.Size(50, 50),
+          }}
+          label="End"
+        />
 
-            {directionsResponse && (
-              <DirectionsRenderer
-                directions={directionsResponse}
-              />
-            )}
-          </GoogleMap>
-        </GoogleMapsLoader>
-      );
-    }
-    return null;
+        <DirectionsService
+          options={{
+            origin: {
+              lat: selectedBooking.startLat,
+              lng: selectedBooking.startLong,
+            },
+            destination: {
+              lat: selectedBooking.destLat,
+              lng: selectedBooking.destLong,
+            },
+            travelMode: "DRIVING",
+          }}
+          callback={(response) => {
+            if (response?.status === "OK" && !directionsResponse) {
+              setDirectionsResponse(response);
+            }
+          }}
+        />
+
+        {directionsResponse && (
+          <DirectionsRenderer directions={directionsResponse} />
+        )}
+      </GoogleMap>
+    );
   }, [selectedBooking, directionsResponse]);
 
-  const columns = [
-    {
-      title: 'No.',
-      key: 'index',
-      render: (_, __, index) => index + 1,
-    },
-    {
-      title: 'Customer Name',
-      dataIndex: 'customer',
-      key: 'customer',
-      render: customer => `${customer.firstName} ${customer.lastName}`,
-    },
-    {
-      title: 'Booking Date',
-      dataIndex: 'bookingDate',
-      key: 'bookingDate',
-      render: text => new Date(text).toLocaleDateString(),
-    },
-    {
-      title: 'Pickup Time',
-      dataIndex: 'pickupTime',
-      key: 'pickupTime',
-    },
-    {
-      title: 'Contact Number',
-      dataIndex: 'customer',
-      key: 'contactNumber',
-      render: customer => customer.mobileNum,
-    },
-    {
-      title: 'Vehicle Number',
-      dataIndex: 'vehicleId',
-      key: 'vehicleId',
-      render: vehicleId => vehicleId,
-    },
-    {
-      title: 'Action',
-      key: 'action',
-      render: (_, record) => (
-        <Button onClick={() => handleViewMore(record)}>View More</Button>
-      ),
-    },
-  ];
+  const renderBookingCard = useCallback(
+    (booking) => (
+      <Card
+        key={booking.id}  // Added key prop here
+        className="booking-card"
+        hoverable
+        actions={[
+          <Tooltip key="view-more" title="View Booking Details and Map">
+            <Button
+              onClick={() => handleViewMore(booking)}
+              icon={<EnvironmentOutlined />}
+            >
+              View More
+            </Button>
+          </Tooltip>,
+        ]}
+      >
+        <Card.Meta
+          title={`${booking.customer?.firstName || ""} ${
+            booking.customer?.lastName || ""
+          }`}
+          description={
+            <Space direction="vertical">
+              <Text>
+                <ClockCircleOutlined /> Pickup: {booking.pickupTime}
+              </Text>
+              <Text>
+                <CarOutlined /> Vehicle: {booking.vehicleId}
+              </Text>
+              <Text>
+                <DollarOutlined /> Total: LKR{" "}
+                {(
+                  (booking.vehicleCharge || 0) + (booking.serviceCharge || 0)
+                ).toLocaleString()}
+              </Text>
+              <Tag color={booking.status === "Completed" ? "green" : "blue"}>
+                {booking.status}
+              </Tag>
+            </Space>
+          }
+        />
+      </Card>
+    ),
+    [handleViewMore]
+  );
+
+  const renderBookingDetails = useMemo(() => {
+    if (!selectedBooking) return null;
+
+    return (
+      <Space direction="vertical" size="large" style={{ width: "100%" }}>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Statistic
+              title="Customer"
+              value={`${selectedBooking.customer.firstName}  ${selectedBooking.customer.lastName}`}
+              prefix={<UserOutlined />}
+            />
+          </Col>
+          <Col span={12}>
+            <Statistic title="Status" value={selectedBooking.status} />
+          </Col>
+        </Row>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Statistic
+              title="Phone"
+              value={selectedBooking.customer.mobileNum}
+              prefix={<PhoneOutlined />}
+            />
+          </Col>
+          <Col span={12}>
+            <Statistic
+              title="Email"
+              value={selectedBooking.customer.email}
+              prefix={<MailOutlined />}
+            />
+          </Col>
+        </Row>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Statistic
+              title="Pickup Time"
+              value={selectedBooking.pickupTime}
+              prefix={<ClockCircleOutlined />}
+            />
+          </Col>
+          <Col span={12}>
+            <Statistic
+              title="Vehicle"
+              value={selectedBooking.vehicleId}
+              prefix={<CarOutlined />}
+            />
+          </Col>
+        </Row>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Statistic
+              title="Vehicle Charge"
+              value={`LKR ${selectedBooking.vehicleCharge.toLocaleString()}`}
+              prefix={<DollarOutlined />}
+            />
+          </Col>
+          <Col span={12}>
+            <Statistic
+              title="Service Charge"
+              value={`LKR ${selectedBooking.serviceCharge.toLocaleString()}`}
+              prefix={<DollarOutlined />}
+            />
+          </Col>
+        </Row>
+        <Row gutter={16}>
+          <Col span={24}>
+            <Statistic
+              title="Total Charge"
+              value={`LKR ${(
+                selectedBooking.vehicleCharge + selectedBooking.serviceCharge
+              ).toLocaleString()}`}
+              prefix={<DollarOutlined />}
+            />
+          </Col>
+        </Row>
+        <Paragraph>
+          <Text strong>Start Location:</Text> {selectedBooking.startLocation}
+        </Paragraph>
+        <Paragraph>
+          <Text strong>End Location:</Text> {selectedBooking.endLocation}
+        </Paragraph>
+      </Space>
+    );
+  }, [selectedBooking]);
 
   if (loading) return <Spin tip="Loading bookings..." size="large" />;
   if (error) return <p>Error: {error}</p>;
 
   return (
-    <div style={{ margin: '20px' }}>
-      <Table
-        dataSource={bookings}
-        columns={columns}
-        rowKey="id"
-        pagination={{ pageSize: 10 }}
-      />
+    <div style={{ margin: "20px" }}>
+      <Title level={2}>Bookings Overview</Title>
+      <Tabs defaultActiveKey="1">
+        <TabPane tab="Timeline View" key="1">
+          <Timeline mode="alternate">
+            {Object.entries(groupedBookings).map(([date, dateBookings]) => (
+              <Timeline.Item key={date} label={date}>
+                <Title level={4}>
+                  {date} ({dateBookings.length} bookings)
+                </Title>
+                {dateBookings.map((booking) => (
+                  <div key={booking.id}>{renderBookingCard(booking)}</div>
+                ))}
+              </Timeline.Item>
+            ))}
+          </Timeline>
+        </TabPane>
+        <TabPane tab="List View" key="2">
+          {Object.entries(groupedBookings).map(([date, dateBookings]) => (
+            <div key={date}>
+              <Title level={4}>
+                {date} ({dateBookings.length} bookings)
+              </Title>
+              {dateBookings.map((booking) => (
+                <div key={booking.id}>{renderBookingCard(booking)}</div>
+              ))}
+            </div>
+          ))}
+        </TabPane>
+      </Tabs>
 
       <Modal
         title="Booking Details"
-        visible={showMap}
+        visible={showModal}
         onCancel={handleCancel}
         footer={null}
         width={800}
       >
-        {selectedBooking && (
-          <div>
-            <p><strong>Customer Name:</strong> {`${selectedBooking.customer.firstName} ${selectedBooking.customer.lastName}`}</p>
-            <p><strong>Booking Date:</strong> {new Date(selectedBooking.bookingDate).toLocaleDateString()}</p>
-            <p><strong>Pickup Time:</strong> {selectedBooking.pickupTime}</p>
-            <p><strong>Contact Number:</strong> {selectedBooking.customer.mobileNum}</p>
-            <p><strong>Vehicle Number:</strong> {selectedBooking.vehicleId}</p>
-            <p><strong>Handling Time:</strong> {`${Math.floor(selectedBooking.handlingTime / 60)}m ${Math.floor(selectedBooking.handlingTime % 60)}s`}</p>
-            <p><strong>Vehicle Charge:</strong> LKR {selectedBooking.vehicleCharge.toLocaleString()}</p>
-            <p><strong>Service Charge:</strong> LKR {selectedBooking.serviceCharge.toLocaleString()}</p>
-            <p><strong>Loading Capacity:</strong> {selectedBooking.loadingCapacity} tons</p>
-            <p><strong>Start Location:</strong> {selectedBooking.startLocation}</p>
-            <p><strong>End Location:</strong> {selectedBooking.endLocation}</p>
-            <Spin spinning={mapLoading} tip="Loading map..." size="large">
-              {renderMap()}
-            </Spin>
-          </div>
-        )}
+        <Tabs defaultActiveKey="1">
+          <TabPane tab="Booking Information" key="1">
+            {renderBookingDetails}
+          </TabPane>
+          <TabPane tab="Map View" key="2">
+            {renderMap}
+          </TabPane>
+        </Tabs>
       </Modal>
     </div>
   );
