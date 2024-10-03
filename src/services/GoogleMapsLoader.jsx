@@ -5,7 +5,7 @@ import { LoadScript } from '@react-google-maps/api';
 const libraries = ['places']; 
 
 const GoogleMapsLoader = ({ children }) => {
-  const apiKey = 'AIzaSyCYciRolf7wRjfQln989Tk4REwSeZl0zlE';
+  const apiKey = 'AIzaSyA4AnscOsaLsNUGrCnWrJH-k8XlBsltPgM';
 
   return (
     <LoadScript

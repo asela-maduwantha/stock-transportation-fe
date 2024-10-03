@@ -64,7 +64,7 @@ const PickupStock = () => {
   };
 
   const handleOtpSubmit = () => {
-    if (otp === '1234') { // Replace with actual OTP verification logic
+    if (otp === '1234') { 
       setPickupConfirmed(true);
       setIsOtpModalVisible(false);
       message.success('Pickup confirmed!');
@@ -79,7 +79,7 @@ const PickupStock = () => {
   };
 
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: 'AIzaSyAyRG15a19j3uqI_7uEbQ6CZrp-h2KP0eM', 
+    googleMapsApiKey: 'AIzaSyA4AnscOsaLsNUGrCnWrJH-k8XlBsltPgM', 
     libraries: ['places'],
   });
 

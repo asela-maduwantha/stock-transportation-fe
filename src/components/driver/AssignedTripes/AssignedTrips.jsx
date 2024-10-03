@@ -33,7 +33,7 @@ import httpService from "../../../services/httpService";
 const { Text, Title } = Typography;
 const { Option } = Select;
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyCYciRolf7wRjfQln989Tk4REwSeZl0zlE";
+const GOOGLE_MAPS_API_KEY = "AIzaSyA4AnscOsaLsNUGrCnWrJH-k8XlBsltPgM";
 
 const AssignedTrips = () => {
   const navigate = useNavigate();
@@ -201,26 +201,11 @@ const AssignedTrips = () => {
   };
 
   const handleNavigate = () => {
-    if (sharedBookingDetails) {
-      navigate("/driver/shared-booking-navigations", {
+    if (selectedTrip) {
+      navigate("/driver/booking-navigations", {
         state: {
-          startLat: sharedBookingDetails.startLat,
-          startLong: sharedBookingDetails.startLong,
-          destLat: sharedBookingDetails.destLat,
-          destLong: sharedBookingDetails.destLong,
-          orgStartLat: selectedTrip.startLat,
-          orgStartLong: selectedTrip.startLong,
-          orgDestLat: selectedTrip.destLat,
-          orgDestLong: selectedTrip.destLong,
-        },
-      });
-    } else if (selectedTrip) {
-      navigate("/driver/shared-booking-navigations", {
-        state: {
-          startLat: selectedTrip.startLat,
-          startLong: selectedTrip.startLong,
-          destLat: selectedTrip.destLat,
-          destLong: selectedTrip.destLong,
+          originalBookingId: selectedTrip.id,
+          bookingType: sharedBookingDetails ? "shared" : "original"
         },
       });
     }
