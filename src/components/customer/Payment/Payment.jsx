@@ -37,8 +37,9 @@ const CheckoutForm = ({ totalPrice, bookingId }) => {
 
         try {
             // Step 1: Create Payment Intent
+            console.log(totalPrice.toFixed(2))
             const paymentIntentResponse = await httpService.post('/customer/paymentIntent', {
-                amount: totalPrice,
+                amount: totalPrice.toFixed(2)*100,
             });
 
             const { clientSecret } = paymentIntentResponse.data;
@@ -83,9 +84,10 @@ const CheckoutForm = ({ totalPrice, bookingId }) => {
                     stripeId: paymentIntent.id,
                     date: new Date().toISOString(), 
                     amount: paymentIntent.amount , 
+                    type: 'shared'
                 };
                 console.log(paymentIntent)
-                await httpService.post(`/customer/payment/${bookingId}`, paymentData);
+                await httpService.post(`/customer/advancePayment/${bookingId}`, paymentData);
             
                 setModalContent({
                     title: 'Thank You!',

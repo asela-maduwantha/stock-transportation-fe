@@ -19,29 +19,33 @@ const BookingNavigation = () => {
   const [route, setRoute] = useState([]);
   const [rideStarted, setRideStarted] = useState(false);
   const watchPositionId = useRef(null);
-  const [loadingTimer, setLoadingTimer] = useState(0);
-  const [unloadingTimer, setUnloadingTimer] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isUnloading, setIsUnloading] = useState(false);
+  const [loadingTimers, setLoadingTimers] = useState({});
+  const [unloadingTimers, setUnloadingTimers] = useState({});
+  const [isLoading, setIsLoading] = useState({});
+  const [isUnloading, setIsUnloading] = useState({});
   const socketRef = useRef(null);
+  const mapRef = useRef(null);
 
-  const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: "AIzaSyA4AnscOsaLsNUGrCnWrJH-k8XlBsltPgM",
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: "YOUR_GOOGLE_MAPS_API_KEY",
     libraries: ['places'],
   });
 
   const buttonStyle = {
     backgroundColor: '#fdb940',
     color: '#fff',
-    fontWeight: 'normal',
+    fontWeight: 'bold',
     border: 'none',
+    borderRadius: '8px',
+    padding: '10px 20px',
     cursor: 'pointer',
     transition: 'background-color 0.3s ease, opacity 0.3s ease',
     margin: '0 5px',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
   };
 
   useEffect(() => {
-    socketRef.current = io('YOUR_SOCKET_SERVER_URL');
+    socketRef.current = io('https://stocktrans.azurewebsites.net/');
     socketRef.current.on('timerUpdate', handleTimerUpdate);
 
     return () => {
@@ -52,10 +56,11 @@ const BookingNavigation = () => {
   }, []);
 
   const handleTimerUpdate = (data) => {
-    if (data.type === 'loading') {
-      setLoadingTimer(data.time);
-    } else if (data.type === 'unloading') {
-      setUnloadingTimer(data.time);
+    const { type, time, stockId } = data;
+    if (type === 'loading') {
+      setLoadingTimers(prev => ({ ...prev, [stockId]: time }));
+    } else if (type === 'unloading') {
+      setUnloadingTimers(prev => ({ ...prev, [stockId]: time }));
     }
   };
 
@@ -82,36 +87,49 @@ const BookingNavigation = () => {
   }, [isLoaded, fetchCoordinates]);
 
   useEffect(() => {
-    if (coordinates && isSharedBooking) {
-      const locations = [
-        { lat: coordinates.firstLat, lng: coordinates.firstLong, type: 'pickup', label: '1st Stock Pickup', address: coordinates.firstAddress },
-        { lat: coordinates.secondLat, lng: coordinates.secondLong, type: 'drop', label: '1st Stock Drop', address: coordinates.secondAddress },
-        { lat: coordinates.thirdLat, lng: coordinates.thirdLong, type: 'pickup', label: '2nd Stock Pickup', address: coordinates.thirdAddress },
-        { lat: coordinates.fourthLat, lng: coordinates.fourthLong, type: 'drop', label: '2nd Stock Drop', address: coordinates.fourthAddress },
-      ];
+    if (coordinates && isLoaded) {
+      const geocoder = new window.google.maps.Geocoder();
+      const getAddress = async (lat, lng) => {
+        try {
+          const result = await geocoder.geocode({ location: { lat, lng } });
+          return result.results[0].formatted_address;
+        } catch (error) {
+          console.error("Geocoding error:", error);
+          return "Address not found";
+        }
+      };
 
-      const distanceToSecond = calculateDistance(locations[0], locations[1]);
-      const distanceToFourth = calculateDistance(locations[0], locations[3]);
+      const processLocations = async () => {
+        if (isSharedBooking) {
+          const locations = [
+            { lat: coordinates.firstLat, lng: coordinates.firstLong, type: 'pickup', label: '1st Stock Pickup', stockId: 'stock1' },
+            { lat: coordinates.secondLat, lng: coordinates.secondLong, type: 'drop', label: '1st Stock Drop', stockId: 'stock1' },
+            { lat: coordinates.thirdLat, lng: coordinates.thirdLong, type: 'pickup', label: '2nd Stock Pickup', stockId: 'stock2' },
+            { lat: coordinates.fourthLat, lng: coordinates.fourthLong, type: 'drop', label: '2nd Stock Drop', stockId: 'stock2' },
+          ];
 
-      setRoute(distanceToFourth < distanceToSecond ? [locations[0], locations[2], locations[1], locations[3]] : locations);
-    } else if (coordinates) {
-      setRoute([
-        { lat: coordinates.firstLat, lng: coordinates.firstLong, type: 'pickup', label: 'Pickup', address: coordinates.firstAddress },
-        { lat: coordinates.secondLat, lng: coordinates.secondLong, type: 'drop', label: 'Drop', address: coordinates.secondAddress },
-      ]);
+          for (let location of locations) {
+            location.address = await getAddress(location.lat, location.lng);
+          }
+
+          // Reorder the route: all pickups first, then drops
+          const pickups = locations.filter(loc => loc.type === 'pickup');
+          const drops = locations.filter(loc => loc.type === 'drop').reverse();
+          setRoute([...pickups, ...drops]);
+        } else {
+          const pickupAddress = await getAddress(coordinates.firstLat, coordinates.firstLong);
+          const dropAddress = await getAddress(coordinates.secondLat, coordinates.secondLong);
+
+          setRoute([
+            { lat: coordinates.firstLat, lng: coordinates.firstLong, type: 'pickup', label: 'Pickup', address: pickupAddress, stockId: 'stock1' },
+            { lat: coordinates.secondLat, lng: coordinates.secondLong, type: 'drop', label: 'Drop', address: dropAddress, stockId: 'stock1' },
+          ]);
+        }
+      };
+
+      processLocations();
     }
-  }, [coordinates, isSharedBooking]);
-
-  const calculateDistance = (point1, point2) => {
-    const R = 6371; // Radius of the Earth in km
-    const dLat = (point2.lat - point1.lat) * Math.PI / 180;
-    const dLon = (point2.lng - point1.lng) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(point1.lat * Math.PI / 180) * Math.cos(point2.lat * Math.PI / 180) *
-              Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c; // Distance in km
-  };
+  }, [coordinates, isSharedBooking, isLoaded]);
 
   const requestLocationAccess = () => {
     if ("geolocation" in navigator) {
@@ -251,50 +269,50 @@ const BookingNavigation = () => {
     }
   };
 
-  const startLoading = async () => {
+  const startLoading = async (stockId) => {
     try {
-      await httpService.post(`/driver/startLoading/${location.state.originalBookingId}`);
-      setIsLoading(true);
-      message.success("Loading started");
+      await httpService.post(`/driver/startLoading/${location.state.originalBookingId}`, { stockId });
+      setIsLoading(prev => ({ ...prev, [stockId]: true }));
+      message.success(`Loading started for ${stockId}`);
     } catch (error) {
       console.error("Error starting loading:", error);
       message.error("Failed to start loading");
     }
   };
 
-  const stopLoading = async () => {
+  const stopLoading = async (stockId) => {
     try {
       await httpService.put(`/driver/stopLoading/${location.state.originalBookingId}`, {
-        bookingType: "original"
+        bookingType: "original",
+        stockId
       });
-      setIsLoading(false);
-      message.success("Loading stopped");
-      handleNextStep();
+      setIsLoading(prev => ({ ...prev, [stockId]: false }));
+      message.success(`Loading stopped for ${stockId}`);
     } catch (error) {
       console.error("Error stopping loading:", error);
       message.error("Failed to stop loading");
     }
   };
 
-  const startUnloading = async () => {
+  const startUnloading = async (stockId) => {
     try {
-      await httpService.post(`/driver/startUnloading/${location.state.originalBookingId}`);
-      setIsUnloading(true);
-      message.success("Unloading started");
+      await httpService.post(`/driver/startUnloading/${location.state.originalBookingId}`, { stockId });
+      setIsUnloading(prev => ({ ...prev, [stockId]: true }));
+      message.success(`Unloading started for ${stockId}`);
     } catch (error) {
       console.error("Error starting unloading:", error);
       message.error("Failed to start unloading");
     }
   };
 
-  const stopUnloading = async () => {
+  const stopUnloading = async (stockId) => {
     try {
       await httpService.put(`/driver/stopUnloading/${location.state.originalBookingId}`, {
-        bookingType: "original"
+        bookingType: "original",
+        stockId
       });
-      setIsUnloading(false);
-      message.success("Unloading stopped");
-      handleNextStep();
+      setIsUnloading(prev => ({ ...prev, [stockId]: false }));
+      message.success(`Unloading stopped for ${stockId}`);
     } catch (error) {
       console.error("Error stopping unloading:", error);
       message.error("Failed to stop unloading");
@@ -309,20 +327,26 @@ const BookingNavigation = () => {
     };
   }, []);
 
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
   const renderLocationItem = (location) => {
     const isPickup = location.type === 'pickup';
     const icon = isPickup ? <EnvironmentOutlined /> : <CompassOutlined />;
     const actionButton = isPickup ? (
-      isLoading ? (
-        <Button onClick={stopLoading} style={{...buttonStyle, backgroundColor: '#ff4d4f'}}>Stop Loading</Button>
+      isLoading[location.stockId] ? (
+        <Button onClick={() => stopLoading(location.stockId)} style={{...buttonStyle, backgroundColor: '#ff4d4f'}}>Stop Loading</Button>
       ) : (
-        <Button onClick={startLoading} style={buttonStyle}>Start Loading</Button>
+        <Button onClick={() => startLoading(location.stockId)} style={buttonStyle}>Start Loading</Button>
       )
     ) : (
-      isUnloading ? (
-        <Button onClick={stopUnloading} style={{...buttonStyle, backgroundColor: '#ff4d4f'}}>Stop Unloading</Button>
+      isUnloading[location.stockId] ? (
+        <Button onClick={() => stopUnloading(location.stockId)} style={{...buttonStyle, backgroundColor: '#ff4d4f'}}>Stop Unloading</Button>
       ) : (
-        <Button onClick={startUnloading} style={buttonStyle}>Start Unloading</Button>
+        <Button onClick={() => startUnloading(location.stockId)} style={buttonStyle}>Start Unloading</Button>
       )
     );
 
@@ -334,9 +358,9 @@ const BookingNavigation = () => {
           description={`${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}`}
         />
         {actionButton}
-        {(isPickup && isLoading) || (!isPickup && isUnloading) ? (
+        {(isPickup && isLoading[location.stockId]) || (!isPickup && isUnloading[location.stockId]) ? (
           <Text style={{ marginLeft: 10 }}>
-            <ClockCircleOutlined /> {isPickup ? loadingTimer : unloadingTimer}s
+            <ClockCircleOutlined /> {formatTime(isPickup ? loadingTimers[location.stockId] : unloadingTimers[location.stockId])}
           </Text>
         ) : null}
       </List.Item>
@@ -352,75 +376,114 @@ const BookingNavigation = () => {
     );
   }
 
- // ... (previous code remains the same)
+  if (loadError) {
+    return <div>Error loading maps</div>;
+  }
 
- return (
-  <Card title={<Title level={3}>Booking Navigation</Title>} style={{ width: '100%', maxWidth: 800, margin: '20px auto' }}>
-    <Text strong>{isSharedBooking ? 'Shared Booking' : 'Single Booking'}</Text>
-    <GoogleMap
-      mapContainerStyle={{ width: '100%', height: '400px' }}
-      center={userLocation || { lat: 0, lng: 0 }}
-      zoom={10}
-    >
-      {directions && <DirectionsRenderer directions={directions} />}
-      {route.map((location, index) => (
-        <Marker
-          key={index}
-          position={{ lat: location.lat, lng: location.lng }}
-          label={location.label}
-        />
-      ))}
-      {userLocation && <Marker position={userLocation} label="You" />}
-    </GoogleMap>
-
-    <List
-      style={{ marginTop: 16 }}
-      dataSource={route}
-      renderItem={renderLocationItem}
-    />
-
-    <div style={{ marginTop: 16, textAlign: 'center' }}>
-      {!rideStarted ? (
-        <Button
-          onClick={startRide}
-          style={buttonStyle}
-          icon={<PlayCircleOutlined />}
-        >
-          Start Ride
-        </Button>
-      ) : (
-        <>
-          <Text>Current Step: {step + 1} of {route.length}</Text>
-          <Button
-            onClick={handleNextStep}
-            style={buttonStyle}
-            icon={<CompassOutlined />}
-            disabled={step === route.length - 1}
+  return (
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
+      <Card 
+        title={<Title level={3}>Booking Navigation</Title>} 
+        style={{ width: '100%', boxShadow: '0 4px 8px rgba(0,0,0,0.1)', borderRadius: '12px' }}
+      >
+        <Text strong style={{ fontSize: '18px', marginBottom: '20px', display: 'block' }}>
+          {isSharedBooking ? 'Shared Booking' : 'Single Booking'}
+        </Text>
+        
+        <div style={{ height: '400px', marginBottom: '20px', borderRadius: '8px', overflow: 'hidden' }}>
+          <GoogleMap
+            mapContainerStyle={{ width: '100%', height: '100%' }}
+            center={userLocation || (route[0] ? { lat: route[0].lat, lng: route[0].lng } : { lat: 0, lng: 0 })}
+            zoom={12}
+            options={{
+              zoomControl: true,
+              streetViewControl: false,
+              mapTypeControl: false,
+              fullscreenControl: false,
+            }}
+            onLoad={map => {
+              mapRef.current = map;
+            }}
           >
-            {step === route.length - 1 ? 'Trip Completed' : 'Next Location'}
-          </Button>
-        </>
-      )}
-    </div>
+            {directions && <DirectionsRenderer directions={directions} />}
+            {route.map((location, index) => (
+              <Marker
+                key={index}
+                position={{ lat: location.lat, lng: location.lng }}
+                label={`${index + 1}`}
+                icon={{
+                  url: location.type === 'pickup' ? 'path_to_pickup_icon.png' : 'path_to_dropoff_icon.png',
+                  scaledSize: new window.google.maps.Size(30, 30),
+                }}
+              />
+            ))}
+            {userLocation && (
+              <Marker
+                position={userLocation}
+                icon={{
+                  url: 'path_to_driver_icon.png',
+                  scaledSize: new window.google.maps.Size(40, 40),
+                }}
+              />
+            )}
+          </GoogleMap>
+        </div>
 
-    <div style={{ marginTop: 16, textAlign: 'center' }}>
-      <Button
-        onClick={handleNavigate}
-        style={buttonStyle}
-        disabled={!rideStarted}
-      >
-        Navigate
-      </Button>
-      <Button
-        onClick={openInGoogleMaps}
-        style={buttonStyle}
-        disabled={!rideStarted}
-      >
-        Open in Google Maps
-      </Button>
+        <List
+          style={{ 
+            marginTop: 16, 
+            backgroundColor: '#f5f5f5', 
+            borderRadius: '8px', 
+            padding: '16px',
+            maxHeight: '300px',
+            overflowY: 'auto'
+          }}
+          dataSource={route}
+          renderItem={renderLocationItem}
+        />
+
+        <div style={{ marginTop: 24, display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '10px' }}>
+          {!rideStarted ? (
+            <Button
+              onClick={startRide}
+              style={{...buttonStyle, fontSize: '16px'}}
+              icon={<PlayCircleOutlined />}
+            >
+              Start Ride
+            </Button>
+          ) : (
+            <>
+              <Text style={{ width: '100%', textAlign: 'center', marginBottom: '10px', fontSize: '18px' }}>
+                Current Step: {step + 1} of {route.length}
+              </Text>
+              <Button
+                onClick={handleNextStep}
+                style={{...buttonStyle, fontSize: '16px'}}
+                icon={<CompassOutlined />}
+                disabled={step === route.length - 1}
+              >
+                {step === route.length - 1 ? 'Trip Completed' : 'Next Location'}
+              </Button>
+            </>
+          )}
+          <Button
+            onClick={handleNavigate}
+            style={{...buttonStyle, fontSize: '16px'}}
+            disabled={!rideStarted}
+          >
+            Navigate
+          </Button>
+          <Button
+            onClick={openInGoogleMaps}
+            style={{...buttonStyle, fontSize: '16px'}}
+            disabled={!rideStarted}
+          >
+            Open in Google Maps
+          </Button>
+        </div>
+      </Card>
     </div>
-  </Card>
-);
+  );
 };
 
 export default BookingNavigation;

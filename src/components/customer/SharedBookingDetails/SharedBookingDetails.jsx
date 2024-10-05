@@ -1,24 +1,23 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
-  Button,
+
   Form,
-  Input,
-  Select,
+
   message,
   Row,
   Col,
   Card,
   Typography,
-  Space,
-  InputNumber,
+
 } from "antd";
-import { Autocomplete } from "@react-google-maps/api";
-import { EnvironmentOutlined } from "@ant-design/icons";
+
 import httpService from "../../../services/httpService";
 import { useLocation, useNavigate } from "react-router-dom";
+import VehicleDetailsCard from "./VehicleDetailasCard";
+import BookingForm from "./BookingForm";
+import RouteMap from "./RouteMap";
 
-const { Option } = Select;
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 const SharedBookingDetails = () => {
   const [form] = Form.useForm();
@@ -41,6 +40,10 @@ const SharedBookingDetails = () => {
   const [lastNearbyLocation, setLastNearbyLocation] = useState(null);
   const [pickupCoords, setPickupCoords] = useState(null);
   const [dropoffCoords, setDropoffCoords] = useState(null);
+  const [mapCenter, setMapCenter] = useState({ lat: 0, lng: 0 });
+  const [mapZoom] = useState(10);
+
+  const mapRef = useRef(null);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -58,7 +61,10 @@ const SharedBookingDetails = () => {
 
   useEffect(() => {
     if (selectedBooking && selectedBooking.nearbyCities && selectedBooking.nearbyCities.length >= 2) {
-      getLatLngFromAddress(selectedBooking.nearbyCities[0]).then(coords => setFirstNearbyLocation(coords));
+      getLatLngFromAddress(selectedBooking.nearbyCities[0]).then(coords => {
+        setFirstNearbyLocation(coords);
+        setMapCenter(coords);
+      });
       getLatLngFromAddress(selectedBooking.nearbyCities[selectedBooking.nearbyCities.length - 1]).then(coords => setLastNearbyLocation(coords));
     }
   }, [selectedBooking]);
@@ -104,6 +110,8 @@ const SharedBookingDetails = () => {
       (result, status) => {
         if (status === window.google.maps.DirectionsStatus.OK) {
           setRoute(result.routes[0]);
+          setDirections(result);
+          fitBoundsToRoute(result.routes[0]);
         } else {
           console.error(`Error fetching directions ${result}`);
         }
@@ -115,6 +123,12 @@ const SharedBookingDetails = () => {
     getRoute();
   }, [getRoute]);
 
+  const fitBoundsToRoute = (route) => {
+    if (mapRef.current && route.bounds) {
+      mapRef.current.fitBounds(route.bounds);
+    }
+  };
+
   const calculateDistance = (point1, point2) => {
     return window.google.maps.geometry.spherical.computeDistanceBetween(
       new window.google.maps.LatLng(point1.lat, point1.lng),
@@ -123,21 +137,27 @@ const SharedBookingDetails = () => {
   };
   
   const isLocationOnRoute = (location, route) => {
-    if (!route || !route.bounds) return false;
-    const routeBounds = route.bounds;
-    const locationLatLng = new window.google.maps.LatLng(location.lat, location.lng);
-    return routeBounds.contains(locationLatLng);
+    if (!route || !route.overview_path) return false;
+    const threshold = 1000; // 1 km threshold
+    for (let i = 0; i < route.overview_path.length; i++) {
+      const pathPoint = route.overview_path[i];
+      const distance = calculateDistance(location, { lat: pathPoint.lat(), lng: pathPoint.lng() });
+      if (distance <= threshold) {
+        return true;
+      }
+    }
+    return false;
   };
   
   const validateLocation = async (location, isPickup) => {
     try {
       const locationCoords = await getLatLngFromAddress(location);
   
-      if (route && firstNearbyLocation && lastNearbyLocation) {
+      if (route) {
         const isOnRoute = isLocationOnRoute(locationCoords, route);
         
         if (!isOnRoute) {
-          message.error(`${isPickup ? "Pickup" : "Dropoff"} location must be on the route`);
+          message.error(`${isPickup ? "Pickup" : "Dropoff"} location must be on or near the route`);
           return false;
         }
   
@@ -161,7 +181,6 @@ const SharedBookingDetails = () => {
           }
           
           setDropoffCoords(locationCoords);
-          console.log(dropoffCoords);
           setIsDropoffValid(true);
         }
   
@@ -175,7 +194,6 @@ const SharedBookingDetails = () => {
       return false;
     }
   };
-
 
   const handlePickupSelect = () => {
     const place = pickupAutocomplete.getPlace();
@@ -226,6 +244,7 @@ const SharedBookingDetails = () => {
           setDistance(distanceInKm);
           setDuration(route.legs[0].duration.value / 60);
           calculateCharge(distanceInKm);
+          fitBoundsToRoute(route);
         } else {
           console.error(`Error fetching directions ${result}`);
         }
@@ -323,188 +342,45 @@ const SharedBookingDetails = () => {
       <Title level={2}>Shared Booking Details</Title>
       <Row gutter={[24, 24]}>
         <Col xs={24} lg={12}>
-          <Card
-            cover={
-              <img
-                alt={selectedBooking?.vehicle.type}
-                src={selectedBooking?.vehicle.photoUrl}
-                style={{ objectFit: "cover", height: "300px" }}
-              />
-            }
-          >
-            <Card.Meta
-              title={<Title level={3}>{selectedBooking?.vehicle.type}</Title>}
-              description={
-                <Space direction="vertical" size="small">
-                  <Text>
-                    <strong>Type:</strong> {selectedBooking?.vehicle.type}
-                  </Text>
-                  <Text>
-                    <strong>Preferred Area:</strong>{" "}
-                    {selectedBooking?.vehicle.preferredArea}
-                  </Text>
-                  <Text>
-                    <strong>Capacity:</strong>{" "}
-                    {selectedBooking?.vehicle.capacity}{" "}
-                    {selectedBooking?.vehicle.capacityUnit}
-                  </Text>
-                  <Text>
-                    <strong>Free Capacity:</strong>{" "}
-                    {selectedBooking?.freeCapacity}{" "}
-                    {selectedBooking?.vehicle.capacityUnit}
-                  </Text>
-                  <Text>
-                    <strong>Booking Date:</strong>{" "}
-                    {new Date(selectedBooking?.bookingDate).toLocaleDateString()}
-                  </Text>
-                  <Text>
-                    <strong>Pickup Time:</strong> {selectedBooking?.pickupTime}
-                  </Text>
-                  <Text>
-                    <strong>End Time:</strong> {selectedBooking?.endTime}
-                  </Text>
-                  <Text>
-                    <strong>Nearby Cities:</strong>{" "}
-                    {selectedBooking?.nearbyCities.join(", ")}
-                  </Text>
-                </Space>
-              }
+          <VehicleDetailsCard vehicle={selectedBooking?.vehicle} booking={selectedBooking} />
+        </Col>
+        <Col xs={24} lg={12}>
+          <Card title={<Title level={4}>Your Stock Information</Title>} className="booking-details-card">
+            <BookingForm 
+              form={form}
+              onSubmit={handleSubmit}
+              maxCapacity={selectedBooking?.freeCapacity}
+              capacityUnit={selectedBooking?.vehicle.capacityUnit}
+              isButtonDisabled={isButtonDisabled}
+              buttonStyle={isButtonDisabled ? disabledButtonStyle : enabledButtonStyle}
+              setPickupAutocomplete={setPickupAutocomplete}
+              setDropoffAutocomplete={setDropoffAutocomplete}
+              handlePickupSelect={handlePickupSelect}
+              handleDropoffSelect={handleDropoffSelect}
+              pickupLocation={pickupLocation}
+              setPickupLocation={setPickupLocation}
+              dropoffLocation={dropoffLocation}
+              setDropoffLocation={setDropoffLocation}
+              loadingTime={loadingTime}
+              setLoadingTime={setLoadingTime}
+              unloadingTime={unloadingTime}
+              setUnloadingTime={setUnloadingTime}
+              setIsHovered={setIsHovered}
             />
           </Card>
         </Col>
-        <Col xs={24} lg={12}>
-          <Card
-            title={<Title level={4}>Your Stock Information</Title>}
-            className="booking-details-card"
-          >
-            <Form form={form} layout="vertical" onFinish={handleSubmit}>
-              <Form.Item
-                name="capacity"
-                label={<Text strong>Required Capacity</Text>}
-                rules={[
-                  {
-                    required: true,
-                    message: "Please input the required capacity",
-                  },
-                  {
-                    type: "number",
-                    min: 0.1,
-                    max: selectedBooking?.freeCapacity,
-                    message: `Capacity must be between 0.1 and ${selectedBooking?.freeCapacity}`,
-                  },
-                ]}
-              >
-                <InputNumber
-                  step={0.1}
-                  min={0.1}
-                  max={selectedBooking?.freeCapacity}
-                  addonAfter={selectedBooking?.vehicle.capacityUnit}
-                />
-              </Form.Item>
-
-              <Form.Item
-                name="pickupLocation"
-                label={<Text strong>Pickup Location</Text>}
-                rules={[
-                  {
-                    required: true,
-                    message: "Please input your pickup location",
-                  },
-                ]}
-              >
-                <Autocomplete
-                  onLoad={(autocomplete) => setPickupAutocomplete(autocomplete)}
-                  onPlaceChanged={handlePickupSelect}
-                >
-                  <Input
-                    value={pickupLocation}
-                    onChange={(e) => setPickupLocation(e.target.value)}
-                    prefix={<EnvironmentOutlined />}
-                    placeholder="Enter pickup location"
-                  />
-                </Autocomplete>
-              </Form.Item>
-
-              <Form.Item
-                name="dropoffLocation"
-                label={<Text strong>Dropoff Location</Text>}
-                rules={[
-                  {
-                    required: true,
-                    message: "Please input your dropoff location",
-                  },
-                ]}
-              >
-                <Autocomplete
-                  onLoad={(autocomplete) =>
-                    setDropoffAutocomplete(autocomplete)
-                  }
-                  onPlaceChanged={handleDropoffSelect}
-                >
-                  <Input
-                    value={dropoffLocation}
-                    onChange={(e) => setDropoffLocation(e.target.value)}
-                    prefix={<EnvironmentOutlined />}
-                    placeholder="Enter drop-off location"
-                  />
-                </Autocomplete>
-              </Form.Item>
-
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name="loadingTime"
-                    label={<Text strong>Loading Time</Text>}
-                    rules={[
-                      { required: true, message: "Please select loading time" },
-                    ]}
-                  >
-                    <Select
-                      value={loadingTime}
-                      onChange={(value) => setLoadingTime(value)}
-                    >
-                      <Option value={15}>15 minutes</Option>
-                      <Option value={30}>30 minutes</Option>
-                      <Option value={60}>60 minutes</Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    name="unloadingTime"
-                    label={<Text strong>Unloading Time</Text>}
-                    rules={[
-                      {
-                        required: true,
-                        message: "Please select unloading time",
-                      },
-                    ]}
-                  >
-                    <Select
-                      value={unloadingTime}
-                      onChange={(value) => setUnloadingTime(value)}
-                    >
-                      <Option value={15}>15 minutes</Option>
-                      <Option value={30}>30 minutes</Option>
-                      <Option value={60}>60 minutes</Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-              </Row>
-              <Form.Item>
-              <Button
-  type="primary"
-  htmlType="submit"
-  style={isButtonDisabled ? disabledButtonStyle : enabledButtonStyle}
-  onMouseEnter={() => setIsHovered(true)}
-  onMouseLeave={() => setIsHovered(false)}
-  disabled={isButtonDisabled}
-  title={isButtonDisabled ? "Please select valid pickup and dropoff locations" : ""}
->
-  Proceed to Summary
-</Button>
-              </Form.Item>
-            </Form>
+      </Row>
+      <Row gutter={[24, 24]} style={{ marginTop: '24px' }}>
+        <Col span={24}>
+          <Card title={<Title level={4}>Route Map</Title>}>
+            <RouteMap 
+              mapRef={mapRef}
+              mapCenter={mapCenter}
+              mapZoom={mapZoom}
+              pickupCoords={pickupCoords}
+              dropoffCoords={dropoffCoords}
+              directions={directions}
+            />
           </Card>
         </Col>
       </Row>
