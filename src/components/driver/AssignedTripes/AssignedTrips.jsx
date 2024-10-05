@@ -13,8 +13,8 @@ import {
   DatePicker,
   Modal,
   Tabs,
-  Tooltip,
-  Timeline,
+  List,
+  Drawer,
 } from "antd";
 import {
   EnvironmentOutlined,
@@ -25,6 +25,7 @@ import {
   CompassOutlined,
   EyeOutlined,
   DollarOutlined,
+  CalendarOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import axios from "axios";
@@ -42,7 +43,9 @@ const AssignedTrips = () => {
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const [sharedBookingDetails, setSharedBookingDetails] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [bookingDates, setBookingDates] = useState([]);
+  const [selectedTrip, setSelectedTrip] = useState(null);
 
   const getAddressFromCoordinates = async (lat, lng) => {
     try {
@@ -80,11 +83,16 @@ const AssignedTrips = () => {
             trip.destLat,
             trip.destLong
           );
-          return { ...trip, startAddress, destAddress, bookingDate: dayjs(trip.bookingDate) };
+          return {
+            ...trip,
+            startAddress,
+            destAddress,
+            bookingDate: dayjs(trip.bookingDate),
+          };
         })
       );
       setTrips(tripsWithAddresses);
-      setBookingDates(tripsWithAddresses.map(trip => trip.bookingDate));
+      setBookingDates(tripsWithAddresses.map((trip) => trip.bookingDate));
       setLoading(false);
     } catch (error) {
       console.error("Error fetching trips:", error);
@@ -132,16 +140,21 @@ const AssignedTrips = () => {
   };
 
   const filterTrips = (category) => {
-    const today = dayjs().startOf('day');
+    const today = dayjs().startOf("day");
     switch (category) {
-      case 'today':
-        return trips.filter(trip => trip.bookingDate.isSame(today, 'day'));
-      case 'past':
-        return trips.filter(trip => trip.bookingDate.isBefore(today, 'day'));
-      case 'upcoming':
-        return trips.filter(trip => trip.bookingDate.isAfter(today, 'day'));
+      case "today":
+        return trips.filter((trip) => trip.bookingDate.isSame(today, "day"));
+      case "past":
+        return trips.filter((trip) => trip.bookingDate.isBefore(today, "day"));
+      case "upcoming":
+        return trips.filter((trip) => trip.bookingDate.isAfter(today, "day"));
       default:
-        return trips.filter(trip => trip.bookingDate.isSame(selectedDate, 'day'));
+        return trips.filter(
+          (trip) =>
+            trip.bookingDate.isSame(selectedDate, "day") ||
+            trip.bookingDate.isAfter(selectedDate, "day") ||
+            trip.bookingDate.isBefore(selectedDate, "day")
+        );
     }
   };
 
@@ -163,138 +176,148 @@ const AssignedTrips = () => {
     return dayjs(time, "HH:mm:ss").format("HH:mm:ss");
   };
 
-  const ButtonStyle = {
-    backgroundColor: '#fdb940',
-    color: '#fff',
-    fontSize: '14px',
-    fontWeight: 'normal',
-    border: 'none',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    padding: '8px 16px',
-    borderRadius: '4px',
+  const handleViewDetails = (trip) => {
+    setSelectedTrip(trip);
+    setIsDrawerVisible(true);
   };
 
-  const CardStyle = {
-    width: "100%",
-    marginBottom: "16px",
-    borderRadius: "8px",
-    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-    transition: "all 0.3s ease",
-  };
-
-  const renderTripTimeline = (trips) => (
-    <Timeline mode="left">
-      {trips.map((item) => (
-        <Timeline.Item key={item.id} label={formatTime(item.pickupTime)}>
-          <Card hoverable style={CardStyle}>
-            <Row gutter={[16, 16]} align="middle">
-              <Col xs={24} sm={12}>
-                <Space direction="vertical" size="small" style={{ width: "100%" }}>
-                  <Text strong>
-                    <EnvironmentOutlined style={{ color: "#1890ff" }} /> Start:
-                  </Text>
-                  <Text>{item.startAddress}</Text>
-                </Space>
-              </Col>
-              <Col xs={24} sm={12}>
-                <Space direction="vertical" size="small" style={{ width: "100%" }}>
-                  <Text strong>
-                    <EnvironmentOutlined style={{ color: "#52c41a" }} /> Destination:
-                  </Text>
-                  <Text>{item.destAddress}</Text>
-                </Space>
-              </Col>
-              <Col xs={12} sm={6}>
-                <Tooltip title="Pickup Time">
-                  <Space>
-                    <ClockCircleOutlined style={{ color: "#faad14" }} />
-                    <Text>{formatTime(item.pickupTime)}</Text>
-                  </Space>
-                </Tooltip>
-              </Col>
-              <Col xs={12} sm={6}>
-                <Tooltip title="Travel Time">
-                  <Space>
-                    <ClockCircleOutlined style={{ color: "#722ed1" }} />
-                    <Text>{formatTime(dayjs().startOf('day').add(item.travellingTime, 'minute').format("HH:mm:ss"))}</Text>
-                  </Space>
-                </Tooltip>
-              </Col>
-              <Col xs={12} sm={6}>
-                <Tooltip title="Loading Time">
-                  <Space>
-                    <ClockCircleOutlined style={{ color: "#eb2f96" }} />
-                    <Text>{formatTime(dayjs().startOf('day').add(item.loadingTime, 'minute').format("HH:mm:ss"))}</Text>
-                  </Space>
-                </Tooltip>
-              </Col>
-              <Col xs={12} sm={6}>
-                <Tooltip title="Unloading Time">
-                  <Space>
-                    <ClockCircleOutlined style={{ color: "#13c2c2" }} />
-                    <Text>{formatTime(dayjs().startOf('day').add(item.unloadingTime, 'minute').format("HH:mm:ss"))}</Text>
-                  </Space>
-                </Tooltip>
-              </Col>
-              <Col xs={12} sm={6}>
-                <Tooltip title="Load Capacity">
-                  <Space>
-                    <CarOutlined style={{ color: "#eb2f96" }} />
-                    <Text>{item.loadingCapacity} kg</Text>
-                  </Space>
-                </Tooltip>
-              </Col>
-              <Col xs={12} sm={6}>
-                <Tooltip title={item.isReturnTrip ? "Return Trip" : "One Way Trip"}>
-                  <Tag color={item.isReturnTrip ? "green" : "blue"} style={{ padding: '4px 8px' }}>
-                    <SyncOutlined spin={item.isReturnTrip} style={{ marginRight: 4 }} />
-                    {item.isReturnTrip ? "Return" : "One Way"}
-                  </Tag>
-                </Tooltip>
-              </Col>
-              <Col xs={12} sm={6}>
-                <Tooltip title={item.willingToShare ? "Willing to Share" : "Not Sharing"}>
-                  <Tag color={item.willingToShare ? "green" : "red"} style={{ padding: '4px 8px' }}>
-                    <TeamOutlined style={{ marginRight: 4 }} />
-                    {item.willingToShare ? "Sharing" : "Not Sharing"}
-                  </Tag>
-                </Tooltip>
-              </Col>
-              <Col xs={24} sm={6}>
-                <Space size="small" style={{ width: "100%", justifyContent: "flex-end" }}>
-                  <Button
-                    icon={<CompassOutlined />}
-                    onClick={() => handleNavigate(item)}
-                    style={ButtonStyle}
-                  >
-                    Navigate
-                  </Button>
-                  {item.willingToShare && (
-                    <Button
-                      icon={<EyeOutlined />}
-                      onClick={() => handleViewSharedBooking(item)}
-                      style={ButtonStyle}
-                    >
-                      View Shared
-                    </Button>
-                  )}
-                </Space>
-              </Col>
-            </Row>
-          </Card>
-        </Timeline.Item>
-      ))}
-    </Timeline>
+  const renderTripItem = (item) => (
+    <List.Item
+      key={item.id}
+      actions={[
+        <Button
+          key="navigate"
+          icon={<CompassOutlined />}
+          onClick={() => handleNavigate(item)}
+          type="primary"
+        >
+          Navigate
+        </Button>,
+        <Button
+          key="details"
+          icon={<EyeOutlined />}
+          onClick={() => handleViewDetails(item)}
+          type="default"
+        >
+          Details
+        </Button>,
+        item.willingToShare && (
+          <Button
+            key="shared"
+            icon={<TeamOutlined />}
+            onClick={() => handleViewSharedBooking(item)}
+            type="default"
+          >
+            Shared
+          </Button>
+        ),
+      ]}
+    >
+      <List.Item.Meta
+        title={
+          <Space>
+            <Text strong>{item.bookingDate.format("DD/MM/YYYY")}</Text>
+            <Tag color={item.isReturnTrip ? "green" : "blue"}>
+              {item.isReturnTrip ? "Return" : "One Way"}
+            </Tag>
+          </Space>
+        }
+        description={
+          <Space direction="vertical">
+            <Text>
+              <EnvironmentOutlined style={{ color: "#1890ff" }} /> From:{" "}
+              {item.startAddress}
+            </Text>
+            <Text>
+              <EnvironmentOutlined style={{ color: "#52c41a" }} /> To:{" "}
+              {item.destAddress}
+            </Text>
+          </Space>
+        }
+      />
+    </List.Item>
   );
 
-  if (loading) {
-    return (
-      <Card style={{ width: "100%", textAlign: "center", margin: "20px 0" }}>
-        <Spin size="large" />
+  const renderTripDetails = (trip) => (
+    <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+      <Card title="Trip Details" bordered={false}>
+        <Row gutter={[16, 16]}>
+          <Col span={24}>
+            <Text strong>
+              <CalendarOutlined /> Date: {trip.bookingDate.format("DD/MM/YYYY")}
+            </Text>
+          </Col>
+          <Col span={12}>
+            <Text strong>
+              <ClockCircleOutlined /> Pickup Time: {formatTime(trip.pickupTime)}
+            </Text>
+          </Col>
+          <Col span={12}>
+            <Text strong>
+              <ClockCircleOutlined /> Travel Time:{" "}
+              {formatTime(
+                dayjs()
+                  .startOf("day")
+                  .add(trip.travellingTime, "minute")
+                  .format("HH:mm:ss")
+              )}
+            </Text>
+          </Col>
+          <Col span={12}>
+            <Text strong>
+              <ClockCircleOutlined /> Loading Time:{" "}
+              {formatTime(
+                dayjs()
+                  .startOf("day")
+                  .add(trip.loadingTime, "minute")
+                  .format("HH:mm:ss")
+              )}
+            </Text>
+          </Col>
+          <Col span={12}>
+            <Text strong>
+              <ClockCircleOutlined /> Unloading Time:{" "}
+              {formatTime(
+                dayjs()
+                  .startOf("day")
+                  .add(trip.unloadingTime, "minute")
+                  .format("HH:mm:ss")
+              )}
+            </Text>
+          </Col>
+          <Col span={12}>
+            <Text strong>
+              <CarOutlined /> Load Capacity: {trip.loadingCapacity} kg
+            </Text>
+          </Col>
+          <Col span={12}>
+            <Tag color={trip.isReturnTrip ? "green" : "blue"}>
+              <SyncOutlined spin={trip.isReturnTrip} />{" "}
+              {trip.isReturnTrip ? "Return Trip" : "One Way Trip"}
+            </Tag>
+          </Col>
+          <Col span={12}>
+            <Tag color={trip.willingToShare ? "green" : "red"}>
+              <TeamOutlined />{" "}
+              {trip.willingToShare ? "Willing to Share" : "Not Sharing"}
+            </Tag>
+          </Col>
+        </Row>
       </Card>
-    );
-  }
+      <Card title="Locations" bordered={false}>
+        <Space direction="vertical" size="small" style={{ width: "100%" }}>
+          <Text strong>
+            <EnvironmentOutlined style={{ color: "#1890ff" }} /> Start:
+          </Text>
+          <Text>{trip.startAddress}</Text>
+          <Text strong>
+            <EnvironmentOutlined style={{ color: "#52c41a" }} /> Destination:
+          </Text>
+          <Text>{trip.destAddress}</Text>
+        </Space>
+      </Card>
+    </Space>
+  );
 
   return (
     <Card
@@ -306,43 +329,65 @@ const AssignedTrips = () => {
         boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
       }}
     >
-      <Space direction="vertical" size="large" style={{ width: "100%" }}>
-        <DatePicker
-          value={selectedDate}
-          onChange={handleDateChange}
-          style={{ width: "100%" }}
-          disabledDate={(current) => {
-            return !bookingDates.some(date => date.isSame(current, 'day'));
-          }}
-        />
-        <Tabs defaultActiveKey="all" style={{ width: "100%" }}>
-          <TabPane tab="All" key="all">
-            {renderTripTimeline(filterTrips('all'))}
-          </TabPane>
-          <TabPane tab="Today" key="today">
-            {renderTripTimeline(filterTrips('today'))}
-          </TabPane>
-          <TabPane tab="Past" key="past">
-            {renderTripTimeline(filterTrips('past'))}
-          </TabPane>
-          <TabPane tab="Upcoming" key="upcoming">
-            {renderTripTimeline(filterTrips('upcoming'))}
-          </TabPane>
-        </Tabs>
-      </Space>
+      {loading ? (
+        <div style={{ textAlign: "center", padding: "40px 0" }}>
+          <Spin size="large" />
+        </div>
+      ) : (
+        <Space direction="vertical" size="large" style={{ width: "100%" }}>
+          <DatePicker
+            value={selectedDate}
+            onChange={handleDateChange}
+            style={{ width: "100%" }}
+            disabledDate={(current) => {
+              return !bookingDates.some((date) => date.isSame(current, "day"));
+            }}
+          />
+          <Tabs defaultActiveKey="all" style={{ width: "100%" }}>
+            <TabPane tab="All" key="all">
+              <List
+                itemLayout="vertical"
+                dataSource={filterTrips("all")}
+                renderItem={renderTripItem}
+              />
+            </TabPane>
+            <TabPane tab="Today" key="today">
+              <List
+                itemLayout="vertical"
+                dataSource={filterTrips("today")}
+                renderItem={renderTripItem}
+              />
+            </TabPane>
+            <TabPane tab="Past" key="past">
+              <List
+                itemLayout="vertical"
+                dataSource={filterTrips("past")}
+                renderItem={renderTripItem}
+              />
+            </TabPane>
+            <TabPane tab="Upcoming" key="upcoming">
+              <List
+                itemLayout="vertical"
+                dataSource={filterTrips("upcoming")}
+                renderItem={renderTripItem}
+              />
+            </TabPane>
+          </Tabs>
+        </Space>
+      )}
       <Modal
         title={<Title level={4}>Shared Booking Details</Title>}
         visible={isModalVisible}
         onOk={() => setIsModalVisible(false)}
         onCancel={() => setIsModalVisible(false)}
         footer={[
-          <Button key="close" onClick={() => setIsModalVisible(false)} style={ButtonStyle}>
+          <Button key="close" onClick={() => setIsModalVisible(false)} type="primary">
             Close
           </Button>,
         ]}
       >
         {sharedBookingDetails ? (
-          <Card style={CardStyle}>
+          <Card>
             <Row gutter={[16, 16]}>
               <Col xs={24}>
                 <Space direction="vertical" size="small" style={{ width: "100%" }}>
@@ -361,52 +406,38 @@ const AssignedTrips = () => {
                 </Space>
               </Col>
               <Col xs={12}>
-                <Tooltip title="Travel Time">
-                  <Space>
-                    <ClockCircleOutlined style={{ color: "#722ed1" }} />
-                    <Text>{formatTime(dayjs().startOf('day').add(sharedBookingDetails.travellingTime, 'minute').format("HH:mm:ss"))}</Text>
-                  </Space>
-                </Tooltip>
+                <Text strong>
+                  <ClockCircleOutlined /> Travel Time:{" "}
+                  {formatTime(
+                    dayjs()
+                      .startOf("day")
+                      .add(sharedBookingDetails.travellingTime, "minute")
+                      .format("HH:mm:ss")
+                  )}
+                </Text>
               </Col>
               <Col xs={12}>
-                <Tooltip title="Average Handling Time">
-                  <Space>
-                    <ClockCircleOutlined style={{ color: "#faad14" }} />
-                    <Text>{formatTime(dayjs().startOf('day').add(sharedBookingDetails.avgHandlingTime, 'minute').format("HH:mm:ss"))}</Text>
-                  </Space>
-                </Tooltip>
+                <Text strong>
+                  <ClockCircleOutlined /> Avg. Handling Time:{" "}
+                  {formatTime(
+                    dayjs()
+                      .startOf("day")
+                      .add(sharedBookingDetails.avgHandlingTime, "minute")
+                      .format("HH:mm:ss")
+                  )}
+                </Text>
               </Col>
               <Col xs={12}>
-                <Tooltip title="Loading Time">
-                  <Space>
-                    <ClockCircleOutlined style={{ color: "#eb2f96" }} />
-                    <Text>{formatTime(dayjs().startOf('day').add(sharedBookingDetails.loadingTime, 'minute').format("HH:mm:ss"))}</Text>
-                  </Space>
-                </Tooltip>
+                <Text strong>
+                  <DollarOutlined /> Vehicle Charge: $
+                  {sharedBookingDetails.vehicleCharge.toFixed(2)}
+                </Text>
               </Col>
               <Col xs={12}>
-                <Tooltip title="Unloading Time">
-                  <Space>
-                    <ClockCircleOutlined style={{ color: "#13c2c2" }} />
-                    <Text>{formatTime(dayjs().startOf('day').add(sharedBookingDetails.unloadingTime, 'minute').format("HH:mm:ss"))}</Text>
-                  </Space>
-                </Tooltip>
-              </Col>
-              <Col xs={12}>
-                <Tooltip title="Vehicle Charge">
-                  <Space>
-                    <DollarOutlined style={{ color: "#52c41a" }} />
-                    <Text>${sharedBookingDetails.vehicleCharge.toFixed(2)}</Text>
-                  </Space>
-                </Tooltip>
-              </Col>
-              <Col xs={12}>
-                <Tooltip title="Service Charge">
-                  <Space>
-                    <DollarOutlined style={{ color: "#1890ff" }} />
-                    <Text>${sharedBookingDetails.serviceCharge.toFixed(2)}</Text>
-                  </Space>
-                </Tooltip>
+                <Text strong>
+                  <DollarOutlined /> Service Charge: $
+                  {sharedBookingDetails.serviceCharge.toFixed(2)}
+                </Text>
               </Col>
             </Row>
           </Card>
@@ -414,6 +445,15 @@ const AssignedTrips = () => {
           <Text>No shared booking details available.</Text>
         )}
       </Modal>
+      <Drawer
+        title="Trip Details"
+        placement="right"
+        onClose={() => setIsDrawerVisible(false)}
+        visible={isDrawerVisible}
+        width={320}
+      >
+        {selectedTrip && renderTripDetails(selectedTrip)}
+      </Drawer>
     </Card>
   );
 };
