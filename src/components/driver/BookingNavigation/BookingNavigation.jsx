@@ -34,7 +34,6 @@ const BookingNavigation = () => {
   const buttonStyle = {
     backgroundColor: '#fdb940',
     color: '#fff',
-    fontWeight: 'bold',
     border: 'none',
     borderRadius: '8px',
     padding: '10px 20px',
@@ -446,7 +445,7 @@ const BookingNavigation = () => {
           {!rideStarted ? (
             <Button
               onClick={startRide}
-              style={{...buttonStyle, fontSize: '16px'}}
+              style={{...buttonStyle}}
               icon={<PlayCircleOutlined />}
             >
               Start Ride
@@ -458,7 +457,7 @@ const BookingNavigation = () => {
               </Text>
               <Button
                 onClick={handleNextStep}
-                style={{...buttonStyle, fontSize: '16px'}}
+                style={{...buttonStyle}}
                 icon={<CompassOutlined />}
                 disabled={step === route.length - 1}
               >
@@ -468,14 +467,14 @@ const BookingNavigation = () => {
           )}
           <Button
             onClick={handleNavigate}
-            style={{...buttonStyle, fontSize: '16px'}}
+            style={{...buttonStyle}}
             disabled={!rideStarted}
           >
             Navigate
           </Button>
           <Button
             onClick={openInGoogleMaps}
-            style={{...buttonStyle, fontSize: '16px'}}
+            style={{...buttonStyle}}
             disabled={!rideStarted}
           >
             Open in Google Maps

@@ -13,7 +13,7 @@ import {
   DatePicker,
   Modal,
   Tabs,
-  List,
+  
   Drawer,
 } from "antd";
 import {
@@ -182,60 +182,63 @@ const AssignedTrips = () => {
   };
 
   const renderTripItem = (item) => (
-    <List.Item
-      key={item.id}
-      actions={[
-        <Button
-          key="navigate"
-          icon={<CompassOutlined />}
-          onClick={() => handleNavigate(item)}
-          type="primary"
-        >
-          Navigate
-        </Button>,
-        <Button
-          key="details"
-          icon={<EyeOutlined />}
-          onClick={() => handleViewDetails(item)}
-          type="default"
-        >
-          Details
-        </Button>,
-        item.willingToShare && (
+    <Col xs={24} sm={12} key={item.id}>
+      <Card
+        hoverable
+        style={{ marginBottom: 16 }}
+        actions={[
           <Button
-            key="shared"
-            icon={<TeamOutlined />}
-            onClick={() => handleViewSharedBooking(item)}
+            key="navigate"
+            icon={<CompassOutlined />}
+            onClick={() => handleNavigate(item)}
+            type="primary"
+          >
+            Navigate
+          </Button>,
+          <Button
+            key="details"
+            icon={<EyeOutlined />}
+            onClick={() => handleViewDetails(item)}
             type="default"
           >
-            Shared
-          </Button>
-        ),
-      ]}
-    >
-      <List.Item.Meta
-        title={
-          <Space>
-            <Text strong>{item.bookingDate.format("DD/MM/YYYY")}</Text>
-            <Tag color={item.isReturnTrip ? "green" : "blue"}>
-              {item.isReturnTrip ? "Return" : "One Way"}
-            </Tag>
-          </Space>
-        }
-        description={
-          <Space direction="vertical">
-            <Text>
-              <EnvironmentOutlined style={{ color: "#1890ff" }} /> From:{" "}
-              {item.startAddress}
-            </Text>
-            <Text>
-              <EnvironmentOutlined style={{ color: "#52c41a" }} /> To:{" "}
-              {item.destAddress}
-            </Text>
-          </Space>
-        }
-      />
-    </List.Item>
+            Details
+          </Button>,
+          item.willingToShare && (
+            <Button
+              key="shared"
+              icon={<TeamOutlined />}
+              onClick={() => handleViewSharedBooking(item)}
+              type="default"
+            >
+              Shared
+            </Button>
+          ),
+        ]}
+      >
+        <Card.Meta
+          title={
+            <Space>
+              <Text strong>{item.bookingDate.format("DD/MM/YYYY")}</Text>
+              <Tag color={item.isReturnTrip ? "green" : "blue"}>
+                {item.isReturnTrip ? "Return" : "One Way"}
+              </Tag>
+            </Space>
+          }
+          description={
+            <Space direction="vertical">
+              <Text>
+                <EnvironmentOutlined style={{ color: "#1890ff" }} /> From:{" "}
+                {item.startAddress}
+              </Text>
+              <Text>
+                <EnvironmentOutlined style={{ color: "#52c41a" }} /> To:{" "}
+                {item.destAddress}
+              </Text>
+            </Space>
+          }
+        />
+      </Card>
+    </Col>
   );
 
   const renderTripDetails = (trip) => (
@@ -345,36 +348,21 @@ const AssignedTrips = () => {
           />
           <Tabs defaultActiveKey="all" style={{ width: "100%" }}>
             <TabPane tab="All" key="all">
-              <List
-                itemLayout="vertical"
-                dataSource={filterTrips("all")}
-                renderItem={renderTripItem}
-              />
+              <Row gutter={[16, 16]}>{filterTrips("all").map(renderTripItem)}</Row>
             </TabPane>
             <TabPane tab="Today" key="today">
-              <List
-                itemLayout="vertical"
-                dataSource={filterTrips("today")}
-                renderItem={renderTripItem}
-              />
+              <Row gutter={[16, 16]}>{filterTrips("today").map(renderTripItem)}</Row>
             </TabPane>
             <TabPane tab="Past" key="past">
-              <List
-                itemLayout="vertical"
-                dataSource={filterTrips("past")}
-                renderItem={renderTripItem}
-              />
+              <Row gutter={[16, 16]}>{filterTrips("past").map(renderTripItem)}</Row>
             </TabPane>
             <TabPane tab="Upcoming" key="upcoming">
-              <List
-                itemLayout="vertical"
-                dataSource={filterTrips("upcoming")}
-                renderItem={renderTripItem}
-              />
+              <Row gutter={[16, 16]}>{filterTrips("upcoming").map(renderTripItem)}</Row>
             </TabPane>
           </Tabs>
         </Space>
       )}
+      
       <Modal
         title={<Title level={4}>Shared Booking Details</Title>}
         visible={isModalVisible}
