@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Card, List, Button, Typography, message, Spin, Modal } from 'antd';
 import { EnvironmentOutlined, CompassOutlined, PlayCircleOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import { GoogleMap, DirectionsRenderer, Marker, useJsApiLoader } from '@react-google-maps/api';
@@ -7,9 +7,11 @@ import httpService from '../../../services/httpService';
 import io from 'socket.io-client';
 
 const { Title, Text } = Typography;
+const libraries = ['places'];
 
 const BookingNavigation = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [userLocation, setUserLocation] = useState(null);
   const [directions, setDirections] = useState(null);
@@ -23,12 +25,13 @@ const BookingNavigation = () => {
   const [unloadingTimers, setUnloadingTimers] = useState({});
   const [isLoading, setIsLoading] = useState({});
   const [isUnloading, setIsUnloading] = useState({});
+  const [loadingFinished, setLoadingFinished] = useState({});
   const socketRef = useRef(null);
   const mapRef = useRef(null);
 
   const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: "YOUR_GOOGLE_MAPS_API_KEY",
-    libraries: ['places'],
+    googleMapsApiKey: "AIzaSyA4AnscOsaLsNUGrCnWrJH-k8XlBsltPgM",
+    libraries,
   });
 
   const buttonStyle = {
@@ -64,6 +67,13 @@ const BookingNavigation = () => {
   };
 
   const fetchCoordinates = useCallback(async () => {
+    if (!location.state || !location.state.originalBookingId || !location.state.bookingType) {
+      message.error("Booking information is missing. Redirecting to dashboard.");
+      navigate('/dashboard');
+      return;
+    }
+    localStorage.setItem('bookingId', location.state.originalBookingId);
+
     try {
       const response = await httpService.get(`driver/getCoordinates/${location.state.originalBookingId}`, {
         params: { bookingType: location.state.bookingType }
@@ -76,7 +86,7 @@ const BookingNavigation = () => {
       message.error("Failed to fetch booking coordinates. Please try again.");
       setLoading(false);
     }
-  }, [location.state.bookingType, location.state.originalBookingId]);
+  }, [location.state, navigate]);
 
   useEffect(() => {
     if (isLoaded) {
@@ -142,7 +152,8 @@ const BookingNavigation = () => {
         (error) => {
           console.error("Error getting user location:", error);
           message.error("Unable to access your location. Please enable location services.");
-        }
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
     } else {
       message.error("Geolocation is not supported by your browser.");
@@ -150,34 +161,35 @@ const BookingNavigation = () => {
   };
 
   const handleNavigate = useCallback(() => {
-    if (userLocation && route[step]) {
-      const directionsService = new window.google.maps.DirectionsService();
-      const destination = new window.google.maps.LatLng(route[step].lat, route[step].lng);
-
-      directionsService.route(
-        {
-          origin: new window.google.maps.LatLng(userLocation.lat, userLocation.lng),
-          destination: destination,
-          travelMode: window.google.maps.TravelMode.DRIVING,
-        },
-        (result, status) => {
-          if (status === window.google.maps.DirectionsStatus.OK) {
-            setDirections(result);
-          } else {
-            console.error(`Error fetching directions ${result}`);
-            message.error("Failed to fetch directions. Please try again.");
-          }
-        }
-      );
-    } else {
+    if (!userLocation || !route[step]) {
       Modal.confirm({
         title: 'Location Access Required',
         content: 'Location access is required for navigation. Allow access?',
         onOk: () => requestLocationAccess(),
         onCancel: () => console.log('Location access denied'),
       });
+      return;
     }
+  
+    const directionsService = new window.google.maps.DirectionsService();
+    const destination = new window.google.maps.LatLng(route[step].lat, route[step].lng);
+  
+    directionsService.route(
+      {
+        origin: new window.google.maps.LatLng(userLocation.lat, userLocation.lng),
+        destination,
+        travelMode: window.google.maps.TravelMode.DRIVING,
+      },
+      (result, status) => {
+        if (status === window.google.maps.DirectionsStatus.OK) {
+          setDirections(result);
+        } else {
+          message.error("Failed to fetch directions. Please try again.");
+        }
+      }
+    );
   }, [userLocation, route, step]);
+  
 
   const handleNextStep = useCallback(() => {
     if (step < route.length - 1) {
@@ -216,6 +228,11 @@ const BookingNavigation = () => {
       return;
     }
 
+    if (!location.state || !location.state.originalBookingId || !location.state.bookingType) {
+      message.error("Booking information is missing. Please start over.");
+      return;
+    }
+
     try {
       const response = await httpService.post('/driver/startRide', {
         id: driverId,
@@ -250,16 +267,19 @@ const BookingNavigation = () => {
         },
         (error) => {
           console.error("Error tracking location:", error);
+          message.error("Failed to track location. Please check your device settings.");
         },
-        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
     }
   };
 
   const sendCoordinates = async (location) => {
+  
+
     try {
       await httpService.post('/driver/sendCoordinates', {
-        bookingId: location.state.originalBookingId,
+        bookingId: localStorage.getItem('bookingId'),
         longitude: location.lng,
         latitude: location.lat
       });
@@ -286,7 +306,9 @@ const BookingNavigation = () => {
         stockId
       });
       setIsLoading(prev => ({ ...prev, [stockId]: false }));
+      setLoadingFinished(prev => ({ ...prev, [stockId]: true }));
       message.success(`Loading stopped for ${stockId}`);
+      handleNextStep();
     } catch (error) {
       console.error("Error stopping loading:", error);
       message.error("Failed to stop loading");
@@ -312,6 +334,7 @@ const BookingNavigation = () => {
       });
       setIsUnloading(prev => ({ ...prev, [stockId]: false }));
       message.success(`Unloading stopped for ${stockId}`);
+      handleNextStep();
     } catch (error) {
       console.error("Error stopping unloading:", error);
       message.error("Failed to stop unloading");
@@ -335,19 +358,39 @@ const BookingNavigation = () => {
   const renderLocationItem = (location) => {
     const isPickup = location.type === 'pickup';
     const icon = isPickup ? <EnvironmentOutlined /> : <CompassOutlined />;
-    const actionButton = isPickup ? (
-      isLoading[location.stockId] ? (
-        <Button onClick={() => stopLoading(location.stockId)} style={{...buttonStyle, backgroundColor: '#ff4d4f'}}>Stop Loading</Button>
-      ) : (
-        <Button onClick={() => startLoading(location.stockId)} style={buttonStyle}>Start Loading</Button>
-      )
-    ) : (
-      isUnloading[location.stockId] ? (
-        <Button onClick={() => stopUnloading(location.stockId)} style={{...buttonStyle, backgroundColor: '#ff4d4f'}}>Stop Unloading</Button>
-      ) : (
-        <Button onClick={() => startUnloading(location.stockId)} style={buttonStyle}>Start Unloading</Button>
-      )
-    );
+    const isCurrentStep = step === route.indexOf(location);
+    const isPreviousStepLoaded = step > 0 ? loadingFinished[route[step - 1].stockId] : true;
+
+    let actionButton;
+    if (isPickup) {
+      if (isLoading[location.stockId]) {
+        actionButton = (
+          <Button onClick={() => stopLoading(location.stockId)} style={{...buttonStyle, backgroundColor: '#ff4d4f'}} disabled={!isCurrentStep}>
+            Stop Loading
+          </Button>
+        );
+      } else {
+        actionButton = (
+          <Button onClick={() => startLoading(location.stockId)} style={buttonStyle} disabled={!rideStarted || !isCurrentStep || isLoading[location.stockId]}>
+            Start Loading
+          </Button>
+        );
+      }
+    } else {
+      if (isUnloading[location.stockId]) {
+        actionButton = (
+          <Button onClick={() => stopUnloading(location.stockId)} style={{...buttonStyle, backgroundColor: '#ff4d4f'}} disabled={!isCurrentStep}>
+            Stop Unloading
+          </Button>
+        );
+      } else {
+        actionButton = (
+          <Button onClick={() => startUnloading(location.stockId)} style={buttonStyle} disabled={!rideStarted || !isCurrentStep || !isPreviousStepLoaded}>
+            Start Unloading
+          </Button>
+        );
+      }
+    }
 
     return (
       <List.Item>
@@ -389,6 +432,7 @@ const BookingNavigation = () => {
           {isSharedBooking ? 'Shared Booking' : 'Single Booking'}
         </Text>
         
+        {/* Map component */}
         <div style={{ height: '400px', marginBottom: '20px', borderRadius: '8px', overflow: 'hidden' }}>
           <GoogleMap
             mapContainerStyle={{ width: '100%', height: '100%' }}
@@ -411,7 +455,7 @@ const BookingNavigation = () => {
                 position={{ lat: location.lat, lng: location.lng }}
                 label={`${index + 1}`}
                 icon={{
-                  url: location.type === 'pickup' ? 'path_to_pickup_icon.png' : 'path_to_dropoff_icon.png',
+                  url: location.type === 'pickup' ? '../../../assets/icons/location_icon.png' : '../../../assets/icons/location_icon.png',
                   scaledSize: new window.google.maps.Size(30, 30),
                 }}
               />
@@ -420,7 +464,7 @@ const BookingNavigation = () => {
               <Marker
                 position={userLocation}
                 icon={{
-                  url: 'path_to_driver_icon.png',
+                  url: '../../../assets/icons/driver_icon.png',
                   scaledSize: new window.google.maps.Size(40, 40),
                 }}
               />
@@ -428,6 +472,20 @@ const BookingNavigation = () => {
           </GoogleMap>
         </div>
 
+        {/* Start Ride button */}
+        {!rideStarted && (
+          <div style={{ marginBottom: '20px', textAlign: 'center' }}>
+            <Button
+              onClick={startRide}
+              style={{...buttonStyle, fontSize: '18px', padding: '12px 24px'}}
+              icon={<PlayCircleOutlined />}
+            >
+              Start Ride
+            </Button>
+          </div>
+        )}
+
+        {/* Route list */}
         <List
           style={{ 
             marginTop: 16, 
@@ -441,45 +499,28 @@ const BookingNavigation = () => {
           renderItem={renderLocationItem}
         />
 
-        <div style={{ marginTop: 24, display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '10px' }}>
-          {!rideStarted ? (
+        {/* Navigation buttons */}
+        {rideStarted && (
+          <div style={{ marginTop: 24, display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '10px' }}>
+            <Text style={{ width: '100%', textAlign: 'center', marginBottom: '10px', fontSize: '18px' }}>
+              Current Step: {step + 1} of {route.length}
+            </Text>
             <Button
-              onClick={startRide}
+              onClick={handleNavigate}
               style={{...buttonStyle}}
-              icon={<PlayCircleOutlined />}
+              disabled={!rideStarted}
             >
-              Start Ride
+              Navigate
             </Button>
-          ) : (
-            <>
-              <Text style={{ width: '100%', textAlign: 'center', marginBottom: '10px', fontSize: '18px' }}>
-                Current Step: {step + 1} of {route.length}
-              </Text>
-              <Button
-                onClick={handleNextStep}
-                style={{...buttonStyle}}
-                icon={<CompassOutlined />}
-                disabled={step === route.length - 1}
-              >
-                {step === route.length - 1 ? 'Trip Completed' : 'Next Location'}
-              </Button>
-            </>
-          )}
-          <Button
-            onClick={handleNavigate}
-            style={{...buttonStyle}}
-            disabled={!rideStarted}
-          >
-            Navigate
-          </Button>
-          <Button
-            onClick={openInGoogleMaps}
-            style={{...buttonStyle}}
-            disabled={!rideStarted}
-          >
-            Open in Google Maps
-          </Button>
-        </div>
+            <Button
+              onClick={openInGoogleMaps}
+              style={{...buttonStyle}}
+              disabled={!rideStarted}
+            >
+              Open in Google Maps
+            </Button>
+          </div>
+        )}
       </Card>
     </div>
   );
