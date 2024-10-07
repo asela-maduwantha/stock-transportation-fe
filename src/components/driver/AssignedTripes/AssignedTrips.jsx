@@ -108,6 +108,10 @@ const AssignedTrips = () => {
       );
       if (response.data && response.data.length > 0) {
         const sharedBooking = response.data[0];
+        if(localStorage.getItem('sharedBookingId')){
+          localStorage.removeItem('sharedBookingId');
+        }
+        localStorage.setItem('sharedBookingId', sharedBooking.id)
         const startAddress = await getAddressFromCoordinates(
           sharedBooking.startLat,
           sharedBooking.startLong
@@ -164,6 +168,7 @@ const AssignedTrips = () => {
   };
 
   const handleNavigate = (trip) => {
+    fetchSharedBookingDetails(trip.id)
     navigate("/driver/booking-navigations", {
       state: {
         originalBookingId: trip.id,
