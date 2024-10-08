@@ -24,9 +24,8 @@ import AboutUs from '../components/common/AboutUs/AboutUs';
 import VehicleOwnerDashboard from '../components/owner/VehicleOwnerDashboard/VehicleOwnerDashboard';
 import Payment from '../components/customer/Payment/Payment';
 import OwnerVehicles from '../components/owner/OwnerVehicels/OwnerVehicles';
-import PickupStock from '../components/driver/PickupStock/PickupStock';
+import PickupStock from '../components/customer/PickupStock/PickupStock';
 import Contact from '../components/common/Contact/Conatct';
-import CustomerView from '../components/customer/CustomerView/CustomerView';
 import AdminCreate from '../components/admin/AdminCreate/AdminCreate';
 import AdminSignin from '../components/admin/AdminSignin/AdminSignin';
 import ProtectedRoute from '../services/ProtectedRoute';
@@ -137,7 +136,6 @@ const WebRoutes = () => {
           <Route path="booking" element={<VehicleBooking />} />
           <Route path="booking-history" element={<BookingHistory />} />
           <Route path="cost-calculator" element={<CostCalculator />} />
-          <Route path="stock-pickup" element={<CustomerView />} />
           <Route path="profile-settings" element={<ProfileSettings />} />
           <Route path="booking-summary" element={<BookingSummary />} />
           <Route path="shared-booking" element={<SharedBookings />} />
@@ -145,6 +143,7 @@ const WebRoutes = () => {
           <Route path="shared-booking-summary" element={<SharedBookingSummary />} />
           <Route path="shared-booking-history" element={<SharedBookingsHistory />} />
           <Route path='password-change' element={<CustomerPasswordChange/>}/>
+          <Route path="pickup-stock" element={<PickupStock />} />
 
         </Route>
       </Routes>

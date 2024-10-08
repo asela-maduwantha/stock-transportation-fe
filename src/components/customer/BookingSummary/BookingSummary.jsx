@@ -65,7 +65,8 @@ const BookingSummary = () => {
                         dropLocation: dropLocation.address,
                         returnTrip,
                         advanceAmount: charges.advancePayment,
-                        totalPrice: charges.total
+                        totalPrice: charges.total,
+                        type: 'original'
                     }
                 });
             } else {

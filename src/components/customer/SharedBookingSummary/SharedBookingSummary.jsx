@@ -58,7 +58,8 @@ const SharedBookingSummary = () => {
                     dropLocation: bookingData.dropoffLocation,
                     returnTrip: false, // Set this based on your logic
                     advanceAmount: bookingData.advancePayment, // Adjust this if you have an advance amount
-                    totalPrice: bookingData.vehicleCharge + bookingData.serviceCharge
+                    totalPrice: bookingData.vehicleCharge + bookingData.serviceCharge,
+                    type: 'shared'
                 }
             });
         } else {

@@ -7,7 +7,6 @@ import {
   CarFilled,
   ShareAltOutlined,
   HistoryOutlined,
-  StockOutlined,
   SettingOutlined,
   MenuOutlined,
 } from "@ant-design/icons";
@@ -48,12 +47,6 @@ const CustomerHeader = () => {
       icon: <HistoryOutlined />,
       label: "Booking History",
       link: "/customer/booking-history",
-    },
-    {
-      key: "pickup-view",
-      icon: <StockOutlined />,
-      label: "Stock Pending Pickup",
-      link: "/customer/stock-pickup",
     },
     {
       key: "sharedbookinghistory",

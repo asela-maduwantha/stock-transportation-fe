@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Tag, Rate, Space, Select, DatePicker, Row, Col, Empty, Spin, Button, Pagination, Modal, Input, message } from 'antd';
 import { CalendarOutlined, EnvironmentOutlined, ClockCircleOutlined, CarOutlined, DollarOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import httpService from '../../../services/httpService';
 
 const { Option } = Select;
@@ -9,6 +10,7 @@ const { RangePicker } = DatePicker;
 const BookingHistory = () => {
   const [bookings, setBookings] = useState([]);
   const [filteredBookings, setFilteredBookings] = useState([]);
+  const [todayBookings, setTodayBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -19,6 +21,7 @@ const BookingHistory = () => {
   const [currentBookingId, setCurrentBookingId] = useState(null);
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const pageSize = 6;
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -32,6 +35,13 @@ const BookingHistory = () => {
         }));
         setBookings(bookingsWithLocations);
         setFilteredBookings(bookingsWithLocations);
+        
+        // Filter today's bookings
+        const today = new Date().setHours(0, 0, 0, 0);
+        const todayBookings = bookingsWithLocations.filter(booking => 
+          new Date(booking.bookingDate).setHours(0, 0, 0, 0) === today && !booking.isCancelled && !booking.isPaid
+        );
+        setTodayBookings(todayBookings);
       } catch (error) {
         console.error('Error fetching bookings:', error);
       } finally {
@@ -120,10 +130,59 @@ const BookingHistory = () => {
         message.success('Booking cancelled successfully');
         setBookings(bookings.filter(booking => booking.id !== currentBookingId));
         setFilteredBookings(filteredBookings.filter(booking => booking.id !== currentBookingId));
+        setTodayBookings(todayBookings.filter(booking => booking.id !== currentBookingId));
         setCancelModalVisible(false);
       })
       .catch(() => message.error('Failed to cancel booking'));
   };
+
+  const handleViewRideStatus = (bookingId) => {
+    localStorage.setItem('bookingId', bookingId);
+    navigate('/customer/pickup-stock', { state: { bookingId, bookingType: 'original' } });
+  };
+
+  const renderBookingCard = (booking, showRideStatusButton = false) => (
+    <Card 
+      title={booking.vehicle.type}
+      extra={getStatusTag(booking)}
+      style={{ height: '100%' }}
+      hoverable
+    >
+      <img 
+        src={booking.vehicle.photoUrl} 
+        alt={booking.vehicle.type} 
+        style={{ width: '100%', height: '200px', objectFit: 'cover', marginBottom: '16px', borderRadius: '8px' }} 
+      />
+      <p><CalendarOutlined style={{ marginRight: '8px' }} />{formatDateTime(booking.bookingDate, booking.pickupTime)}</p>
+      <p><EnvironmentOutlined style={{ marginRight: '8px' }} />From: {booking.startLocation}</p>
+      <p><EnvironmentOutlined style={{ marginRight: '8px' }} />To: {booking.destLocation}</p>
+      <p><ClockCircleOutlined style={{ marginRight: '8px' }} />Travel Time: {booking.travellingTime.toFixed(2)} min</p>
+      <p><CarOutlined style={{ marginRight: '8px' }} />Capacity: {booking.vehicle.capacity} {booking.vehicle.capacityUnit}</p>
+      <p><DollarOutlined style={{ marginRight: '8px' }} />Charge: LKR {booking.vehicleCharge.toFixed(2)}</p>
+      
+      {!booking.isPaid && !booking.isCancelled && (
+        <div style={{ marginTop: '16px' }}>
+          <Button type="primary" onClick={() => handlePayBalance(booking.id)} style={{ width: '100%', marginBottom: '8px' }}>
+            Pay Balance
+          </Button>
+          <Button type="primary" danger ghost onClick={() => handleCancelBooking(booking.id)} style={{ width: '100%', marginBottom: '8px' }}>
+            Cancel Booking
+          </Button>
+          {showRideStatusButton && (
+            <Button type="default" onClick={() => handleViewRideStatus(booking.id)} style={{ width: '100%' }}>
+              View Ride Status
+            </Button>
+          )}
+        </div>
+      )}
+      
+      {booking.isPaid && (
+        <Button type="default" onClick={() => handleRateBooking(booking.id)} style={{ marginTop: '16px', width: '100%' }}>
+          Rate
+        </Button>
+      )}
+    </Card>
+  );
 
   if (loading) {
     return <Spin size="large" />;
@@ -138,6 +197,21 @@ const BookingHistory = () => {
   return (
     <div style={{ padding: '24px' }}>
       <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '24px', textAlign: 'center' }}>Booking History</h1>
+      
+      {todayBookings.length > 0 && (
+        <div style={{ marginBottom: '32px' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '16px' }}>Today &apos;s Bookings</h2>
+          <Row gutter={[24, 24]}>
+            {todayBookings.map((booking) => (
+              <Col xs={24} sm={12} lg={8} key={booking.id}>
+                {renderBookingCard(booking, true)}
+              </Col>
+            ))}
+          </Row>
+        </div>
+      )}
+      
+      <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '16px' }}>All Bookings</h2>
       
       <Space wrap style={{ marginBottom: '24px', justifyContent: 'center', width: '100%' }}>
         <Select 
@@ -171,41 +245,7 @@ const BookingHistory = () => {
       <Row gutter={[24, 24]}>
         {paginatedBookings.map((booking) => (
           <Col xs={24} sm={12} lg={8} key={booking.id}>
-            <Card 
-              title={booking.vehicle.type}
-              extra={getStatusTag(booking)}
-              style={{ height: '100%' }}
-              hoverable
-            >
-              <img 
-                src={booking.vehicle.photoUrl} 
-                alt={booking.vehicle.type} 
-                style={{ width: '100%', height: '200px', objectFit: 'cover', marginBottom: '16px', borderRadius: '8px' }} 
-              />
-              <p><CalendarOutlined style={{ marginRight: '8px' }} />{formatDateTime(booking.bookingDate, booking.pickupTime)}</p>
-              <p><EnvironmentOutlined style={{ marginRight: '8px' }} />From: {booking.startLocation}</p>
-              <p><EnvironmentOutlined style={{ marginRight: '8px' }} />To: {booking.destLocation}</p>
-              <p><ClockCircleOutlined style={{ marginRight: '8px' }} />Travel Time: {booking.travellingTime.toFixed(2)} min</p>
-              <p><CarOutlined style={{ marginRight: '8px' }} />Capacity: {booking.vehicle.capacity} {booking.vehicle.capacityUnit}</p>
-              <p><DollarOutlined style={{ marginRight: '8px' }} />Charge: LKR {booking.vehicleCharge.toFixed(2)}</p>
-              
-              {!booking.isPaid && !booking.isCancelled && (
-                <div style={{ marginTop: '16px' }}>
-                  <Button type="primary" onClick={() => handlePayBalance(booking.id)} style={{ width: '100%', marginBottom: '8px' }}>
-                    Pay Balance
-                  </Button>
-                  <Button type="primary" danger ghost onClick={() => handleCancelBooking(booking.id)} style={{ width: '100%' }}>
-                    Cancel Booking
-                  </Button>
-                </div>
-              )}
-              
-              {booking.isPaid && (
-                <Button type="default" onClick={() => handleRateBooking(booking.id)} style={{ marginTop: '16px', width: '100%' }}>
-                  Rate
-                </Button>
-              )}
-            </Card>
+            {renderBookingCard(booking)}
           </Col>
         ))}
       </Row>

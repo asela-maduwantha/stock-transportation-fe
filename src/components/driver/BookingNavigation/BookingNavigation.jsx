@@ -1,10 +1,20 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { Card, List, Button, Typography, message, Spin, Modal } from 'antd';
-import { EnvironmentOutlined, CompassOutlined, PlayCircleOutlined, ClockCircleOutlined, DollarOutlined } from '@ant-design/icons';
-import { GoogleMap, DirectionsRenderer, Marker, useJsApiLoader } from '@react-google-maps/api';
-import httpService from '../../../services/httpService';
-import io from 'socket.io-client';
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Card, List, Button, Typography, message, Spin, Modal, Divider } from "antd";
+import {
+  EnvironmentOutlined,
+  CompassOutlined,
+  PlayCircleOutlined,
+  ClockCircleOutlined,
+} from "@ant-design/icons";
+import {
+  GoogleMap,
+  DirectionsRenderer,
+  Marker,
+  useJsApiLoader,
+} from "@react-google-maps/api";
+import httpService from "../../../services/httpService";
+import io from "socket.io-client";
 
 const { Title, Text } = Typography;
 
@@ -17,7 +27,7 @@ const BookingNavigation = () => {
   const [isSharedBooking, setIsSharedBooking] = useState(false);
   const [rideStarted, setRideStarted] = useState(false);
   const [socketConnected, setSocketConnected] = useState(false);
-  const [currentLocationAddress, setCurrentLocationAddress] = useState('');
+  const [currentLocationAddress, setCurrentLocationAddress] = useState("");
 
   // States for original booking
   const [originalPickup, setOriginalPickup] = useState(null);
@@ -26,8 +36,10 @@ const BookingNavigation = () => {
   const [isUnloadingOriginal, setIsUnloadingOriginal] = useState(false);
   const [originalLoadingTimer, setOriginalLoadingTimer] = useState(0);
   const [originalUnloadingTimer, setOriginalUnloadingTimer] = useState(0);
-  const [isOriginalPickupCompleted, setIsOriginalPickupCompleted] = useState(false);
-  const [isOriginalDestinationCompleted, setIsOriginalDestinationCompleted] = useState(false);
+  const [isOriginalPickupCompleted, setIsOriginalPickupCompleted] =
+    useState(false);
+  const [isOriginalDestinationCompleted, setIsOriginalDestinationCompleted] =
+    useState(false);
 
   // States for shared booking
   const [sharedPickup, setSharedPickup] = useState(null);
@@ -37,7 +49,8 @@ const BookingNavigation = () => {
   const [sharedLoadingTimer, setSharedLoadingTimer] = useState(0);
   const [sharedUnloadingTimer, setSharedUnloadingTimer] = useState(0);
   const [isSharedPickupCompleted, setIsSharedPickupCompleted] = useState(false);
-  const [isSharedDestinationCompleted, setIsSharedDestinationCompleted] = useState(false);
+  const [isSharedDestinationCompleted, setIsSharedDestinationCompleted] =
+    useState(false);
 
   // Payment summary state
   const [showPaymentSummary, setShowPaymentSummary] = useState(false);
@@ -57,34 +70,41 @@ const BookingNavigation = () => {
 
   // Styles
   const buttonStyle = {
-    backgroundColor: '#fdb940',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '8px',
-    padding: '10px 20px',
-    cursor: 'pointer',
-    transition: 'background-color 0.3s ease, opacity 0.3s ease',
-    margin: '0 5px',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+    backgroundColor: "#fdb940",
+    color: "#fff",
+    border: "none",
+    borderRadius: "8px",
+    padding: "10px 20px",
+    cursor: "pointer",
+    transition: "background-color 0.3s ease, opacity 0.3s ease",
+    margin: "0 5px",
+    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
   };
 
   // API calls
   const fetchCoordinates = useCallback(async () => {
-    if (!location.state || !location.state.originalBookingId || !location.state.bookingType) {
-      message.error("Booking information is missing. Redirecting to dashboard.");
-      navigate('/dashboard');
+    if (
+      !location.state ||
+      !location.state.originalBookingId ||
+      !location.state.bookingType
+    ) {
+      message.error(
+        "Booking information is missing. Redirecting to dashboard."
+      );
+      navigate("/dashboard");
       return;
     }
-    localStorage.setItem('bookingId', location.state.originalBookingId);
-    
+    localStorage.setItem("bookingId", location.state.originalBookingId);
+
     try {
-      const response = await httpService.get(`driver/getCoordinates/${location.state.originalBookingId}`, {
-        params: { bookingType: location.state.bookingType }
-      });
+      const response = await httpService.get(
+        `driver/getCoordinates/${location.state.originalBookingId}`,
+        {
+          params: { bookingType: location.state.bookingType },
+        }
+      );
       setCoordinates(response.data);
       setIsSharedBooking(Object.keys(response.data).length === 8);
-
-      
     } catch (error) {
       console.error("Error fetching coordinates:", error);
       message.error("Failed to fetch booking coordinates. Please try again.");
@@ -92,14 +112,12 @@ const BookingNavigation = () => {
     }
   }, [location.state, navigate]);
 
-
-  
   const sendCoordinates = async (location) => {
     try {
-      await httpService.post('/driver/sendCoordinates', {
-        bookingId: localStorage.getItem('bookingId'),
+      await httpService.post("/driver/sendCoordinates", {
+        bookingId: localStorage.getItem("bookingId"),
         longitude: location.lng,
-        latitude: location.lat
+        latitude: location.lat,
       });
     } catch (error) {
       console.error("Error sending coordinates:", error);
@@ -118,7 +136,9 @@ const BookingNavigation = () => {
         },
         (error) => {
           console.error("Error getting user location:", error);
-          message.error("Unable to access your location. Please enable location services.");
+          message.error(
+            "Unable to access your location. Please enable location services."
+          );
         },
         { enableHighAccuracy: true, timeout: 600000, maximumAge: 0 }
       );
@@ -137,7 +157,7 @@ const BookingNavigation = () => {
           };
           setUserLocation(initialLocation);
           sendCoordinates(initialLocation);
-          
+
           watchPositionId.current = navigator.geolocation.watchPosition(
             (position) => {
               const newLocation = {
@@ -149,14 +169,18 @@ const BookingNavigation = () => {
             },
             (error) => {
               console.error("Error tracking location:", error);
-              message.error("Failed to track location. Please check your device settings.");
+              message.error(
+                "Failed to track location. Please check your device settings."
+              );
             },
             { enableHighAccuracy: true, timeout: 600000, maximumAge: 0 }
           );
         },
         (error) => {
           console.error("Initial location fetch error:", error);
-          message.error("Unable to access your location. Please enable location services.");
+          message.error(
+            "Unable to access your location. Please enable location services."
+          );
         }
       );
     }
@@ -173,14 +197,14 @@ const BookingNavigation = () => {
   const handleNavigate = useCallback(() => {
     if (!userLocation) {
       Modal.confirm({
-        title: 'Location Access Required',
-        content: 'Location access is required for navigation. Allow access?',
+        title: "Location Access Required",
+        content: "Location access is required for navigation. Allow access?",
         onOk: () => requestLocationAccess(),
-        onCancel: () => console.log('Location access denied'),
+        onCancel: () => console.log("Location access denied"),
       });
       return;
     }
-  
+
     let destination;
     if (isSharedBooking) {
       if (!isOriginalPickupCompleted) {
@@ -199,13 +223,19 @@ const BookingNavigation = () => {
         destination = originalDestination;
       }
     }
-  
+
     if (destination) {
       const directionsService = new window.google.maps.DirectionsService();
       directionsService.route(
         {
-          origin: new window.google.maps.LatLng(userLocation.lat, userLocation.lng),
-          destination: new window.google.maps.LatLng(destination.lat, destination.lng),
+          origin: new window.google.maps.LatLng(
+            userLocation.lat,
+            userLocation.lng
+          ),
+          destination: new window.google.maps.LatLng(
+            destination.lat,
+            destination.lng
+          ),
           travelMode: window.google.maps.TravelMode.DRIVING,
         },
         (result, status) => {
@@ -219,7 +249,18 @@ const BookingNavigation = () => {
     } else {
       message.info("Navigation completed.");
     }
-  }, [userLocation, isSharedBooking, isOriginalPickupCompleted, isSharedPickupCompleted, isSharedDestinationCompleted, isOriginalDestinationCompleted, originalPickup, sharedPickup, sharedDestination, originalDestination]);
+  }, [
+    userLocation,
+    isSharedBooking,
+    isOriginalPickupCompleted,
+    isSharedPickupCompleted,
+    isSharedDestinationCompleted,
+    isOriginalDestinationCompleted,
+    originalPickup,
+    sharedPickup,
+    sharedDestination,
+    originalDestination,
+  ]);
 
   const openInGoogleMaps = () => {
     let destination;
@@ -243,7 +284,7 @@ const BookingNavigation = () => {
 
     if (destination) {
       const url = `https://www.google.com/maps/dir/?api=1&destination=${destination.lat},${destination.lng}`;
-      window.open(url, '_blank');
+      window.open(url, "_blank");
     } else {
       message.info("Navigation completed.");
     }
@@ -252,28 +293,34 @@ const BookingNavigation = () => {
   // Ride control functions
   const startRide = async () => {
     if (!userLocation) {
-      message.error("Unable to access your location. Please enable location services.");
+      message.error(
+        "Unable to access your location. Please enable location services."
+      );
       return;
     }
 
-    const driverId = localStorage.getItem('driverId');
+    const driverId = localStorage.getItem("driverId");
     if (!driverId) {
       message.error("Driver ID not found. Please log in again.");
       return;
     }
 
-    if (!location.state || !location.state.originalBookingId || !location.state.bookingType) {
+    if (
+      !location.state ||
+      !location.state.originalBookingId ||
+      !location.state.bookingType
+    ) {
       message.error("Booking information is missing. Please start over.");
       return;
     }
 
     try {
-      const response = await httpService.post('/driver/startRide', {
+      const response = await httpService.post("/driver/startRide", {
         id: driverId,
         bookingId: location.state.originalBookingId,
         bookingType: location.state.bookingType,
         longitude: userLocation.lng,
-        latitude: userLocation.lat
+        latitude: userLocation.lat,
       });
 
       if (response.status === 200) {
@@ -288,67 +335,78 @@ const BookingNavigation = () => {
     }
   };
 
-  const stopRideForLocation = useCallback(async (location, type) => {
-    const driverId = localStorage.getItem('driverId');
-    let bookingId = localStorage.getItem('bookingId');
+  const stopRideForLocation = useCallback(
+    async (location, type) => {
+      const driverId = localStorage.getItem("driverId");
+      let bookingId = localStorage.getItem("bookingId");
 
-    if (!driverId || !bookingId) {
-      message.error("Driver ID or Booking ID not found. Please log in again.");
-      return;
-    }
+      if (!driverId || !bookingId) {
+        message.error(
+          "Driver ID or Booking ID not found. Please log in again."
+        );
+        return;
+      }
 
-    try {
-      let currentBookingType = "original";
-      let currentBookingId = bookingId;
-      let rideType = 'pickup'
+      try {
+        let currentBookingType = "original";
+        let currentBookingId = bookingId;
+        let rideType = "pickup";
 
-      if (isSharedBooking && (type === 'sharedPickup' || type === 'sharedDestination')) {
-        currentBookingType = "shared";
-        currentBookingId = localStorage.getItem('sharedBookingId');
-        if(type ==='sharedPickup' ){
-          rideType = 'pickup'
-        }else{
-          rideType = 'destination'
+        if (
+          isSharedBooking &&
+          (type === "sharedPickup" || type === "sharedDestination")
+        ) {
+          currentBookingType = "shared";
+          currentBookingId = localStorage.getItem("sharedBookingId");
+          if (type === "sharedPickup") {
+            rideType = "pickup";
+          } else {
+            rideType = "destination";
+          }
         }
+
+        if (type === "originalPickup") {
+          rideType = "pickup";
+        }
+
+        if (type === "originalDestination") {
+          rideType = "destination";
+        }
+
+        const response = await httpService.put(`/driver/stopRide/${driverId}`, {
+          bookingId: currentBookingId,
+          bookingType: currentBookingType,
+          rideType: rideType,
+        });
+
+        if (response.status === 200) {
+          message.success(`Ride stopped for ${location.label}`);
+
+          if (type === "originalPickup") setIsOriginalPickupCompleted(true);
+          else if (type === "sharedPickup") setIsSharedPickupCompleted(true);
+          else if (type === "sharedDestination")
+            setIsSharedDestinationCompleted(true);
+          else if (type === "originalDestination")
+            setIsOriginalDestinationCompleted(true);
+
+          handleNavigate();
+        }
+      } catch (error) {
+        console.error("Error stopping ride:", error);
+        message.error("Failed to stop the ride. Please try again.");
       }
-
-      if(type === 'originalPickup'){
-        rideType = 'pickup'
-      }
-
-      if(type === 'originalDestination'){
-        rideType = 'destination'
-      }
-
-
-  
-      const response = await httpService.put(`/driver/stopRide/${driverId}`, {
-        bookingId: currentBookingId,
-        bookingType: currentBookingType,
-        rideType: rideType
-      });
-
-      if (response.status === 200) {
-        message.success(`Ride stopped for ${location.label}`);
-        
-        if (type === 'originalPickup') setIsOriginalPickupCompleted(true);
-        else if (type === 'sharedPickup') setIsSharedPickupCompleted(true);
-        else if (type === 'sharedDestination') setIsSharedDestinationCompleted(true);
-        else if (type === 'originalDestination') setIsOriginalDestinationCompleted(true);
-        
-        handleNavigate();
-      }
-    } catch (error) {
-      console.error("Error stopping ride:", error);
-      message.error("Failed to stop the ride. Please try again.");
-    }
-  }, [isSharedBooking, handleNavigate]);
+    },
+    [isSharedBooking, handleNavigate]
+  );
 
   // Loading/Unloading functions
   const startLoading = async (stockId) => {
     try {
-      await httpService.post(`/driver/startLoading/${location.state.originalBookingId}`, { stockId });
-      if (stockId === 'stock1') {
+      await httpService.post(
+        `/driver/startLoading/${location.state.originalBookingId}`,
+        { stockId }
+      );
+      if (stockId === "stock1") {
         setIsLoadingOriginal(true);
       } else {
         setIsLoadingShared(true);
@@ -359,14 +417,18 @@ const BookingNavigation = () => {
       message.error("Failed to start loading");
     }
   };
-  
+
   const stopLoading = async (stockId) => {
     try {
-      await httpService.put(`/driver/stopLoading/${location.state.originalBookingId}`, {
-        bookingType: isSharedBooking && stockId === 'stock2' ? "shared" : "original",
-        stockId
-      });
-      if (stockId === 'stock1') {
+      await httpService.put(
+        `/driver/stopLoading/${location.state.originalBookingId}`,
+        {
+          bookingType:
+            isSharedBooking && stockId === "stock2" ? "shared" : "original",
+          stockId,
+        }
+      );
+      if (stockId === "stock1") {
         setIsLoadingOriginal(false);
       } else {
         setIsLoadingShared(false);
@@ -381,8 +443,11 @@ const BookingNavigation = () => {
 
   const startUnloading = async (stockId) => {
     try {
-      await httpService.post(`/driver/startUnloading/${location.state.originalBookingId}`, { stockId });
-      if (stockId === 'stock1') {
+      await httpService.post(
+        `/driver/startUnloading/${location.state.originalBookingId}`,
+        { stockId }
+      );
+      if (stockId === "stock1") {
         setIsUnloadingOriginal(true);
       } else {
         setIsUnloadingShared(true);
@@ -396,11 +461,15 @@ const BookingNavigation = () => {
 
   const stopUnloading = async (stockId) => {
     try {
-      await httpService.put(`/driver/stopUnloading/${location.state.originalBookingId}`, {
-        bookingType: isSharedBooking && stockId === 'stock2' ? "shared" : "original",
-        stockId
-      });
-      if (stockId === 'stock1') {
+      await httpService.put(
+        `/driver/stopUnloading/${location.state.originalBookingId}`,
+        {
+          bookingType:
+            isSharedBooking && stockId === "stock2" ? "shared" : "original",
+          stockId,
+        }
+      );
+      if (stockId === "stock1") {
         setIsUnloadingOriginal(false);
       } else {
         setIsUnloadingShared(false);
@@ -413,48 +482,50 @@ const BookingNavigation = () => {
     }
   };
 
-// Payment summary function
-const fetchPaymentSummary = async (stockId) => {
-  let currentBookingId = localStorage.getItem('bookingId');
-  
-  // Use sharedBookingId if it's a shared booking
-  if (isSharedBooking) {
-    currentBookingId = localStorage.getItem('sharedBookingId');
-  }
+  // Payment summary function
+  const fetchPaymentSummary = async (stockId) => {
+    let currentBookingId = localStorage.getItem("bookingId");
 
-  try {
-    // Determine the booking type based on shared booking status and stockId
-    const bookingType = isSharedBooking && stockId === 'stock2' ? "shared" : "original";
+    // Use sharedBookingId if it's a shared booking
+    if (isSharedBooking) {
+      currentBookingId = localStorage.getItem("sharedBookingId");
+    }
 
-    // Make API request to fetch payment summary
-    const response = await httpService.get(`/common/paymentSummery/${currentBookingId}`, {
-      params: { 
-        type: bookingType,  
-      }
-    });
+    try {
+      // Determine the booking type based on shared booking status and stockId
+      const bookingType =
+        isSharedBooking && stockId === "stock2" ? "shared" : "original";
 
-    // Set the response data and show the payment summary
-    setPaymentSummary(response.data);
-    setShowPaymentSummary(true);
-  } catch (error) {
-    console.error("Error fetching payment summary:", error);
-    message.error("Failed to fetch payment summary");
-  }
-};
+      // Make API request to fetch payment summary
+      const response = await httpService.get(
+        `/common/paymentSummery/${currentBookingId}`,
+        {
+          params: {
+            type: bookingType,
+          },
+        }
+      );
+
+      // Set the response data and show the payment summary
+      setPaymentSummary(response.data);
+      setShowPaymentSummary(true);
+    } catch (error) {
+      console.error("Error fetching payment summary:", error);
+      message.error("Failed to fetch payment summary");
+    }
+  };
 
   // Finish ride
   const finishRide = async () => {
     try {
-      await httpService.put(`/driver/finishRide/${location.state.originalBookingId}`, {
-        bookingType: isSharedBooking ? "shared" : "original"
-      });
-      message.success("Ride finished successfully!");
+      
       setRideStarted(false);
       stopLocationTracking();
       if (socketRef.current) {
         socketRef.current.disconnect();
       }
-      navigate('/driver/dashboard');
+      message.success("Ride finished successfully!");
+      navigate("/driver/dashboard");
     } catch (error) {
       console.error("Error finishing ride:", error);
       message.error("Failed to finish the ride. Please try again.");
@@ -464,7 +535,7 @@ const fetchPaymentSummary = async (stockId) => {
   // useEffect hooks
   useEffect(() => {
     const socket = io("https://stocktrans.azurewebsites.net/", {
-      transports: ['websocket'],
+      transports: ["websocket"],
       reconnection: true,
       reconnectionAttempts: Infinity,
       cors: {
@@ -472,19 +543,21 @@ const fetchPaymentSummary = async (stockId) => {
       },
     });
 
-    socket.on('connect', () => {
-      console.log('WebSocket connected with id:', socket.id);
+    socket.on("connect", () => {
+      console.log("WebSocket connected with id:", socket.id);
       setSocketConnected(true);
     });
 
-    socket.on('connect_error', (error) => {
-      console.error('WebSocket connection error:', error);
-      message.error('Failed to establish WebSocket connection. Please try again.');
+    socket.on("connect_error", (error) => {
+      console.error("WebSocket connection error:", error);
+      message.error(
+        "Failed to establish WebSocket connection. Please try again."
+      );
       setSocketConnected(false);
     });
 
-    socket.on('disconnect', () => {
-      console.log('WebSocket disconnected');
+    socket.on("disconnect", () => {
+      console.log("WebSocket disconnected");
       setSocketConnected(false);
     });
 
@@ -499,13 +572,19 @@ const fetchPaymentSummary = async (stockId) => {
 
   useEffect(() => {
     if (socketRef.current) {
-      socketRef.current.emit('joinLoadingRoom', localStorage.getItem('bookingId'));
-      socketRef.current.emit('joinUnloadingRoom', localStorage.getItem('bookingId'));
+      socketRef.current.emit(
+        "joinLoadingRoom",
+        localStorage.getItem("bookingId")
+      );
+      socketRef.current.emit(
+        "joinUnloadingRoom",
+        localStorage.getItem("bookingId")
+      );
 
-      socketRef.current.on('timerUpdate', (data) => {
+      socketRef.current.on("timerUpdate", (data) => {
         if (data.loadingTime) {
           if (isLoadingOriginal) {
-            console.log(data.loadingTime)
+            console.log(data.loadingTime);
             setOriginalLoadingTimer(data.loadingTime);
           } else {
             setSharedLoadingTimer(data.loadingTime);
@@ -521,11 +600,17 @@ const fetchPaymentSummary = async (stockId) => {
       });
 
       return () => {
-        socketRef.current.emit('leaveLoadingRoom', localStorage.getItem('bookingId'));
-        socketRef.current.emit('leaveUnloadingRoom', localStorage.getItem('bookingId'));
+        socketRef.current.emit(
+          "leaveLoadingRoom",
+          localStorage.getItem("bookingId")
+        );
+        socketRef.current.emit(
+          "leaveUnloadingRoom",
+          localStorage.getItem("bookingId")
+        );
       };
     }
-  }, [socketRef,isLoadingOriginal, isUnloadingOriginal]);
+  }, [socketRef, isLoadingOriginal, isUnloadingOriginal]);
 
   useEffect(() => {
     if (isLoaded) {
@@ -535,7 +620,6 @@ const fetchPaymentSummary = async (stockId) => {
   }, [isLoaded, fetchCoordinates]);
 
   useEffect(() => {
-    
     if (coordinates && isLoaded) {
       const geocoder = new window.google.maps.Geocoder();
       const getAddress = async (lat, lng) => {
@@ -550,23 +634,82 @@ const fetchPaymentSummary = async (stockId) => {
 
       const processLocations = async () => {
         if (isSharedBooking) {
-          const originalPickupAddress = await getAddress(coordinates.firstLat, coordinates.firstLong);
-          const sharedPickupAddress = await getAddress(coordinates.thirdLat, coordinates.thirdLong);
-          const sharedDestinationAddress = await getAddress(coordinates.fourthLat, coordinates.fourthLong);
-          const originalDestinationAddress = await getAddress(coordinates.secondLat, coordinates.secondLong);
+          const originalPickupAddress = await getAddress(
+            coordinates.firstLat,
+            coordinates.firstLong
+          );
+          const sharedPickupAddress = await getAddress(
+            coordinates.thirdLat,
+            coordinates.thirdLong
+          );
+          const sharedDestinationAddress = await getAddress(
+            coordinates.fourthLat,
+            coordinates.fourthLong
+          );
+          const originalDestinationAddress = await getAddress(
+            coordinates.secondLat,
+            coordinates.secondLong
+          );
 
-          setOriginalPickup({ lat: coordinates.firstLat, lng: coordinates.firstLong, type: 'pickup', label: 'Original Stock Pickup', address: originalPickupAddress, stockId: 'stock1' });
-          setSharedPickup({ lat: coordinates.thirdLat, lng: coordinates.thirdLong, type: 'pickup', label: 'Shared Stock Pickup', address: sharedPickupAddress, stockId: 'stock2' });
-          setSharedDestination({ lat: coordinates.fourthLat, lng: coordinates.fourthLong, type: 'destination', label: 'Shared Stock Destination', address: sharedDestinationAddress, stockId: 'stock2' });
-          setOriginalDestination({ lat: coordinates.secondLat, lng: coordinates.secondLong, type: 'destination', label: 'Original Stock Destination', address: originalDestinationAddress, stockId: 'stock1' });
+          setOriginalPickup({
+            lat: coordinates.firstLat,
+            lng: coordinates.firstLong,
+            type: "pickup",
+            label: "Original Stock Pickup",
+            address: originalPickupAddress,
+            stockId: "stock1",
+          });
+          setSharedPickup({
+            lat: coordinates.thirdLat,
+            lng: coordinates.thirdLong,
+            type: "pickup",
+            label: "Shared Stock Pickup",
+            address: sharedPickupAddress,
+            stockId: "stock2",
+          });
+          setSharedDestination({
+            lat: coordinates.fourthLat,
+            lng: coordinates.fourthLong,
+            type: "destination",
+            label: "Shared Stock Destination",
+            address: sharedDestinationAddress,
+            stockId: "stock2",
+          });
+          setOriginalDestination({
+            lat: coordinates.secondLat,
+            lng: coordinates.secondLong,
+            type: "destination",
+            label: "Original Stock Destination",
+            address: originalDestinationAddress,
+            stockId: "stock1",
+          });
           setLoading(false);
-          
         } else {
-          const pickupAddress = await getAddress(coordinates.firstLat, coordinates.firstLong);
-          const destinationAddress = await getAddress(coordinates.secondLat, coordinates.secondLong);
+          const pickupAddress = await getAddress(
+            coordinates.firstLat,
+            coordinates.firstLong
+          );
+          const destinationAddress = await getAddress(
+            coordinates.secondLat,
+            coordinates.secondLong
+          );
 
-          setOriginalPickup({ lat: coordinates.firstLat, lng: coordinates.firstLong, type: 'pickup', label: 'Pickup', address: pickupAddress, stockId: 'stock1' });
-          setOriginalDestination({ lat: coordinates.secondLat, lng: coordinates.secondLong, type: 'destination', label: 'Destination', address: destinationAddress, stockId: 'stock1' });
+          setOriginalPickup({
+            lat: coordinates.firstLat,
+            lng: coordinates.firstLong,
+            type: "pickup",
+            label: "Pickup",
+            address: pickupAddress,
+            stockId: "stock1",
+          });
+          setOriginalDestination({
+            lat: coordinates.secondLat,
+            lng: coordinates.secondLong,
+            type: "destination",
+            label: "Destination",
+            address: destinationAddress,
+            stockId: "stock1",
+          });
           setLoading(false);
         }
       };
@@ -579,15 +722,15 @@ const fetchPaymentSummary = async (stockId) => {
     if (isLoaded && userLocation) {
       const geocoder = new window.google.maps.Geocoder();
       geocoder.geocode({ location: userLocation }, (results, status) => {
-        if (status === 'OK') {
+        if (status === "OK") {
           if (results[0]) {
             setCurrentLocationAddress(results[0].formatted_address);
           } else {
-            setCurrentLocationAddress('Address not found');
+            setCurrentLocationAddress("Address not found");
           }
         } else {
-          console.error('Geocoder failed due to: ' + status);
-          setCurrentLocationAddress('Unable to retrieve address');
+          console.error("Geocoder failed due to: " + status);
+          setCurrentLocationAddress("Unable to retrieve address");
         }
       });
     }
@@ -601,92 +744,118 @@ const fetchPaymentSummary = async (stockId) => {
 
   // Render functions
   const renderLocationItem = (location, type) => {
-    
-    const icon = location.type === ('originalPickup'||'sharedPickup') ? <EnvironmentOutlined /> : <CompassOutlined />;
-    const isCompleted = 
-      (type === 'originalPickup' && isOriginalPickupCompleted) ||
-      (type === 'sharedPickup' && isSharedPickupCompleted) ||
-      (type === 'sharedDestination' && isSharedDestinationCompleted) ||
-      (type === 'originalDestination' && isOriginalDestinationCompleted);
+    const icon =
+      location.type === ("originalPickup" || "sharedPickup") ? (
+        <EnvironmentOutlined />
+      ) : (
+        <CompassOutlined />
+      );
+    const isCompleted =
+      (type === "originalPickup" && isOriginalPickupCompleted) ||
+      (type === "sharedPickup" && isSharedPickupCompleted) ||
+      (type === "sharedDestination" && isSharedDestinationCompleted) ||
+      (type === "originalDestination" && isOriginalDestinationCompleted);
 
-    const isCurrentStep = 
-      (!isOriginalPickupCompleted && type === 'originalPickup') ||
-      (isOriginalPickupCompleted && !isSharedPickupCompleted && type === 'sharedPickup') ||
-      (isSharedPickupCompleted && !isSharedDestinationCompleted && type === 'sharedDestination') ||
-      (isSharedDestinationCompleted && !isOriginalDestinationCompleted && type === 'originalDestination');
-      const renderActionButtons = () => {
-        // Determine the correct timer based on location type and ride type
-        const getTimer = () => {
-          if (location.type === 'pickup') {
-            return type === 'originalPickup' ? originalLoadingTimer : sharedLoadingTimer;
-          } else if (location.type === 'destination') {
-            return type === 'originalDestination' ? originalUnloadingTimer : sharedUnloadingTimer;
-          }
-          return null;
-        };
-      
-        const timer = getTimer();
-      
-        return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {!isCompleted && (
-              <Button
-                onClick={() => stopRideForLocation(location, type)}
-                style={{...buttonStyle, backgroundColor: '#ff4d4f'}}
-                //disabled={!rideStarted || !isCurrentStep}
-              >
-                Stop Ride for {location.label}
-              </Button>
-            )}
-      
-            {location.type === 'pickup' ? (
-              <>
-                {(type === 'originalPickup' ? isLoadingOriginal : isLoadingShared) ? (
-                  <Button
-                    onClick={() => stopLoading(location.stockId)}
-                    style={{...buttonStyle, backgroundColor: '#ff4d4f'}}
-                  >
-                    Stop Loading {timer} {/* Display the correct loading timer */}
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={() => startLoading(location.stockId)}
-                    style={buttonStyle}
-                    disabled={!isCurrentStep || isCompleted}
-                  >
-                    Start Loading
-                  </Button>
-                )}
-              </>
-            ) : (
-              <>
-                {(type === 'originalDestination' ? isUnloadingOriginal : isUnloadingShared) ? (
-                  <Button
-                    onClick={() => stopUnloading(location.stockId)}
-                    style={{...buttonStyle, backgroundColor: '#ff4d4f'}}
-                  >
-                    Stop Unloading {timer} {/* Display the correct unloading timer */}
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={() => startUnloading(location.stockId)}
-                    style={buttonStyle}
-                    //disabled={!isCurrentStep || isCompleted}
-                  >
-                    Start Unloading
-                  </Button>
-                )}
-              </>
-            )}
-          </div>
-        );
+    const isCurrentStep =
+      (!isOriginalPickupCompleted && type === "originalPickup") ||
+      (isOriginalPickupCompleted &&
+        !isSharedPickupCompleted &&
+        type === "sharedPickup") ||
+      (isSharedPickupCompleted &&
+        !isSharedDestinationCompleted &&
+        type === "sharedDestination") ||
+      (isSharedDestinationCompleted &&
+        !isOriginalDestinationCompleted &&
+        type === "originalDestination");
+    const renderActionButtons = () => {
+      // Determine the correct timer based on location type and ride type
+      const getTimer = () => {
+        if (location.type === "pickup") {
+          return type === "originalPickup"
+            ? originalLoadingTimer
+            : sharedLoadingTimer;
+        } else if (location.type === "destination") {
+          return type === "originalDestination"
+            ? originalUnloadingTimer
+            : sharedUnloadingTimer;
+        }
+        return null;
       };
-      
+
+      const timer = getTimer();
+
+      return (
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          {!isCompleted && (
+            <Button
+              onClick={() => stopRideForLocation(location, type)}
+              style={{ ...buttonStyle, backgroundColor: "#ff4d4f" }}
+              //disabled={!rideStarted || !isCurrentStep}
+            >
+              Stop Ride for {location.label}
+            </Button>
+          )}
+
+          {location.type === "pickup" ? (
+            <>
+              {(
+                type === "originalPickup" ? isLoadingOriginal : isLoadingShared
+              ) ? (
+                <Button
+                  onClick={() => stopLoading(location.stockId)}
+                  style={{ ...buttonStyle, backgroundColor: "#ff4d4f" }}
+                >
+                  Stop Loading {timer} {/* Display the correct loading timer */}
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => startLoading(location.stockId)}
+                  style={buttonStyle}
+                  disabled={!isCurrentStep || isCompleted}
+                >
+                  Start Loading
+                </Button>
+              )}
+            </>
+          ) : (
+            <>
+              {(
+                type === "originalDestination"
+                  ? isUnloadingOriginal
+                  : isUnloadingShared
+              ) ? (
+                <Button
+                  onClick={() => stopUnloading(location.stockId)}
+                  style={{ ...buttonStyle, backgroundColor: "#ff4d4f" }}
+                >
+                  Stop Unloading {timer}{" "}
+                  {/* Display the correct unloading timer */}
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => startUnloading(location.stockId)}
+                  style={buttonStyle}
+                  //disabled={!isCurrentStep || isCompleted}
+                >
+                  Start Unloading
+                </Button>
+              )}
+            </>
+          )}
+        </div>
+      );
+    };
+
     const renderTimer = () => {
-      const timer = location.type === 'pickup' 
-        ? (type === 'originalPickup' ? originalLoadingTimer : sharedLoadingTimer)
-        : (type === 'originalDestination' ? originalUnloadingTimer : sharedUnloadingTimer);
-      
+      const timer =
+        location.type === "pickup"
+          ? type === "originalPickup"
+            ? originalLoadingTimer
+            : sharedLoadingTimer
+          : type === "originalDestination"
+          ? originalUnloadingTimer
+          : sharedUnloadingTimer;
+
       if (timer > 0) {
         return (
           <Text style={{ marginLeft: 10 }}>
@@ -708,10 +877,17 @@ const fetchPaymentSummary = async (stockId) => {
       </List.Item>
     );
   };
-  
+
   if (loading || !isLoaded || !coordinates) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
         <Spin size="large" />
         <Text style={{ marginLeft: 10 }}>Loading navigation details...</Text>
       </div>
@@ -723,36 +899,61 @@ const fetchPaymentSummary = async (stockId) => {
   }
 
   const allLocations = [
-    { 
-      lat: userLocation?.lat, 
-      lng: userLocation?.lng, 
-      type: 'current', 
-      label: 'Current Location', 
-      address: currentLocationAddress 
+    {
+      lat: userLocation?.lat,
+      lng: userLocation?.lng,
+      type: "current",
+      label: "Current Location",
+      address: currentLocationAddress,
     },
     originalPickup,
     ...(isSharedBooking ? [sharedPickup, sharedDestination] : []),
-    originalDestination
+    originalDestination,
   ].filter(Boolean);
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
-      <Card 
-        title={<Title level={3}>Booking Navigation</Title>} 
-        style={{ width: '100%', boxShadow: '0 4px 8px rgba(0,0,0,0.1)', borderRadius: '12px' }}
+    <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px" }}>
+      <Card
+        title={<Title level={3}>Booking Navigation</Title>}
+        style={{
+          width: "100%",
+          boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+          borderRadius: "12px",
+        }}
       >
-        <Text strong style={{ fontSize: '18px', marginBottom: '20px', display: 'block' }}>
-          {isSharedBooking ? 'Shared Booking' : 'Single Booking'}
+        <Text
+          strong
+          style={{ fontSize: "18px", marginBottom: "20px", display: "block" }}
+        >
+          {isSharedBooking ? "Shared Booking" : "Single Booking"}
         </Text>
 
-        <Text style={{ marginBottom: '10px', display: 'block', color: socketConnected ? 'green' : 'red' }}>
-          Socket Status: {socketConnected ? 'Connected' : 'Disconnected'}
+        <Text
+          style={{
+            marginBottom: "10px",
+            display: "block",
+            color: socketConnected ? "green" : "red",
+          }}
+        >
+          Socket Status: {socketConnected ? "Connected" : "Disconnected"}
         </Text>
-        
-        <div style={{ height: '400px', marginBottom: '20px', borderRadius: '8px', overflow: 'hidden' }}>
+
+        <div
+          style={{
+            height: "400px",
+            marginBottom: "20px",
+            borderRadius: "8px",
+            overflow: "hidden",
+          }}
+        >
           <GoogleMap
-            mapContainerStyle={{ width: '100%', height: '100%' }}
-            center={userLocation || (allLocations[1] ? { lat: allLocations[1].lat, lng: allLocations[1].lng } : { lat: 0, lng: 0 })}
+            mapContainerStyle={{ width: "100%", height: "100%" }}
+            center={
+              userLocation ||
+              (allLocations[1]
+                ? { lat: allLocations[1].lat, lng: allLocations[1].lng }
+                : { lat: 0, lng: 0 })
+            }
             zoom={12}
             options={{
               zoomControl: true,
@@ -760,51 +961,58 @@ const fetchPaymentSummary = async (stockId) => {
               mapTypeControl: false,
               fullscreenControl: false,
             }}
-            onLoad={map => {
+            onLoad={(map) => {
               mapRef.current = map;
             }}
           >
             {directions && <DirectionsRenderer directions={directions} />}
-            {allLocations.map((location, index) => (
+            {allLocations.map((location, index) =>
               location && location.lat && location.lng ? (
                 <Marker
                   key={index}
-                  position={{ lat: parseFloat(location.lat), lng: parseFloat(location.lng) }}
-                  label={location.type === 'current' ? '' : `${index}`}
+                  position={{
+                    lat: parseFloat(location.lat),
+                    lng: parseFloat(location.lng),
+                  }}
+                  label={location.type === "current" ? "" : `${index}`}
                   icon={{
-                    url: location.type === 'current' 
-                      ? '../../../assets/icons/driver_icon.png'
-                      : location.type === 'pickup' 
-                        ? '../../../assets/icons/location_icon.png' 
-                        : '../../../assets/icons/location_icon.png',
-                    scaledSize: new window.google.maps.Size(location.type === 'current' ? 40 : 30, location.type === 'current' ? 40 : 30),
+                    url:
+                      location.type === "current"
+                        ? "../../../assets/icons/driver_icon.png"
+                        : location.type === "pickup"
+                        ? "../../../assets/icons/location_icon.png"
+                        : "../../../assets/icons/location_icon.png",
+                    scaledSize: new window.google.maps.Size(
+                      location.type === "current" ? 40 : 30,
+                      location.type === "current" ? 40 : 30
+                    ),
                   }}
                 />
               ) : null
-            ))}
+            )}
           </GoogleMap>
         </div>
 
         <List
-          style={{ 
-            marginTop: 16, 
-            backgroundColor: '#f5f5f5', 
-            borderRadius: '8px', 
-            padding: '16px',
-            maxHeight: '300px',
-            overflowY: 'auto'
+          style={{
+            marginTop: 16,
+            backgroundColor: "#f5f5f5",
+            borderRadius: "8px",
+            padding: "16px",
+            maxHeight: "300px",
+            overflowY: "auto",
           }}
           header={<div>Current Location</div>}
         >
           <List.Item>
             <List.Item.Meta
-              avatar={<EnvironmentOutlined style={{ color: 'blue' }} />}
+              avatar={<EnvironmentOutlined style={{ color: "blue" }} />}
               title="Current Location"
-              description={currentLocationAddress || 'Fetching address...'}
+              description={currentLocationAddress || "Fetching address..."}
             />
             <Button
               onClick={startRide}
-              style={{...buttonStyle, backgroundColor: '#52c41a'}}
+              style={{ ...buttonStyle, backgroundColor: "#52c41a" }}
               disabled={rideStarted}
             >
               Start Ride
@@ -813,61 +1021,98 @@ const fetchPaymentSummary = async (stockId) => {
         </List>
 
         <List
-          style={{ 
-            marginTop: 16, 
-            backgroundColor: '#f5f5f5', 
-            borderRadius: '8px', 
-            padding: '16px',
-            maxHeight: '300px',
-            overflowY: 'auto'
+          style={{
+            marginTop: 16,
+            backgroundColor: "#f5f5f5",
+            borderRadius: "8px",
+            padding: "16px",
+            maxHeight: "300px",
+            overflowY: "auto",
           }}
           header={<div>Pickup and Destination Locations</div>}
         >
-          {renderLocationItem(originalPickup, 'originalPickup')}
-          {isSharedBooking && renderLocationItem(sharedPickup, 'sharedPickup')}
-          {isSharedBooking && renderLocationItem(sharedDestination, 'sharedDestination')}
-          {renderLocationItem(originalDestination, 'originalDestination')}
+          {renderLocationItem(originalPickup, "originalPickup")}
+          {isSharedBooking && renderLocationItem(sharedPickup, "sharedPickup")}
+          {isSharedBooking &&
+            renderLocationItem(sharedDestination, "sharedDestination")}
+          {renderLocationItem(originalDestination, "originalDestination")}
         </List>
 
-        <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between' }}>
-          <Button onClick={handleNavigate} style={buttonStyle} icon={<CompassOutlined />}>
+        <div
+          style={{
+            marginTop: "20px",
+            display: "flex",
+            justifyContent: "space-between",
+          }}
+        >
+          <Button
+            onClick={handleNavigate}
+            style={buttonStyle}
+            icon={<CompassOutlined />}
+          >
             Navigate
           </Button>
-          <Button onClick={openInGoogleMaps} style={buttonStyle} icon={<PlayCircleOutlined />}>
+          <Button
+            onClick={openInGoogleMaps}
+            style={buttonStyle}
+            icon={<PlayCircleOutlined />}
+          >
             Open in Google Maps
           </Button>
-          <Button onClick={finishRide} style={{...buttonStyle, backgroundColor: '#ff4d4f'}} disabled={!rideStarted}>
+          <Button
+            onClick={finishRide}
+            style={{ ...buttonStyle, backgroundColor: "#ff4d4f" }}
+            //disabled={!rideStarted}
+          >
             Finish Ride
           </Button>
         </div>
       </Card>
 
       <Modal
-        title="Payment Summary"
-        visible={showPaymentSummary}
-        onOk={() => setShowPaymentSummary(false)}
-        onCancel={() => setShowPaymentSummary(false)}
-        footer={[
-          <Button key="back" onClick={() => setShowPaymentSummary(false)}>
-            Close
-          </Button>,
-        ]}
-      >
-        {paymentSummary && (
-  <div>
-    <p><DollarOutlined /> Vehicle Charge: ${paymentSummary.vehicleCharge}</p>
-    <p><DollarOutlined /> Service Charge: ${paymentSummary.serviceCharge}</p>
-    <p><DollarOutlined /> Handling Charge: ${paymentSummary.handlingCharge}</p>
-    <p><DollarOutlined /> Total Amount: ${paymentSummary.total}</p>
-    {paymentSummary.sharedDiscount && (
-      <p><DollarOutlined /> Shared Discount: {paymentSummary.sharedDiscount}</p>
-    )}
-    <p><DollarOutlined /> Advance Payment: ${paymentSummary.advancePayment}</p>
-    <p><DollarOutlined /> Balance Payment: ${paymentSummary.balPayment}</p>
-  </div>
-)}
-
-      </Modal>
+  title="Payment Summary"
+  visible={showPaymentSummary}
+  onOk={() => setShowPaymentSummary(false)}
+  onCancel={() => setShowPaymentSummary(false)}
+  footer={[
+    <Button key="back" onClick={() => setShowPaymentSummary(false)}>
+      Close
+    </Button>,
+  ]}
+  width={600} // Adjust width if necessary
+>
+  {paymentSummary && (
+    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+      <Title level={4}>Payment Details</Title>
+      <Divider />
+      <div style={{ marginBottom: '15px' }}>
+        <Text strong>Vehicle Charge:</Text> <Text>LKR {paymentSummary.vehicleCharge}</Text>
+      </div>
+      <div style={{ marginBottom: '15px' }}>
+        <Text strong>Service Charge:</Text> <Text>LKR {paymentSummary.serviceCharge}</Text>
+      </div>
+      <div style={{ marginBottom: '15px' }}>
+        <Text strong>Handling Charge:</Text> <Text>LKR {paymentSummary.handlingCharge}</Text>
+      </div>
+      <Divider />
+      <div style={{ marginBottom: '15px' }}>
+        <Text strong>Total Amount:</Text> <Text>LKR {paymentSummary.total}</Text>
+      </div>
+      {paymentSummary.sharedDiscount && (
+        <div style={{ marginBottom: '15px' }}>
+          <Text strong>Shared Discount:</Text> <Text>{paymentSummary.sharedDiscount}</Text>
+        </div>
+      )}
+      <Divider />
+      <div style={{ marginBottom: '15px' }}>
+        <Text strong>Advance Payment:</Text> <Text>LKR {paymentSummary.advancePayment}</Text>
+      </div>
+      <div style={{ marginBottom: '15px' }}>
+        <Text strong>Balance Payment:</Text> <Text>LKR {paymentSummary.balPayment}</Text>
+      </div>
+    </div>
+  )}
+</Modal>
     </div>
   );
 };

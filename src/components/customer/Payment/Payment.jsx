@@ -11,7 +11,7 @@ const { Title, Text, Paragraph } = Typography;
 
 const stripePromise = loadStripe('pk_test_51Pie4tRtQ613hbe8G3TikfPfnCtZPXAVVm3OoGLCVz9kakWSSsEavxrGfwOi5uruaWhQTLBA5LxJmWATyVeULFXU00vSXeQInt');
 
-const CheckoutForm = ({ totalPrice, bookingId }) => {
+const CheckoutForm = ({ totalPrice, bookingId , type}) => {
     const stripe = useStripe();
     const elements = useElements();
     const [isHovered, setIsHovered] = useState(false);
@@ -39,7 +39,7 @@ const CheckoutForm = ({ totalPrice, bookingId }) => {
             // Step 1: Create Payment Intent
             console.log(totalPrice.toFixed(2))
             const paymentIntentResponse = await httpService.post('/customer/paymentIntent', {
-                amount: totalPrice.toFixed(2)*100,
+                amount: totalPrice.toFixed(2),
             });
 
             const { clientSecret } = paymentIntentResponse.data;
@@ -84,7 +84,7 @@ const CheckoutForm = ({ totalPrice, bookingId }) => {
                     stripeId: paymentIntent.id,
                     date: new Date().toISOString(), 
                     amount: paymentIntent.amount , 
-                    type: 'shared'
+                    type: type
                 };
                 console.log(paymentIntent)
                 await httpService.post(`/customer/advancePayment/${bookingId}`, paymentData);
@@ -196,6 +196,7 @@ const CheckoutForm = ({ totalPrice, bookingId }) => {
 CheckoutForm.propTypes = {
     totalPrice: PropTypes.number.isRequired,
     bookingId: PropTypes.string.isRequired,
+    type: PropTypes.string.isRequired
 };
 
 const Payment = () => {
