@@ -46,6 +46,9 @@ import SharedBookingDetails from '../components/customer/SharedBookingDetails/Sh
 import SharedBookingSummary from '../components/customer/SharedBookingSummary/SharedBookingSummary';
 import SharedBookingsHistory from '../components/customer/SharedBookingsHistory/SharedBookingsHistory';
 import BookingNavigation from '../components/driver/BookingNavigation/BookingNavigation';
+import OwnerPasswordChange from '../components/owner/OwnerPasswordChange/OwnerPasswordChange';
+import CustomerPasswordChange from '../components/customer/CustomerPasswordChange/CustomerPasswordChange';
+import DriverPasswordChange from '../components/driver/DriverPasswordChange/DriverPasswordChange';
 
 const WebRoutes = () => {
   return (
@@ -97,6 +100,7 @@ const WebRoutes = () => {
       <Route path="assigned-trips" element={<AssignedTrips />} />
       <Route path="vehicles" element={<Vehicles />} />
       <Route path='booking-navigations' element={<BookingNavigation/>}/>
+      <Route path='password-change' element={<DriverPasswordChange/>}/>
       <Route path="help" element={<Help />} />
  
         </Route>
@@ -116,6 +120,7 @@ const WebRoutes = () => {
           <Route path="vehicles" element={<OwnerVehicles />} />
           <Route path='drivers' element={<DriverDetails/>}/>
           <Route path='my-bookings' element={<BookingsList/>}/>
+          <Route path='password-change' element={<OwnerPasswordChange/>}/>
           
         </Route>
 
@@ -139,6 +144,7 @@ const WebRoutes = () => {
           <Route path="shared-booking-details" element={<SharedBookingDetails />} />
           <Route path="shared-booking-summary" element={<SharedBookingSummary />} />
           <Route path="shared-booking-history" element={<SharedBookingsHistory />} />
+          <Route path='password-change' element={<CustomerPasswordChange/>}/>
 
         </Route>
       </Routes>

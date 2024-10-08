@@ -11,7 +11,7 @@ const GoogleMapsLoader = ({ children }) => {
     <LoadScript
       googleMapsApiKey={apiKey}
       libraries={libraries}
-      onLoad={() => console.log('Google Maps API loaded successfully')}
+      onLoad={() => console.log('')}
       onError={(e) => console.error('Google Maps API loading error:', e)}
     >
       {children}

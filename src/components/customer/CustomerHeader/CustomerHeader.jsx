@@ -8,7 +8,7 @@ import {
   ShareAltOutlined,
   HistoryOutlined,
   StockOutlined,
-  UserOutlined,
+  SettingOutlined,
   MenuOutlined,
 } from "@ant-design/icons";
 import Logo from "../../../assets/Logo.png";
@@ -62,11 +62,11 @@ const CustomerHeader = () => {
       link: "/customer/shared-booking-history",
     },
     {
-      key: "profile-settings",
-      icon: <UserOutlined />,
-      label: "Profile Settings",
-      link: "/customer/profile-settings",
-    },
+      key: 'password-change',
+      icon: <SettingOutlined />,
+      label: 'Password Change',
+      link: '/customer/password-change',
+    }
   ];
 
   const renderMenuItems = () =>

@@ -61,10 +61,10 @@ const OwnerHeader = () => {
       link: '/owner/my-bookings',
     },
     {
-      key: 'settings',
+      key: 'password-change',
       icon: <SettingOutlined />,
-      label: 'Settings',
-      link: '/owner/settings',
+      label: 'password-change',
+      link: '/owner/password-change',
     },
     {
       key: 'logout',

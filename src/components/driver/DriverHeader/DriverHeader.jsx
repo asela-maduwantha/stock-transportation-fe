@@ -49,10 +49,10 @@ const DriverHeader = () => {
       link: "/driver/vehicles",
     },
     {
-      key: "profile-settings",
+      key: 'password-change',
       icon: <SettingOutlined />,
-      label: "Profile Settings",
-      link: "/driver/profile-settings",
+      label: 'Password Change',
+      link: '/driver/password-change',
     },
     {
       key: "help",
