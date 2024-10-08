@@ -27,7 +27,8 @@ const BookingHistory = () => {
     const fetchBookings = async () => {
       try {
         setLoading(true);
-        const response = await httpService.get('/customer/myBookings/d5b83319-e344-4edb-83b2-edc6890ef5b0');
+        const customerId = localStorage.getItem('customerId')
+        const response = await httpService.get(`/customer/myBookings/${customerId}`);
         const bookingsWithLocations = await Promise.all(response.data.map(async booking => {
           const startLocation = await getLocationName(booking.startLat, booking.startLong);
           const destLocation = await getLocationName(booking.destLat, booking.destLong);
@@ -39,7 +40,7 @@ const BookingHistory = () => {
         // Filter today's bookings
         const today = new Date().setHours(0, 0, 0, 0);
         const todayBookings = bookingsWithLocations.filter(booking => 
-          new Date(booking.bookingDate).setHours(0, 0, 0, 0) === today && !booking.isCancelled && !booking.isPaid
+          new Date(booking.bookingDate).setHours(0, 0, 0, 0) === today && booking.status === 'upcoming'
         );
         setTodayBookings(todayBookings);
       } catch (error) {
@@ -69,9 +70,7 @@ const BookingHistory = () => {
     let result = bookings;
 
     if (statusFilter !== 'all') {
-      result = result.filter(booking => 
-        booking.isCancelled ? 'cancelled' : (booking.isPaid ? 'completed' : 'upcoming') === statusFilter
-      );
+      result = result.filter(booking => booking.status === statusFilter);
     }
 
     if (dateRange) {
@@ -90,10 +89,13 @@ const BookingHistory = () => {
     setCurrentPage(1);
   };
 
-  const getStatusTag = (booking) => {
-    if (booking.isCancelled) return <Tag color="red">Cancelled</Tag>;
-    if (booking.isPaid) return <Tag color="green">Completed</Tag>;
-    return <Tag color="blue">Upcoming</Tag>;
+  const getStatusTag = (status) => {
+    const statusColors = {
+      upcoming: 'blue',
+      complete: 'green',
+      canceled: 'red'
+    };
+    return <Tag color={statusColors[status]}>{status.charAt(0).toUpperCase() + status.slice(1)}</Tag>;
   };
 
   const formatDateTime = (date, time) => {
@@ -128,8 +130,12 @@ const BookingHistory = () => {
     httpService.put(`/customer/cancelBooking/${currentBookingId}`)
       .then(() => {
         message.success('Booking cancelled successfully');
-        setBookings(bookings.filter(booking => booking.id !== currentBookingId));
-        setFilteredBookings(filteredBookings.filter(booking => booking.id !== currentBookingId));
+        setBookings(bookings.map(booking => 
+          booking.id === currentBookingId ? {...booking, status: 'canceled'} : booking
+        ));
+        setFilteredBookings(filteredBookings.map(booking => 
+          booking.id === currentBookingId ? {...booking, status: 'canceled'} : booking
+        ));
         setTodayBookings(todayBookings.filter(booking => booking.id !== currentBookingId));
         setCancelModalVisible(false);
       })
@@ -144,7 +150,7 @@ const BookingHistory = () => {
   const renderBookingCard = (booking, showRideStatusButton = false) => (
     <Card 
       title={booking.vehicle.type}
-      extra={getStatusTag(booking)}
+      extra={getStatusTag(booking.status)}
       style={{ height: '100%' }}
       hoverable
     >
@@ -160,7 +166,7 @@ const BookingHistory = () => {
       <p><CarOutlined style={{ marginRight: '8px' }} />Capacity: {booking.vehicle.capacity} {booking.vehicle.capacityUnit}</p>
       <p><DollarOutlined style={{ marginRight: '8px' }} />Charge: LKR {booking.vehicleCharge.toFixed(2)}</p>
       
-      {!booking.isPaid && !booking.isCancelled && (
+      {booking.status === 'upcoming' && (
         <div style={{ marginTop: '16px' }}>
           <Button type="primary" onClick={() => handlePayBalance(booking.id)} style={{ width: '100%', marginBottom: '8px' }}>
             Pay Balance
@@ -176,7 +182,7 @@ const BookingHistory = () => {
         </div>
       )}
       
-      {booking.isPaid && (
+      {booking.status === 'complete' && (
         <Button type="default" onClick={() => handleRateBooking(booking.id)} style={{ marginTop: '16px', width: '100%' }}>
           Rate
         </Button>
@@ -200,7 +206,7 @@ const BookingHistory = () => {
       
       {todayBookings.length > 0 && (
         <div style={{ marginBottom: '32px' }}>
-          <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '16px' }}>Today &apos;s Bookings</h2>
+          <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '16px' }}>Today&apos;s Bookings</h2>
           <Row gutter={[24, 24]}>
             {todayBookings.map((booking) => (
               <Col xs={24} sm={12} lg={8} key={booking.id}>
@@ -221,8 +227,8 @@ const BookingHistory = () => {
         >
           <Option value="all">All Status</Option>
           <Option value="upcoming">Upcoming</Option>
-          <Option value="completed">Completed</Option>
-          <Option value="cancelled">Cancelled</Option>
+          <Option value="complete">Completed</Option>
+          <Option value="canceled">Cancelled</Option>
         </Select>
         
         <RangePicker onChange={(dates) => setDateRange(dates)} />

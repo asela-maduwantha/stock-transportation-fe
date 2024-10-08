@@ -4,14 +4,14 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
-import { Row, Col, Form, Input, Button, Typography,  Card, Divider, Space, Modal } from 'antd';
+import { Row, Col, Form, Input, Button, Typography, Card, Divider, Space, Modal } from 'antd';
 import httpService from '../../../services/httpService';
 
 const { Title, Text, Paragraph } = Typography;
 
 const stripePromise = loadStripe('pk_test_51Pie4tRtQ613hbe8G3TikfPfnCtZPXAVVm3OoGLCVz9kakWSSsEavxrGfwOi5uruaWhQTLBA5LxJmWATyVeULFXU00vSXeQInt');
 
-const CheckoutForm = ({ totalPrice, bookingId , type}) => {
+const CheckoutForm = ({ totalPrice, bookingId, type }) => {
     const stripe = useStripe();
     const elements = useElements();
     const [isHovered, setIsHovered] = useState(false);
@@ -37,7 +37,6 @@ const CheckoutForm = ({ totalPrice, bookingId , type}) => {
 
         try {
             // Step 1: Create Payment Intent
-            console.log(totalPrice.toFixed(2))
             const paymentIntentResponse = await httpService.post('/customer/paymentIntent', {
                 amount: totalPrice.toFixed(2),
             });
@@ -67,7 +66,7 @@ const CheckoutForm = ({ totalPrice, bookingId , type}) => {
             const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
                 payment_method: paymentMethod.id,
             });
-            
+
             if (confirmError) {
                 setModalContent({
                     title: 'Payment Failed',
@@ -77,18 +76,17 @@ const CheckoutForm = ({ totalPrice, bookingId , type}) => {
                 setIsModalVisible(true);
                 return;
             }
-            
+
             if (paymentIntent.status === 'succeeded') {
                 const paymentData = {
-                    id: bookingId, 
+                    id: bookingId,
                     stripeId: paymentIntent.id,
-                    date: new Date().toISOString(), 
-                    amount: paymentIntent.amount , 
-                    type: type
+                    date: new Date().toISOString(),
+                    amount: paymentIntent.amount,
+                    type: type,
                 };
-                console.log(paymentIntent)
                 await httpService.post(`/customer/advancePayment/${bookingId}`, paymentData);
-            
+
                 setModalContent({
                     title: 'Thank You!',
                     description: 'Your payment was successful. Your booking is confirmed. Thank you for choosing us!',
@@ -103,7 +101,6 @@ const CheckoutForm = ({ totalPrice, bookingId , type}) => {
                 });
                 setIsModalVisible(true);
             }
-            
         } catch (error) {
             console.error('Payment processing failed:', error);
             setModalContent({
@@ -196,12 +193,12 @@ const CheckoutForm = ({ totalPrice, bookingId , type}) => {
 CheckoutForm.propTypes = {
     totalPrice: PropTypes.number.isRequired,
     bookingId: PropTypes.string.isRequired,
-    type: PropTypes.string.isRequired
+    type: PropTypes.string.isRequired,
 };
 
 const Payment = () => {
     const location = useLocation();
-    const { bookingId, vehicle, pickupLocation, dropLocation, returnTrip, advanceAmount, totalPrice } = location.state;
+    const { bookingId, vehicle, pickupLocation, dropLocation, returnTrip, advanceAmount, totalPrice, type } = location.state;
 
     return (
         <Elements stripe={stripePromise}>
@@ -254,7 +251,7 @@ const Payment = () => {
                         bordered={false}
                         style={{ borderRadius: '8px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)' }}
                     >
-                        <CheckoutForm totalPrice={advanceAmount} bookingId={bookingId} />
+                        <CheckoutForm totalPrice={advanceAmount} bookingId={bookingId} type={type} />
                     </Card>
                 </Col>
             </Row>
