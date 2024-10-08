@@ -756,17 +756,17 @@ const BookingNavigation = () => {
       (type === "sharedDestination" && isSharedDestinationCompleted) ||
       (type === "originalDestination" && isOriginalDestinationCompleted);
 
-    const isCurrentStep =
-      (!isOriginalPickupCompleted && type === "originalPickup") ||
-      (isOriginalPickupCompleted &&
-        !isSharedPickupCompleted &&
-        type === "sharedPickup") ||
-      (isSharedPickupCompleted &&
-        !isSharedDestinationCompleted &&
-        type === "sharedDestination") ||
-      (isSharedDestinationCompleted &&
-        !isOriginalDestinationCompleted &&
-        type === "originalDestination");
+    // const isCurrentStep =
+    //   (!isOriginalPickupCompleted && type === "originalPickup") ||
+    //   (isOriginalPickupCompleted &&
+    //     !isSharedPickupCompleted &&
+    //     type === "sharedPickup") ||
+    //   (isSharedPickupCompleted &&
+    //     !isSharedDestinationCompleted &&
+    //     type === "sharedDestination") ||
+    //   (isSharedDestinationCompleted &&
+    //     !isOriginalDestinationCompleted &&
+    //     type === "originalDestination");
     const renderActionButtons = () => {
       // Determine the correct timer based on location type and ride type
       const getTimer = () => {
@@ -805,13 +805,13 @@ const BookingNavigation = () => {
                   onClick={() => stopLoading(location.stockId)}
                   style={{ ...buttonStyle, backgroundColor: "#ff4d4f" }}
                 >
-                  Stop Loading {timer} {/* Display the correct loading timer */}
+                  Stop Loading {timer} {" "}
                 </Button>
               ) : (
                 <Button
                   onClick={() => startLoading(location.stockId)}
                   style={buttonStyle}
-                  disabled={!isCurrentStep || isCompleted}
+                  //disabled={!isCurrentStep || isCompleted}
                 >
                   Start Loading
                 </Button>
