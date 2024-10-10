@@ -48,6 +48,8 @@ import BookingNavigation from '../components/driver/BookingNavigation/BookingNav
 import OwnerPasswordChange from '../components/owner/OwnerPasswordChange/OwnerPasswordChange';
 import CustomerPasswordChange from '../components/customer/CustomerPasswordChange/CustomerPasswordChange';
 import DriverPasswordChange from '../components/driver/DriverPasswordChange/DriverPasswordChange';
+import WalletComponent from '../components/owner/WalletComponent/WalletComponent';
+import CreateBankAccount from '../components/owner/CreateBankAccount/CreateBankAccount';
 
 const WebRoutes = () => {
   return (
@@ -120,6 +122,8 @@ const WebRoutes = () => {
           <Route path='drivers' element={<DriverDetails/>}/>
           <Route path='my-bookings' element={<BookingsList/>}/>
           <Route path='password-change' element={<OwnerPasswordChange/>}/>
+          <Route path='wallet' element={<WalletComponent/>}/>
+          <Route path='create-bank-account' element={<CreateBankAccount/>}/>
           
         </Route>
 

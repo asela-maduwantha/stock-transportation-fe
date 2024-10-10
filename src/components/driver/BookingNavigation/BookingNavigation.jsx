@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Card, List, Button, Typography, message, Spin, Modal, Divider } from "antd";
+import { Card, List, Button, Typography, message, Spin, Modal, Divider, Tooltip} from "antd";
 import {
   EnvironmentOutlined,
   CompassOutlined,
@@ -52,6 +52,9 @@ const BookingNavigation = () => {
   const [isSharedDestinationCompleted, setIsSharedDestinationCompleted] =
     useState(false);
 
+    //usestates for current stpe tracking
+    const [currentStep,setCurrentStep] = useState('')
+
   // Payment summary state
   const [showPaymentSummary, setShowPaymentSummary] = useState(false);
   const [paymentSummary, setPaymentSummary] = useState(null);
@@ -80,6 +83,15 @@ const BookingNavigation = () => {
     margin: "0 5px",
     boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
   };
+
+  const disabledButtonStyle = {
+    ...buttonStyle,
+    backgroundColor: "#d9d9d9",
+    color: "#fff",
+    cursor: "not-allowed",
+    opacity: 0.6,
+  };
+
 
   // API calls
   const fetchCoordinates = useCallback(async () => {
@@ -328,6 +340,7 @@ const BookingNavigation = () => {
         setRideStarted(true);
         startLocationTracking();
         handleNavigate();
+        setCurrentStep("originalPickup");
       }
     } catch (error) {
       console.error("Error starting ride:", error);
@@ -381,22 +394,26 @@ const BookingNavigation = () => {
 
         if (response.status === 200) {
           message.success(`Ride stopped for ${location.label}`);
-
-          if (type === "originalPickup") setIsOriginalPickupCompleted(true);
-          else if (type === "sharedPickup") setIsSharedPickupCompleted(true);
-          else if (type === "sharedDestination")
+    
+          if (type === "originalPickup") {
+            setIsOriginalPickupCompleted(true);
+            setCurrentStep("originalLoading");
+          } else if (type === "sharedPickup") {
+            setIsSharedPickupCompleted(true);
+            setCurrentStep("sharedLoading");
+          } else if (type === "sharedDestination") {
             setIsSharedDestinationCompleted(true);
-          else if (type === "originalDestination")
+            setCurrentStep("sharedUnloading");
+          } else if (type === "originalDestination") {
             setIsOriginalDestinationCompleted(true);
-
-          handleNavigate();
-        }
+            setCurrentStep("originalUnloading");
+          }}
       } catch (error) {
         console.error("Error stopping ride:", error);
         message.error("Failed to stop the ride. Please try again.");
       }
     },
-    [isSharedBooking, handleNavigate]
+    [isSharedBooking]
   );
 
   // Loading/Unloading functions
@@ -408,8 +425,10 @@ const BookingNavigation = () => {
       );
       if (stockId === "stock1") {
         setIsLoadingOriginal(true);
+        setCurrentStep("originalLoading");
       } else {
         setIsLoadingShared(true);
+        setCurrentStep("sharedLoading");
       }
       message.success(`Loading started for ${stockId}`);
     } catch (error) {
@@ -417,7 +436,7 @@ const BookingNavigation = () => {
       message.error("Failed to start loading");
     }
   };
-
+  
   const stopLoading = async (stockId) => {
     try {
       await httpService.put(
@@ -430,8 +449,10 @@ const BookingNavigation = () => {
       );
       if (stockId === "stock1") {
         setIsLoadingOriginal(false);
+        setCurrentStep("originalDestination");
       } else {
         setIsLoadingShared(false);
+        setCurrentStep("sharedDestination");
       }
       message.success(`Loading stopped for ${stockId}`);
       handleNavigate();
@@ -440,7 +461,7 @@ const BookingNavigation = () => {
       message.error("Failed to stop loading");
     }
   };
-
+  
   const startUnloading = async (stockId) => {
     try {
       await httpService.post(
@@ -449,8 +470,10 @@ const BookingNavigation = () => {
       );
       if (stockId === "stock1") {
         setIsUnloadingOriginal(true);
+        setCurrentStep("originalUnloading");
       } else {
         setIsUnloadingShared(true);
+        setCurrentStep("sharedUnloading");
       }
       message.success(`Unloading started for ${stockId}`);
     } catch (error) {
@@ -458,7 +481,7 @@ const BookingNavigation = () => {
       message.error("Failed to start unloading");
     }
   };
-
+  
   const stopUnloading = async (stockId) => {
     try {
       await httpService.put(
@@ -471,8 +494,10 @@ const BookingNavigation = () => {
       );
       if (stockId === "stock1") {
         setIsUnloadingOriginal(false);
+        setCurrentStep("completed");
       } else {
         setIsUnloadingShared(false);
+        setCurrentStep("originalDestination");
       }
       message.success(`Unloading stopped for ${stockId}`);
       fetchPaymentSummary(stockId);
@@ -744,101 +769,80 @@ const BookingNavigation = () => {
 
   // Render functions
   const renderLocationItem = (location, type) => {
-    const icon =
-      location.type === ("originalPickup" || "sharedPickup") ? (
-        <EnvironmentOutlined />
-      ) : (
-        <CompassOutlined />
-      );
-    const isCompleted =
-      (type === "originalPickup" && isOriginalPickupCompleted) ||
-      (type === "sharedPickup" && isSharedPickupCompleted) ||
-      (type === "sharedDestination" && isSharedDestinationCompleted) ||
-      (type === "originalDestination" && isOriginalDestinationCompleted);
-
-    // const isCurrentStep =
-    //   (!isOriginalPickupCompleted && type === "originalPickup") ||
-    //   (isOriginalPickupCompleted &&
-    //     !isSharedPickupCompleted &&
-    //     type === "sharedPickup") ||
-    //   (isSharedPickupCompleted &&
-    //     !isSharedDestinationCompleted &&
-    //     type === "sharedDestination") ||
-    //   (isSharedDestinationCompleted &&
-    //     !isOriginalDestinationCompleted &&
-    //     type === "originalDestination");
+    const icon = location.type === "pickup" ? <EnvironmentOutlined /> : <CompassOutlined />;
+    
     const renderActionButtons = () => {
-      // Determine the correct timer based on location type and ride type
       const getTimer = () => {
         if (location.type === "pickup") {
-          return type === "originalPickup"
-            ? originalLoadingTimer
-            : sharedLoadingTimer;
+          return type === "originalPickup" ? originalLoadingTimer : sharedLoadingTimer;
         } else if (location.type === "destination") {
-          return type === "originalDestination"
-            ? originalUnloadingTimer
-            : sharedUnloadingTimer;
+          return type === "originalDestination" ? originalUnloadingTimer : sharedUnloadingTimer;
         }
         return null;
       };
 
       const timer = getTimer();
 
+      const isStopRideEnabled = rideStarted && currentStep === type;
+      const isLoadingEnabled = 
+        (type === "originalPickup" && currentStep === "originalLoading") ||
+        (type === "sharedPickup" && currentStep === "sharedLoading");
+      const isUnloadingEnabled = 
+        (type === "originalDestination" && currentStep === "originalUnloading") ||
+        (type === "sharedDestination" && currentStep === "sharedUnloading");
+
       return (
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          {!isCompleted && (
+          <Tooltip title={!isStopRideEnabled ? "Complete previous steps first" : ""}>
             <Button
               onClick={() => stopRideForLocation(location, type)}
-              style={{ ...buttonStyle, backgroundColor: "#ff4d4f" }}
-              //disabled={!rideStarted || !isCurrentStep}
+              style={!isStopRideEnabled ? disabledButtonStyle : { ...buttonStyle, backgroundColor: "#ff4d4f" }}
+              disabled={!isStopRideEnabled}
             >
               Stop Ride for {location.label}
             </Button>
-          )}
+          </Tooltip>
 
           {location.type === "pickup" ? (
             <>
-              {(
-                type === "originalPickup" ? isLoadingOriginal : isLoadingShared
-              ) ? (
+              {(type === "originalPickup" ? isLoadingOriginal : isLoadingShared) ? (
                 <Button
                   onClick={() => stopLoading(location.stockId)}
                   style={{ ...buttonStyle, backgroundColor: "#ff4d4f" }}
                 >
-                  Stop Loading {timer} {" "}
+                  Stop Loading {timer}
                 </Button>
               ) : (
-                <Button
-                  onClick={() => startLoading(location.stockId)}
-                  style={buttonStyle}
-                  //disabled={!isCurrentStep || isCompleted}
-                >
-                  Start Loading
-                </Button>
+                <Tooltip title={!isLoadingEnabled ? "Stop ride at this location first" : ""}>
+                  <Button
+                    onClick={() => startLoading(location.stockId)}
+                    style={!isLoadingEnabled ? disabledButtonStyle : buttonStyle}
+                    disabled={!isLoadingEnabled}
+                  >
+                    Start Loading
+                  </Button>
+                </Tooltip>
               )}
             </>
           ) : (
             <>
-              {(
-                type === "originalDestination"
-                  ? isUnloadingOriginal
-                  : isUnloadingShared
-              ) ? (
+              {(type === "originalDestination" ? isUnloadingOriginal : isUnloadingShared) ? (
                 <Button
                   onClick={() => stopUnloading(location.stockId)}
                   style={{ ...buttonStyle, backgroundColor: "#ff4d4f" }}
                 >
-                  Stop Unloading {timer}{" "}
-                  {/* Display the correct unloading timer */}
+                  Stop Unloading {timer}
                 </Button>
               ) : (
-                <Button
-                  onClick={() => startUnloading(location.stockId)}
-                  style={buttonStyle}
-                  //disabled={!isCurrentStep || isCompleted}
-                >
-                  Start Unloading
-                </Button>
+                <Tooltip title={!isUnloadingEnabled ? "Stop ride at this location first" : ""}>
+                  <Button
+                    onClick={() => startUnloading(location.stockId)}
+                    style={!isUnloadingEnabled ? disabledButtonStyle : buttonStyle}
+                    disabled={!isUnloadingEnabled}
+                  >
+                    Start Unloading
+                  </Button>
+                </Tooltip>
               )}
             </>
           )}
@@ -1010,13 +1014,15 @@ const BookingNavigation = () => {
               title="Current Location"
               description={currentLocationAddress || "Fetching address..."}
             />
-            <Button
-              onClick={startRide}
-              style={{ ...buttonStyle, backgroundColor: "#52c41a" }}
-              disabled={rideStarted}
-            >
-              Start Ride
-            </Button>
+            <Tooltip title={rideStarted ? "Ride has already started" : ""}>
+              <Button
+                onClick={startRide}
+                style={rideStarted ? disabledButtonStyle : { ...buttonStyle, backgroundColor: "#52c41a" }}
+                disabled={rideStarted}
+              >
+                Start Ride
+              </Button>
+            </Tooltip>
           </List.Item>
         </List>
 
@@ -1045,13 +1051,16 @@ const BookingNavigation = () => {
             justifyContent: "space-between",
           }}
         >
-          <Button
-            onClick={handleNavigate}
-            style={buttonStyle}
-            icon={<CompassOutlined />}
-          >
-            Navigate
-          </Button>
+          <Tooltip title={!rideStarted ? "Ride must be started to navigate" : ""}>
+            <Button
+              onClick={handleNavigate}
+              style={!rideStarted ? disabledButtonStyle : buttonStyle}
+              icon={<CompassOutlined />}
+              disabled={!rideStarted}
+            >
+              Navigate
+            </Button>
+          </Tooltip>
           <Button
             onClick={openInGoogleMaps}
             style={buttonStyle}
@@ -1059,16 +1068,17 @@ const BookingNavigation = () => {
           >
             Open in Google Maps
           </Button>
-          <Button
-            onClick={finishRide}
-            style={{ ...buttonStyle, backgroundColor: "#ff4d4f" }}
-            //disabled={!rideStarted}
-          >
-            Finish Ride
-          </Button>
+          <Tooltip title={currentStep !== "finish" ? "Complete all steps before finishing the ride" : ""}>
+            <Button
+              onClick={finishRide}
+              style={currentStep !== "finish" ? disabledButtonStyle : { ...buttonStyle, backgroundColor: "#ff4d4f" }}
+              disabled={currentStep !== "finish"}
+            >
+              Finish Ride
+            </Button>
+          </Tooltip>
         </div>
       </Card>
-
       <Modal
   title="Payment Summary"
   visible={showPaymentSummary}

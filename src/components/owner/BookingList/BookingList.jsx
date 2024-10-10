@@ -1,38 +1,10 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
-import {
-  Card,
-  Button,
-  Modal,
-  Spin,
-  Typography,
-  Space,
-  Tag,
-  Timeline,
-  Tooltip,
-  Tabs,
-  Row,
-  Col,
-  Statistic,
-} from "antd";
-import {
-  CarOutlined,
-  ClockCircleOutlined,
-  DollarOutlined,
-  EnvironmentOutlined,
-  UserOutlined,
-  PhoneOutlined,
-  MailOutlined,
-} from "@ant-design/icons";
+import React, { useEffect, useState, useCallback } from "react";
+import { Calendar, Badge, Modal, Spin, Typography, Space, Row, Col,  Card, Tag, Divider } from "antd";
 import httpService from "../../../services/httpService";
-import {
-  GoogleMap,
-  Marker,
-  DirectionsService,
-  DirectionsRenderer,
-} from "@react-google-maps/api";
+import { GoogleMap, Marker, DirectionsService, DirectionsRenderer } from "@react-google-maps/api";
+import moment from 'moment';
 
-const { Title, Text, Paragraph } = Typography;
-const { TabPane } = Tabs;
+const { Title, Text } = Typography;
 
 const containerStyle = {
   width: "100%",
@@ -63,17 +35,6 @@ const BookingsList = () => {
     fetchBookings();
   }, [fetchBookings]);
 
-  const groupedBookings = useMemo(() => {
-    return bookings.reduce((acc, booking) => {
-      const date = new Date(booking.bookingDate).toLocaleDateString();
-      if (!acc[date]) {
-        acc[date] = [];
-      }
-      acc[date].push(booking);
-      return acc;
-    }, {});
-  }, [bookings]);
-
   const geocodeLatLng = useCallback((geocoder, lat, lng) => {
     return new Promise((resolve, reject) => {
       const latlng = { lat, lng };
@@ -91,8 +52,13 @@ const BookingsList = () => {
     });
   }, []);
 
-  const handleViewMore = useCallback(
-    async (booking) => {
+  const handleSelectEvent = useCallback(async (date) => {
+    const selectedDateBookings = bookings.filter(booking => 
+      moment(booking.bookingDate).format('YYYY-MM-DD') === date.format('YYYY-MM-DD')
+    );
+
+    if (selectedDateBookings.length > 0) {
+      const booking = selectedDateBookings[0];
       const geocoder = new window.google.maps.Geocoder();
 
       try {
@@ -110,9 +76,8 @@ const BookingsList = () => {
       } catch (error) {
         console.error("Error fetching location names:", error);
       }
-    },
-    [geocodeLatLng]
-  );
+    }
+  }, [bookings, geocodeLatLng]);
 
   const handleCancel = useCallback(() => {
     setShowModal(false);
@@ -120,249 +85,193 @@ const BookingsList = () => {
     setDirectionsResponse(null);
   }, []);
 
-  const renderMap = useMemo(() => {
+  const renderMap = () => {
     if (!selectedBooking) return null;
 
     return (
-      <GoogleMap
-        mapContainerStyle={containerStyle}
-        center={{
-          lat: selectedBooking.startLat,
-          lng: selectedBooking.startLong,
-        }}
-        zoom={10}
-      >
-        <Marker
-          position={{
+      <Card title="Trip Map" style={{ marginTop: 16 }}>
+        <GoogleMap
+          mapContainerStyle={containerStyle}
+          center={{
             lat: selectedBooking.startLat,
             lng: selectedBooking.startLong,
           }}
-          icon={{
-            url: "/path/to/start-icon.png",
-            scaledSize: new window.google.maps.Size(50, 50),
-          }}
-          label="Start"
-        />
-        <Marker
-          position={{
-            lat: selectedBooking.destLat,
-            lng: selectedBooking.destLong,
-          }}
-          icon={{
-            url: "/path/to/end-icon.png",
-            scaledSize: new window.google.maps.Size(50, 50),
-          }}
-          label="End"
-        />
-
-        <DirectionsService
-          options={{
-            origin: {
+          zoom={10}
+        >
+          <Marker
+            position={{
               lat: selectedBooking.startLat,
               lng: selectedBooking.startLong,
-            },
-            destination: {
+            }}
+            icon={{
+              url: "/path/to/start-icon.png",
+              scaledSize: new window.google.maps.Size(50, 50),
+            }}
+            label="Start"
+          />
+          <Marker
+            position={{
               lat: selectedBooking.destLat,
               lng: selectedBooking.destLong,
-            },
-            travelMode: "DRIVING",
-          }}
-          callback={(response) => {
-            if (response?.status === "OK" && !directionsResponse) {
-              setDirectionsResponse(response);
-            }
-          }}
-        />
+            }}
+            icon={{
+              url: "/path/to/end-icon.png",
+              scaledSize: new window.google.maps.Size(50, 50),
+            }}
+            label="End"
+          />
 
-        {directionsResponse && (
-          <DirectionsRenderer directions={directionsResponse} />
-        )}
-      </GoogleMap>
-    );
-  }, [selectedBooking, directionsResponse]);
+          <DirectionsService
+            options={{
+              origin: {
+                lat: selectedBooking.startLat,
+                lng: selectedBooking.startLong,
+              },
+              destination: {
+                lat: selectedBooking.destLat,
+                lng: selectedBooking.destLong,
+              },
+              travelMode: "DRIVING",
+            }}
+            callback={(response) => {
+              if (response?.status === "OK" && !directionsResponse) {
+                setDirectionsResponse(response);
+              }
+            }}
+          />
 
-  const renderBookingCard = useCallback(
-    (booking) => (
-      <Card
-        key={booking.id}  // Added key prop here
-        className="booking-card"
-        hoverable
-        actions={[
-          <Tooltip key="view-more" title="View Booking Details and Map">
-            <Button
-              onClick={() => handleViewMore(booking)}
-              icon={<EnvironmentOutlined />}
-            >
-              View More
-            </Button>
-          </Tooltip>,
-        ]}
-      >
-        <Card.Meta
-          title={`${booking.customer?.firstName || ""} ${
-            booking.customer?.lastName || ""
-          }`}
-          description={
-            <Space direction="vertical">
-              <Text>
-                <ClockCircleOutlined /> Pickup: {booking.pickupTime}
-              </Text>
-              <Text>
-                <CarOutlined /> Vehicle: {booking.vehicleId}
-              </Text>
-              <Text>
-                <DollarOutlined /> Total: LKR{" "}
-                {(
-                  (booking.vehicleCharge || 0) + (booking.serviceCharge || 0)
-                ).toLocaleString()}
-              </Text>
-              <Tag color={booking.status === "Completed" ? "green" : "blue"}>
-                {booking.status}
-              </Tag>
-            </Space>
-          }
-        />
+          {directionsResponse && (
+            <DirectionsRenderer directions={directionsResponse} />
+          )}
+        </GoogleMap>
       </Card>
-    ),
-    [handleViewMore]
-  );
+    );
+  };
 
-  const renderBookingDetails = useMemo(() => {
+  const renderBookingDetails = () => {
     if (!selectedBooking) return null;
-
+  
+    const statusColor = selectedBooking.status === "Completed" ? "#52c41a" : "#1890ff";
+    const totalCharge = selectedBooking.vehicleCharge + selectedBooking.serviceCharge;
+  
     return (
-      <Space direction="vertical" size="large" style={{ width: "100%" }}>
+      <Space direction="vertical" size="medium" style={{ width: "100%" }}>
+     
+        
+        {/* Booking Information */}
         <Row gutter={16}>
           <Col span={12}>
-            <Statistic
-              title="Customer"
-              value={`${selectedBooking.customer.firstName}  ${selectedBooking.customer.lastName}`}
-              prefix={<UserOutlined />}
-            />
+            <Text strong>Booking ID:</Text> {selectedBooking.id}
           </Col>
           <Col span={12}>
-            <Statistic title="Status" value={selectedBooking.status} />
+            <Text strong>Booking Date:</Text> {moment(selectedBooking.bookingDate).format('MMMM D, YYYY')}
+          </Col>
+          <Col span={12}>
+            <Text strong>Status:</Text> <Tag color={statusColor}>{selectedBooking.status}</Tag>
+          </Col>
+          <Col span={12}>
+            <Text strong>Vehicle:</Text> {selectedBooking.vehicleId}
           </Col>
         </Row>
+        <Divider />
+  
+        {/* Customer Information */}
+        <Title level={4} style={{ marginBottom: 8 }}>Customer Information</Title>
         <Row gutter={16}>
           <Col span={12}>
-            <Statistic
-              title="Phone"
-              value={selectedBooking.customer.mobileNum}
-              prefix={<PhoneOutlined />}
-            />
+            <Text strong>Customer Name:</Text> {`${selectedBooking.customer.firstName} ${selectedBooking.customer.lastName}`}
           </Col>
           <Col span={12}>
-            <Statistic
-              title="Email"
-              value={selectedBooking.customer.email}
-              prefix={<MailOutlined />}
-            />
+            <Text strong>Phone:</Text> {selectedBooking.customer.mobileNum}
           </Col>
-        </Row>
-        <Row gutter={16}>
-          <Col span={12}>
-            <Statistic
-              title="Pickup Time"
-              value={selectedBooking.pickupTime}
-              prefix={<ClockCircleOutlined />}
-            />
-          </Col>
-          <Col span={12}>
-            <Statistic
-              title="Vehicle"
-              value={selectedBooking.vehicleId}
-              prefix={<CarOutlined />}
-            />
-          </Col>
-        </Row>
-        <Row gutter={16}>
-          <Col span={12}>
-            <Statistic
-              title="Vehicle Charge"
-              value={`LKR ${selectedBooking.vehicleCharge.toLocaleString()}`}
-              prefix={<DollarOutlined />}
-            />
-          </Col>
-          <Col span={12}>
-            <Statistic
-              title="Service Charge"
-              value={`LKR ${selectedBooking.serviceCharge.toLocaleString()}`}
-              prefix={<DollarOutlined />}
-            />
-          </Col>
-        </Row>
-        <Row gutter={16}>
           <Col span={24}>
-            <Statistic
-              title="Total Charge"
-              value={`LKR ${(
-                selectedBooking.vehicleCharge + selectedBooking.serviceCharge
-              ).toLocaleString()}`}
-              prefix={<DollarOutlined />}
-            />
+            <Text strong>Email:</Text> {selectedBooking.customer.email}
           </Col>
         </Row>
-        <Paragraph>
-          <Text strong>Start Location:</Text> {selectedBooking.startLocation}
-        </Paragraph>
-        <Paragraph>
-          <Text strong>End Location:</Text> {selectedBooking.endLocation}
-        </Paragraph>
+        <Divider />
+  
+        {/* Trip Details */}
+        <Title level={4} style={{ marginBottom: 8 }}>Trip Details</Title>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Text strong>Pickup Time:</Text> {selectedBooking.pickupTime}
+          </Col>
+          <Col span={24}>
+            <Text strong>Start Location:</Text> {selectedBooking.startLocation}
+          </Col>
+          <Col span={24}>
+            <Text strong>End Location:</Text> {selectedBooking.endLocation}
+          </Col>
+        </Row>
+        <Divider />
+  
+        {/* Payment Summary */}
+        <Title level={4} style={{ marginBottom: 8 }}>Payment Summary</Title>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Text strong>Vehicle Charge:</Text> {`LKR ${selectedBooking.vehicleCharge.toLocaleString()}`}
+          </Col>
+          <Col span={12}>
+            <Text strong>Service Charge:</Text> {`LKR ${selectedBooking.serviceCharge.toLocaleString()}`}
+          </Col>
+          <Col span={24}>
+            <Divider />
+            <Text strong>Total Charge:</Text>{" "}
+            <Text style={{ color: '#cf1322', fontSize: '16px' }}>
+              LKR {totalCharge.toLocaleString()}
+            </Text>
+          </Col>
+        </Row>
+        <Divider />
+  
+        {/* Route Map */}
+        <Title level={4} style={{ marginBottom: 8 }}>Route Map</Title>
+        {renderMap()}
       </Space>
     );
-  }, [selectedBooking]);
+  };
+  
+  
+  const dateCellRender = (value) => {
+    const listData = bookings.filter(booking => 
+      moment(booking.bookingDate).format('YYYY-MM-DD') === value.format('YYYY-MM-DD')
+    );
+
+    return (
+      <ul className="events" style={{ listStyle: 'none', padding: 0 }}>
+        {listData.map((item) => (
+          <li key={item.id}>
+            <Badge 
+              status={item.status === "Completed" ? "success" : "processing"} 
+              text={`${item.customer.firstName} ${item.customer.lastName}`} 
+            />
+          </li>
+        ))}
+      </ul>
+    );
+  };
 
   if (loading) return <Spin tip="Loading bookings..." size="large" />;
   if (error) return <p>Error: {error}</p>;
 
   return (
     <div style={{ margin: "20px" }}>
-      <Title level={2}>Bookings Overview</Title>
-      <Tabs defaultActiveKey="1">
-        <TabPane tab="Timeline View" key="1">
-          <Timeline mode="alternate">
-            {Object.entries(groupedBookings).map(([date, dateBookings]) => (
-              <Timeline.Item key={date} label={date}>
-                <Title level={4}>
-                  {date} ({dateBookings.length} bookings)
-                </Title>
-                {dateBookings.map((booking) => (
-                  <div key={booking.id}>{renderBookingCard(booking)}</div>
-                ))}
-              </Timeline.Item>
-            ))}
-          </Timeline>
-        </TabPane>
-        <TabPane tab="List View" key="2">
-          {Object.entries(groupedBookings).map(([date, dateBookings]) => (
-            <div key={date}>
-              <Title level={4}>
-                {date} ({dateBookings.length} bookings)
-              </Title>
-              {dateBookings.map((booking) => (
-                <div key={booking.id}>{renderBookingCard(booking)}</div>
-              ))}
-            </div>
-          ))}
-        </TabPane>
-      </Tabs>
+      <Title level={2}>Bookings Calendar</Title>
+      <Card>
+        <Calendar 
+          dateCellRender={dateCellRender} 
+          onSelect={handleSelectEvent}
+        />
+      </Card>
 
       <Modal
-        title="Booking Details"
+        title={<Title level={3}>Booking Details</Title>}
         visible={showModal}
         onCancel={handleCancel}
         footer={null}
         width={800}
       >
-        <Tabs defaultActiveKey="1">
-          <TabPane tab="Booking Information" key="1">
-            {renderBookingDetails}
-          </TabPane>
-          <TabPane tab="Map View" key="2">
-            {renderMap}
-          </TabPane>
-        </Tabs>
+        {renderBookingDetails()}
       </Modal>
     </div>
   );
