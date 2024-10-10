@@ -1,7 +1,8 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { GoogleMap, DirectionsRenderer, Marker, useJsApiLoader } from '@react-google-maps/api';
-import { Button, Card, message, Row, Col, Spin } from 'antd';
+import { Card, message, Row, Col, Spin } from 'antd';
 import { io } from 'socket.io-client';
+import { useNavigate } from 'react-router-dom';
 
 const PickupStock = () => {
   const [socket, setSocket] = useState(null);
@@ -11,6 +12,8 @@ const PickupStock = () => {
   const [loadingTime, setLoadingTime] = useState('00:00:00');
   const [unloadingTime, setUnloadingTime] = useState('00:00:00');
   const [bookingId, setBookingId] = useState('');
+  const [bookingType, setBookingType] = useState('original');
+  const navigate = useNavigate();
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: 'AIzaSyA4AnscOsaLsNUGrCnWrJH-k8XlBsltPgM',
@@ -19,8 +22,12 @@ const PickupStock = () => {
 
   useEffect(() => {
     const storedBookingId = localStorage.getItem('bookingId');
+    const storedBookingType = localStorage.getItem('bookingType');
     if (storedBookingId) {
       setBookingId(storedBookingId);
+    }
+    if (storedBookingType) {
+      setBookingType(storedBookingType);
     }
 
     const newSocket = io('https://stocktrans.azurewebsites.net');
@@ -59,12 +66,19 @@ const PickupStock = () => {
         setDriverLocation({ lat: data.latitude, lng: data.longitude });
       });
 
+      socket.on('unloadingComplete', () => {
+        navigate('/customer/pay-balance', {
+          state: { bookingId, bookingType }
+        });
+      });
+
       return () => {
         socket.off('timerUpdate');
         socket.off('coordinates');
+        socket.off('unloadingComplete');
       };
     }
-  }, [socket, bookingId]);
+  }, [socket, bookingId, bookingType, navigate]);
 
   useEffect(() => {
     if (isLoaded && driverLocation && customerLocation) {
@@ -86,15 +100,6 @@ const PickupStock = () => {
       );
     }
   }, [isLoaded, driverLocation, customerLocation]);
-
-  const leaveRideRoom = useCallback(() => {
-    if (socket && bookingId) {
-      socket.emit('leaveRideRoom', bookingId);
-      setBookingId('');
-      localStorage.removeItem('bookingId');
-      message.success('Left ride room');
-    }
-  }, [socket, bookingId]);
 
   const renderMap = () => {
     if (!isLoaded) return <Spin size="large" />;
@@ -119,11 +124,6 @@ const PickupStock = () => {
       <Row gutter={[16, 16]}>
         <Col span={24}>
           {renderMap()}
-        </Col>
-        <Col span={24}>
-          <Button onClick={leaveRideRoom} type="primary" danger>
-            Leave Ride Room
-          </Button>
         </Col>
         <Col span={12}>
           <Card size="small" title="Loading Time">

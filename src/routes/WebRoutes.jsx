@@ -50,6 +50,7 @@ import CustomerPasswordChange from '../components/customer/CustomerPasswordChang
 import DriverPasswordChange from '../components/driver/DriverPasswordChange/DriverPasswordChange';
 import WalletComponent from '../components/owner/WalletComponent/WalletComponent';
 import CreateBankAccount from '../components/owner/CreateBankAccount/CreateBankAccount';
+import BalancePayment from '../components/customer/BalancePayment/BalancePayment';
 
 const WebRoutes = () => {
   return (
@@ -148,6 +149,7 @@ const WebRoutes = () => {
           <Route path="shared-booking-history" element={<SharedBookingsHistory />} />
           <Route path='password-change' element={<CustomerPasswordChange/>}/>
           <Route path="pickup-stock" element={<PickupStock />} />
+          <Route path="pay-balance" element={<BalancePayment />} />
 
         </Route>
       </Routes>

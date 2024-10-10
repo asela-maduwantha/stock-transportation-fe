@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Tag, Rate, Space, Select, DatePicker, Row, Col, Empty, Spin, Button, Pagination, Modal, Input, message } from 'antd';
-import { CalendarOutlined, EnvironmentOutlined, ClockCircleOutlined, CarOutlined, DollarOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import { Card, Tag, Rate, Space, Select, DatePicker, Row, Col, Empty, Spin, Button, Pagination, Modal, Input, message, Radio } from 'antd';
+import { CalendarOutlined, EnvironmentOutlined, ClockCircleOutlined, CarOutlined, DollarOutlined, CloseCircleOutlined, UserOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import httpService from '../../../services/httpService';
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
+const { TextArea } = Input;
 
 const BookingHistory = () => {
   const [bookings, setBookings] = useState([]);
@@ -19,9 +20,20 @@ const BookingHistory = () => {
   const [ratingModalVisible, setRatingModalVisible] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
   const [currentBookingId, setCurrentBookingId] = useState(null);
+  const [currentDriverId, setCurrentDriverId] = useState(null);
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
+  const [review, setReview] = useState('');
+  const [cancelReason, setCancelReason] = useState('');
   const pageSize = 6;
   const navigate = useNavigate();
+
+  const cancelReasons = [
+    'Change of plans',
+    'Found alternative transportation',
+    'Unexpected circumstances',
+    'Booking error',
+    'Other'
+  ];
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -37,7 +49,6 @@ const BookingHistory = () => {
         setBookings(bookingsWithLocations);
         setFilteredBookings(bookingsWithLocations);
         
-        // Filter today's bookings
         const today = new Date().setHours(0, 0, 0, 0);
         const todayBookings = bookingsWithLocations.filter(booking => 
           new Date(booking.bookingDate).setHours(0, 0, 0, 0) === today && booking.status === 'upcoming'
@@ -65,6 +76,10 @@ const BookingHistory = () => {
       });
     });
   };
+
+  useEffect(() => {
+    applyFilters();
+  }, [statusFilter, dateRange, vehicleFilter]);
 
   const applyFilters = () => {
     let result = bookings;
@@ -103,22 +118,47 @@ const BookingHistory = () => {
     return `${dateObj.toLocaleDateString()} ${time}`;
   };
 
-  const handlePayBalance = (bookingId) => {
-    // Implement payment logic here
-    console.log(`Paying balance for booking ${bookingId}`);
-  };
-
-  const handleRateBooking = (bookingId) => {
+  const handleRateBooking = (bookingId, driverId) => {
     setCurrentBookingId(bookingId);
+    setCurrentDriverId(driverId);
     setRatingModalVisible(true);
   };
 
-  const handleSubmitRating = () => {
-    // Implement rating submission logic here
-    console.log(`Submitting rating ${currentRating} for booking ${currentBookingId}`);
-    setRatingModalVisible(false);
-    setCurrentRating(0);
-    setCurrentBookingId(null);
+  const handleSubmitRating = async () => {
+    if (currentRating === 0) {
+      message.error('Please select a rating');
+      return;
+    }
+
+    try {
+      const customerId = localStorage.getItem('customerId');
+      const response = await httpService.post(`/customer/rate/${customerId}`, {
+        rate: currentRating,
+        review: review,
+        driverId: currentDriverId,
+        bookingId: currentBookingId
+      });
+      
+      if (response.status === 200) {
+        message.success('Rating submitted successfully');
+        setRatingModalVisible(false);
+        setCurrentRating(0);
+        setReview('');
+        setCurrentBookingId(null);
+        setCurrentDriverId(null);
+        
+        // Update the local state to reflect the rating
+        setBookings(bookings.map(booking => 
+          booking.id === currentBookingId ? {...booking, rated: true} : booking
+        ));
+        setFilteredBookings(filteredBookings.map(booking => 
+          booking.id === currentBookingId ? {...booking, rated: true} : booking
+        ));
+      }
+    } catch (error) {
+      console.error('Error submitting rating:', error);
+      message.error('Failed to submit rating');
+    }
   };
 
   const handleCancelBooking = (bookingId) => {
@@ -126,20 +166,27 @@ const BookingHistory = () => {
     setCancelModalVisible(true);
   };
 
-  const confirmCancelBooking = () => {
-    httpService.put(`/customer/cancelBooking/${currentBookingId}`)
-      .then(() => {
-        message.success('Booking cancelled successfully');
-        setBookings(bookings.map(booking => 
-          booking.id === currentBookingId ? {...booking, status: 'canceled'} : booking
-        ));
-        setFilteredBookings(filteredBookings.map(booking => 
-          booking.id === currentBookingId ? {...booking, status: 'canceled'} : booking
-        ));
-        setTodayBookings(todayBookings.filter(booking => booking.id !== currentBookingId));
-        setCancelModalVisible(false);
-      })
-      .catch(() => message.error('Failed to cancel booking'));
+  const confirmCancelBooking = async () => {
+    if (!cancelReason) {
+      message.error('Please select a reason for cancellation');
+      return;
+    }
+    try {
+      await httpService.put(`/customer/cancelBooking/${currentBookingId}`, { reason: cancelReason });
+      message.success('Booking cancelled successfully');
+      setBookings(bookings.map(booking => 
+        booking.id === currentBookingId ? {...booking, status: 'canceled'} : booking
+      ));
+      setFilteredBookings(filteredBookings.map(booking => 
+        booking.id === currentBookingId ? {...booking, status: 'canceled'} : booking
+      ));
+      setTodayBookings(todayBookings.filter(booking => booking.id !== currentBookingId));
+      setCancelModalVisible(false);
+      setCancelReason('');
+    } catch (error) {
+      console.error('Error cancelling booking:', error);
+      message.error('Failed to cancel booking');
+    }
   };
 
   const handleViewRideStatus = (bookingId) => {
@@ -165,28 +212,46 @@ const BookingHistory = () => {
       <p><ClockCircleOutlined style={{ marginRight: '8px' }} />Travel Time: {booking.travellingTime.toFixed(2)} min</p>
       <p><CarOutlined style={{ marginRight: '8px' }} />Capacity: {booking.vehicle.capacity} {booking.vehicle.capacityUnit}</p>
       <p><DollarOutlined style={{ marginRight: '8px' }} />Charge: LKR {booking.vehicleCharge.toFixed(2)}</p>
+      {booking.status === 'complete' && booking.driver && (
+        <p><UserOutlined style={{ marginRight: '8px' }} />Driver: {`${booking.driver.firstName} ${booking.driver.lastName}`}</p>
+      )}
       
-      {booking.status === 'upcoming' && (
-        <div style={{ marginTop: '16px' }}>
-          <Button type="primary" onClick={() => handlePayBalance(booking.id)} style={{ width: '100%', marginBottom: '8px' }}>
-            Pay Balance
-          </Button>
-          <Button type="primary" danger ghost onClick={() => handleCancelBooking(booking.id)} style={{ width: '100%', marginBottom: '8px' }}>
-            Cancel Booking
-          </Button>
-          {showRideStatusButton && (
-            <Button type="default" onClick={() => handleViewRideStatus(booking.id)} style={{ width: '100%' }}>
-              View Ride Status
+      <Space direction="vertical" style={{ width: '100%', marginTop: '16px' }}>
+        {booking.status === 'upcoming' && (
+          <>
+            {showRideStatusButton && (
+              <Button 
+                type="default" 
+                onClick={() => handleViewRideStatus(booking.id)} 
+                style={{ width: '100%' }}
+                className="hover-button"
+              >
+                View Ride Status
+              </Button>
+            )}
+            <Button 
+              type="primary" 
+              danger 
+              onClick={() => handleCancelBooking(booking.id)} 
+              style={{ width: '100%' }}
+              className="hover-button"
+            >
+              Cancel Booking
             </Button>
-          )}
-        </div>
-      )}
-      
-      {booking.status === 'complete' && (
-        <Button type="default" onClick={() => handleRateBooking(booking.id)} style={{ marginTop: '16px', width: '100%' }}>
-          Rate
-        </Button>
-      )}
+          </>
+        )}
+        
+        {booking.status === 'complete' && booking.driver && !booking.rated && (
+          <Button 
+            type="default" 
+            onClick={() => handleRateBooking(booking.id, booking.driver.id)} 
+            style={{ width: '100%' }}
+            className="hover-button"
+          >
+            Rate
+          </Button>
+        )}
+      </Space>
     </Card>
   );
 
@@ -242,10 +307,6 @@ const BookingHistory = () => {
           <Option value="Freezer">Freezer</Option>
           <Option value="Lorry">Lorry</Option>
         </Select>
-        
-        <Button type="primary" onClick={applyFilters}>
-          Apply Filters
-        </Button>
       </Space>
 
       <Row gutter={[24, 24]}>
@@ -268,16 +329,23 @@ const BookingHistory = () => {
         title="Rate your booking"
         visible={ratingModalVisible}
         onOk={handleSubmitRating}
-        onCancel={() => setRatingModalVisible(false)}
+        onCancel={() => {
+          setRatingModalVisible(false);
+          setCurrentRating(0);
+          setReview('');
+        }}
       >
         <Rate
           value={currentRating}
           onChange={setCurrentRating}
           style={{ fontSize: '32px', marginBottom: '16px' }}
         />
-        <Input.TextArea
+        <TextArea
           rows={4}
-          placeholder="Leave a comment (optional)"
+          placeholder="Leave a review (optional)"
+          value={review}
+          onChange={(e) => setReview(e.target.value)}
+          style={{ marginBottom: '16px' }}
         />
       </Modal>
 
@@ -285,12 +353,24 @@ const BookingHistory = () => {
         title="Cancel Booking"
         visible={cancelModalVisible}
         onOk={confirmCancelBooking}
-        onCancel={() => setCancelModalVisible(false)}
+        onCancel={() => {
+          setCancelModalVisible(false);
+          setCancelReason('');
+        }}
         okText="Yes, Cancel"
         cancelText="No"
         icon={<CloseCircleOutlined />}
       >
         <p>Are you sure you want to cancel this booking? Please note that your advance payment will not be refunded.</p>
+        <Radio.Group
+          onChange={(e) => setCancelReason(e.target.value)}
+          value={cancelReason}
+          style={{ marginTop: '16px', display: 'flex', flexDirection: 'column' }}
+        >
+        {cancelReasons.map((reason) => (
+            <Radio key={reason} value={reason} style={{ marginBottom: '8px' }}>{reason}</Radio>
+          ))}
+        </Radio.Group>
       </Modal>
     </div>
   );
