@@ -10,6 +10,7 @@ import {
   LogoutOutlined,
   MenuOutlined,
   WalletOutlined,
+  UserSwitchOutlined,
 } from "@ant-design/icons";
 import Logo from "../../../assets/Logo.png";
 
@@ -64,13 +65,19 @@ const OwnerHeader = () => {
     {
       key: 'wallet',
       icon: <WalletOutlined />,
-      label: 'wallet',
+      label: 'Wallet',
       link: '/owner/wallet',
+    },
+    {
+      key: 'profile-update',
+      icon: <UserSwitchOutlined />,
+      label: 'Profile Update',
+      link: '/owner/profile-update',
     },
     {
       key: 'password-change',
       icon: <SettingOutlined />,
-      label: 'password-change',
+      label: 'Password Change',
       link: '/owner/password-change',
     }
   ];

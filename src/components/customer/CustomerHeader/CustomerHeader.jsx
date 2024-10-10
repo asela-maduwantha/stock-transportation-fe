@@ -9,6 +9,7 @@ import {
   HistoryOutlined,
   SettingOutlined,
   MenuOutlined,
+  UserSwitchOutlined,
 } from "@ant-design/icons";
 import Logo from "../../../assets/Logo.png";
 import "./CustomerHeader.css";
@@ -53,6 +54,12 @@ const CustomerHeader = () => {
       icon: <ShareAltOutlined />,
       label: "Shared Booking History",
       link: "/customer/shared-booking-history",
+    },
+    {
+      key: 'profile-update',
+      icon: <UserSwitchOutlined />,
+      label: 'Profile Update',
+      link: '/customer/profile-update',
     },
     {
       key: 'password-change',

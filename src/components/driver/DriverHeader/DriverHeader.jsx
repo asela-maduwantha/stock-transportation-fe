@@ -9,6 +9,7 @@ import {
   QuestionCircleOutlined,
   MenuOutlined,
   LogoutOutlined,
+  UserSwitchOutlined,
 } from "@ant-design/icons";
 import Logo from "../../../assets/Logo.png";
 import "./DriverHeader.css";
@@ -47,6 +48,12 @@ const DriverHeader = () => {
       icon: <CarOutlined />,
       label: "Vehicles",
       link: "/driver/vehicles",
+    },
+    {
+      key: 'profile-update',
+      icon: <UserSwitchOutlined />,
+      label: 'Profile Update',
+      link: '/driver/profile-update',
     },
     {
       key: 'password-change',

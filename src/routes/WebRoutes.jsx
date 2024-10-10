@@ -51,6 +51,9 @@ import DriverPasswordChange from '../components/driver/DriverPasswordChange/Driv
 import WalletComponent from '../components/owner/WalletComponent/WalletComponent';
 import CreateBankAccount from '../components/owner/CreateBankAccount/CreateBankAccount';
 import BalancePayment from '../components/customer/BalancePayment/BalancePayment';
+import OwnerProfileUpdate from '../components/owner/OwnerProfileUpdate/OwnerProfileUpdate';
+import CustomerProfileUpdate from '../components/customer/CustomerProfileUpdate/CustomerProfileUpdate';
+import DriverProfileUpdate from '../components/driver/DriverProfileUpdate/DriverProfileUpdate';
 
 const WebRoutes = () => {
   return (
@@ -70,6 +73,7 @@ const WebRoutes = () => {
           <Route path='/owner/forgot-password' element={<OwnerForgotPassword/>}/>
           <Route path='/customer/forgot-password' element={<CustomerForgotPassword/>}/>
           <Route path='/driver/forgot-password' element={<DriverForgotPassword/>}/>
+          <Route path="cost-calculator" element={<CostCalculator />} />
         </Route>
         <Route path="/payment" element={<Payment />} />
 
@@ -104,6 +108,7 @@ const WebRoutes = () => {
       <Route path='booking-navigations' element={<BookingNavigation/>}/>
       <Route path='password-change' element={<DriverPasswordChange/>}/>
       <Route path="help" element={<Help />} />
+      <Route path="profile-update" element={<DriverProfileUpdate />} />
  
         </Route>
 
@@ -125,6 +130,7 @@ const WebRoutes = () => {
           <Route path='password-change' element={<OwnerPasswordChange/>}/>
           <Route path='wallet' element={<WalletComponent/>}/>
           <Route path='create-bank-account' element={<CreateBankAccount/>}/>
+          <Route path='profile-update' element={<OwnerProfileUpdate/>}/>
           
         </Route>
 
@@ -140,7 +146,6 @@ const WebRoutes = () => {
           <Route path="dashboard" element={<CustomerDashboard />} />
           <Route path="booking" element={<VehicleBooking />} />
           <Route path="booking-history" element={<BookingHistory />} />
-          <Route path="cost-calculator" element={<CostCalculator />} />
           <Route path="profile-settings" element={<ProfileSettings />} />
           <Route path="booking-summary" element={<BookingSummary />} />
           <Route path="shared-booking" element={<SharedBookings />} />
@@ -150,6 +155,7 @@ const WebRoutes = () => {
           <Route path='password-change' element={<CustomerPasswordChange/>}/>
           <Route path="pickup-stock" element={<PickupStock />} />
           <Route path="pay-balance" element={<BalancePayment />} />
+          <Route path='profile-update' element={<CustomerProfileUpdate/>}/>
 
         </Route>
       </Routes>
