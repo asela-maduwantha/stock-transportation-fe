@@ -1,6 +1,16 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Card, List, Button, Typography, message, Spin, Modal, Divider, Tooltip} from "antd";
+import {
+  Card,
+  List,
+  Button,
+  Typography,
+  message,
+  Spin,
+  Modal,
+  Divider,
+  Tooltip,
+} from "antd";
 import {
   EnvironmentOutlined,
   CompassOutlined,
@@ -52,8 +62,8 @@ const BookingNavigation = () => {
   const [isSharedDestinationCompleted, setIsSharedDestinationCompleted] =
     useState(false);
 
-    //usestates for current stpe tracking
-    const [currentStep,setCurrentStep] = useState('')
+  //usestates for current stpe tracking
+  const [currentStep, setCurrentStep] = useState("");
 
   // Payment summary state
   const [showPaymentSummary, setShowPaymentSummary] = useState(false);
@@ -91,7 +101,6 @@ const BookingNavigation = () => {
     cursor: "not-allowed",
     opacity: 0.6,
   };
-
 
   // API calls
   const fetchCoordinates = useCallback(async () => {
@@ -394,7 +403,7 @@ const BookingNavigation = () => {
 
         if (response.status === 200) {
           message.success(`Ride stopped for ${location.label}`);
-    
+
           if (type === "originalPickup") {
             setIsOriginalPickupCompleted(true);
             setCurrentStep("originalLoading");
@@ -407,7 +416,8 @@ const BookingNavigation = () => {
           } else if (type === "originalDestination") {
             setIsOriginalDestinationCompleted(true);
             setCurrentStep("originalUnloading");
-          }}
+          }
+        }
       } catch (error) {
         console.error("Error stopping ride:", error);
         message.error("Failed to stop the ride. Please try again.");
@@ -436,7 +446,7 @@ const BookingNavigation = () => {
       message.error("Failed to start loading");
     }
   };
-  
+
   const stopLoading = async (stockId) => {
     try {
       await httpService.put(
@@ -461,7 +471,7 @@ const BookingNavigation = () => {
       message.error("Failed to stop loading");
     }
   };
-  
+
   const startUnloading = async (stockId) => {
     try {
       await httpService.post(
@@ -481,7 +491,7 @@ const BookingNavigation = () => {
       message.error("Failed to start unloading");
     }
   };
-  
+
   const stopUnloading = async (stockId) => {
     try {
       await httpService.put(
@@ -543,7 +553,6 @@ const BookingNavigation = () => {
   // Finish ride
   const finishRide = async () => {
     try {
-      
       setRideStarted(false);
       stopLocationTracking();
       if (socketRef.current) {
@@ -769,14 +778,23 @@ const BookingNavigation = () => {
 
   // Render functions
   const renderLocationItem = (location, type) => {
-    const icon = location.type === "pickup" ? <EnvironmentOutlined /> : <CompassOutlined />;
-    
+    const icon =
+      location.type === "pickup" ? (
+        <EnvironmentOutlined />
+      ) : (
+        <CompassOutlined />
+      );
+
     const renderActionButtons = () => {
       const getTimer = () => {
         if (location.type === "pickup") {
-          return type === "originalPickup" ? originalLoadingTimer : sharedLoadingTimer;
+          return type === "originalPickup"
+            ? originalLoadingTimer
+            : sharedLoadingTimer;
         } else if (location.type === "destination") {
-          return type === "originalDestination" ? originalUnloadingTimer : sharedUnloadingTimer;
+          return type === "originalDestination"
+            ? originalUnloadingTimer
+            : sharedUnloadingTimer;
         }
         return null;
       };
@@ -784,19 +802,26 @@ const BookingNavigation = () => {
       const timer = getTimer();
 
       const isStopRideEnabled = rideStarted && currentStep === type;
-      const isLoadingEnabled = 
+      const isLoadingEnabled =
         (type === "originalPickup" && currentStep === "originalLoading") ||
         (type === "sharedPickup" && currentStep === "sharedLoading");
-      const isUnloadingEnabled = 
-        (type === "originalDestination" && currentStep === "originalUnloading") ||
+      const isUnloadingEnabled =
+        (type === "originalDestination" &&
+          currentStep === "originalUnloading") ||
         (type === "sharedDestination" && currentStep === "sharedUnloading");
 
       return (
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          <Tooltip title={!isStopRideEnabled ? "Complete previous steps first" : ""}>
+          <Tooltip
+            title={!isStopRideEnabled ? "Complete previous steps first" : ""}
+          >
             <Button
               onClick={() => stopRideForLocation(location, type)}
-              style={!isStopRideEnabled ? disabledButtonStyle : { ...buttonStyle, backgroundColor: "#ff4d4f" }}
+              style={
+                !isStopRideEnabled
+                  ? disabledButtonStyle
+                  : { ...buttonStyle, backgroundColor: "#ff4d4f" }
+              }
               disabled={!isStopRideEnabled}
             >
               Stop Ride for {location.label}
@@ -805,7 +830,9 @@ const BookingNavigation = () => {
 
           {location.type === "pickup" ? (
             <>
-              {(type === "originalPickup" ? isLoadingOriginal : isLoadingShared) ? (
+              {(
+                type === "originalPickup" ? isLoadingOriginal : isLoadingShared
+              ) ? (
                 <Button
                   onClick={() => stopLoading(location.stockId)}
                   style={{ ...buttonStyle, backgroundColor: "#ff4d4f" }}
@@ -813,10 +840,16 @@ const BookingNavigation = () => {
                   Stop Loading {timer}
                 </Button>
               ) : (
-                <Tooltip title={!isLoadingEnabled ? "Stop ride at this location first" : ""}>
+                <Tooltip
+                  title={
+                    !isLoadingEnabled ? "Stop ride at this location first" : ""
+                  }
+                >
                   <Button
                     onClick={() => startLoading(location.stockId)}
-                    style={!isLoadingEnabled ? disabledButtonStyle : buttonStyle}
+                    style={
+                      !isLoadingEnabled ? disabledButtonStyle : buttonStyle
+                    }
                     disabled={!isLoadingEnabled}
                   >
                     Start Loading
@@ -826,7 +859,11 @@ const BookingNavigation = () => {
             </>
           ) : (
             <>
-              {(type === "originalDestination" ? isUnloadingOriginal : isUnloadingShared) ? (
+              {(
+                type === "originalDestination"
+                  ? isUnloadingOriginal
+                  : isUnloadingShared
+              ) ? (
                 <Button
                   onClick={() => stopUnloading(location.stockId)}
                   style={{ ...buttonStyle, backgroundColor: "#ff4d4f" }}
@@ -834,10 +871,18 @@ const BookingNavigation = () => {
                   Stop Unloading {timer}
                 </Button>
               ) : (
-                <Tooltip title={!isUnloadingEnabled ? "Stop ride at this location first" : ""}>
+                <Tooltip
+                  title={
+                    !isUnloadingEnabled
+                      ? "Stop ride at this location first"
+                      : ""
+                  }
+                >
                   <Button
                     onClick={() => startUnloading(location.stockId)}
-                    style={!isUnloadingEnabled ? disabledButtonStyle : buttonStyle}
+                    style={
+                      !isUnloadingEnabled ? disabledButtonStyle : buttonStyle
+                    }
                     disabled={!isUnloadingEnabled}
                   >
                     Start Unloading
@@ -1017,7 +1062,11 @@ const BookingNavigation = () => {
             <Tooltip title={rideStarted ? "Ride has already started" : ""}>
               <Button
                 onClick={startRide}
-                style={rideStarted ? disabledButtonStyle : { ...buttonStyle, backgroundColor: "#52c41a" }}
+                style={
+                  rideStarted
+                    ? disabledButtonStyle
+                    : { ...buttonStyle, backgroundColor: "#52c41a" }
+                }
                 disabled={rideStarted}
               >
                 Start Ride
@@ -1051,7 +1100,9 @@ const BookingNavigation = () => {
             justifyContent: "space-between",
           }}
         >
-          <Tooltip title={!rideStarted ? "Ride must be started to navigate" : ""}>
+          <Tooltip
+            title={!rideStarted ? "Ride must be started to navigate" : ""}
+          >
             <Button
               onClick={handleNavigate}
               style={!rideStarted ? disabledButtonStyle : buttonStyle}
@@ -1068,11 +1119,21 @@ const BookingNavigation = () => {
           >
             Open in Google Maps
           </Button>
-          <Tooltip title={currentStep !== "finish" ? "Complete all steps before finishing the ride" : ""}>
+          <Tooltip
+            title={
+              currentStep !== "finish"
+                ? "Complete all steps before finishing the ride"
+                : ""
+            }
+          >
             <Button
               onClick={finishRide}
-              style={currentStep !== "finish" ? disabledButtonStyle : { ...buttonStyle, backgroundColor: "#ff4d4f" }}
-              disabled={currentStep !== "finish"}
+              style={
+                currentStep !== "completed"
+                  ? disabledButtonStyle
+                  : { ...buttonStyle, backgroundColor: "#ff4d4f" }
+              }
+              disabled={currentStep !== "completed"}
             >
               Finish Ride
             </Button>
@@ -1080,49 +1141,56 @@ const BookingNavigation = () => {
         </div>
       </Card>
       <Modal
-  title="Payment Summary"
-  visible={showPaymentSummary}
-  onOk={() => setShowPaymentSummary(false)}
-  onCancel={() => setShowPaymentSummary(false)}
-  footer={[
-    <Button key="back" onClick={() => setShowPaymentSummary(false)}>
-      Close
-    </Button>,
-  ]}
-  width={600} // Adjust width if necessary
->
-  {paymentSummary && (
-    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-      <Title level={4}>Payment Details</Title>
-      <Divider />
-      <div style={{ marginBottom: '15px' }}>
-        <Text strong>Vehicle Charge:</Text> <Text>LKR {paymentSummary.vehicleCharge}</Text>
-      </div>
-      <div style={{ marginBottom: '15px' }}>
-        <Text strong>Service Charge:</Text> <Text>LKR {paymentSummary.serviceCharge}</Text>
-      </div>
-      <div style={{ marginBottom: '15px' }}>
-        <Text strong>Handling Charge:</Text> <Text>LKR {paymentSummary.handlingCharge}</Text>
-      </div>
-      <Divider />
-      <div style={{ marginBottom: '15px' }}>
-        <Text strong>Total Amount:</Text> <Text>LKR {paymentSummary.total}</Text>
-      </div>
-      {paymentSummary.sharedDiscount && (
-        <div style={{ marginBottom: '15px' }}>
-          <Text strong>Shared Discount:</Text> <Text>{paymentSummary.sharedDiscount}</Text>
-        </div>
-      )}
-      <Divider />
-      <div style={{ marginBottom: '15px' }}>
-        <Text strong>Advance Payment:</Text> <Text>LKR {paymentSummary.advancePayment}</Text>
-      </div>
-      <div style={{ marginBottom: '15px' }}>
-        <Text strong>Balance Payment:</Text> <Text>LKR {paymentSummary.balPayment}</Text>
-      </div>
-    </div>
-  )}
-</Modal>
+        title="Payment Summary"
+        visible={showPaymentSummary}
+        onOk={() => setShowPaymentSummary(false)}
+        onCancel={() => setShowPaymentSummary(false)}
+        footer={[
+          <Button key="back" onClick={() => setShowPaymentSummary(false)}>
+            Close
+          </Button>,
+        ]}
+        width={600} // Adjust width if necessary
+      >
+        {paymentSummary && (
+          <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
+            <Title level={4}>Payment Details</Title>
+            <Divider />
+            <div style={{ marginBottom: "15px" }}>
+              <Text strong>Vehicle Charge:</Text>{" "}
+              <Text>LKR {paymentSummary.vehicleCharge}</Text>
+            </div>
+            <div style={{ marginBottom: "15px" }}>
+              <Text strong>Service Charge:</Text>{" "}
+              <Text>LKR {paymentSummary.serviceCharge}</Text>
+            </div>
+            <div style={{ marginBottom: "15px" }}>
+              <Text strong>Handling Charge:</Text>{" "}
+              <Text>LKR {paymentSummary.handlingCharge}</Text>
+            </div>
+            <Divider />
+            <div style={{ marginBottom: "15px" }}>
+              <Text strong>Total Amount:</Text>{" "}
+              <Text>LKR {paymentSummary.total}</Text>
+            </div>
+            {paymentSummary.sharedDiscount && (
+              <div style={{ marginBottom: "15px" }}>
+                <Text strong>Shared Discount:</Text>{" "}
+                <Text>{paymentSummary.sharedDiscount}</Text>
+              </div>
+            )}
+            <Divider />
+            <div style={{ marginBottom: "15px" }}>
+              <Text strong>Advance Payment:</Text>{" "}
+              <Text>LKR {paymentSummary.advancePayment}</Text>
+            </div>
+            <div style={{ marginBottom: "15px" }}>
+              <Text strong>Balance Payment:</Text>{" "}
+              <Text>LKR {paymentSummary.balPayment}</Text>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

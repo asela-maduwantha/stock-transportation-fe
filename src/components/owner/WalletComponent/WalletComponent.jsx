@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Card, Table, Button, Typography, Spin, Modal, Input, message } from 'antd';
-import { WalletOutlined, ArrowUpOutlined, ArrowDownOutlined, NumberOutlined, CalendarOutlined, DollarOutlined, SwapOutlined } from '@ant-design/icons';
+import { WalletOutlined, ArrowUpOutlined, ArrowDownOutlined, NumberOutlined, CalendarOutlined, DollarOutlined, SwapOutlined, GiftOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import httpService from '../../../services/httpService';
 
 const { Title, Text } = Typography;
 
-const PrimaryButton = ({ children, onClick, ...props }) => {
+const PrimaryButton = ({ children, onClick, disabled, ...props }) => {
   const [isHovered, setIsHovered] = useState(false);
   
   return (
@@ -17,15 +17,16 @@ const PrimaryButton = ({ children, onClick, ...props }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{
-        backgroundColor: '#fdb940',
+        backgroundColor: disabled ? '#d9d9d9' : '#fdb940',
         color: '#fff',
         fontSize: '15px',
         fontWeight: 'normal',
         border: 'none',
-        cursor: 'pointer',
+        cursor: disabled ? 'not-allowed' : 'pointer',
         transition: 'background-color 0.3s ease, opacity 0.3s ease',
-        opacity: isHovered ? '0.8' : '1',
+        opacity: isHovered && !disabled ? '0.8' : '1',
       }}
+      disabled={disabled}
       {...props}
     >
       {children}
@@ -36,6 +37,7 @@ const PrimaryButton = ({ children, onClick, ...props }) => {
 PrimaryButton.propTypes = {
   children: PropTypes.node.isRequired,
   onClick: PropTypes.func.isRequired,
+  disabled: PropTypes.bool,
 };
 
 const WalletComponent = () => {
@@ -45,10 +47,13 @@ const WalletComponent = () => {
   const [isWithdrawModalVisible, setIsWithdrawModalVisible] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [withdrawLoading, setWithdrawLoading] = useState(false);
+  const [rewards, setRewards] = useState([]);
+  const [selectedReward, setSelectedReward] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchWalletData();
+    fetchRewards();
   }, []);
 
   const fetchWalletData = async () => {
@@ -69,12 +74,34 @@ const WalletComponent = () => {
     }
   };
 
+  const fetchRewards = async () => {
+    const ownerId = localStorage.getItem('ownerId');
+    try {
+      const response = await httpService.get(`/owner/rewards/${ownerId}`);
+      setRewards(response.data.filter(reward => !reward.isClaimed));
+    } catch (err) {
+      console.error('Failed to fetch rewards', err);
+    }
+  };
+
   const handleWithdraw = async () => {
+    const amount = parseFloat(withdrawAmount);
+
+    // Validate input
+    if (isNaN(amount) || (amount <= 0 && !selectedReward)) {
+      message.error('Invalid amount. Please enter an amount greater than 0 or claim a reward.');
+      return;
+    }
+
+    if (amount > walletData.earnings) {
+      message.error('Invalid amount. Please enter an amount less than or equal to your total earnings.');
+      return;
+    }
+
     setWithdrawLoading(true);
     const ownerId = localStorage.getItem('ownerId');
-    
+
     try {
-      // Check bank account availability
       const bankCheckResponse = await httpService.get(`/owner/bankAccAvailability/${ownerId}`);
       if (bankCheckResponse.status !== 200) {
         message.error('Bank account not found. Please add a bank account first.');
@@ -82,13 +109,17 @@ const WalletComponent = () => {
         return;
       }
 
-      // Proceed with withdrawal
       const walletId = bankCheckResponse.data.id;
-      await httpService.post(`/owner/makeWithdrawal/${walletId}`, { amount: parseFloat(withdrawAmount) });
+      await httpService.post(`/owner/makeWithdrawal/${walletId}`, { 
+        amount, 
+        rewardId: selectedReward ? selectedReward.id : null 
+      });
       message.success('Withdrawal successful');
       setIsWithdrawModalVisible(false);
       setWithdrawAmount('');
-      fetchWalletData(); // Refresh wallet data
+      setSelectedReward(null);
+      fetchWalletData();
+      fetchRewards();
     } catch (error) {
       message.error('Withdrawal failed. Please try again.');
     } finally {
@@ -131,10 +162,26 @@ const WalletComponent = () => {
         </span>
       ),
     },
+    {
+      title: <><GiftOutlined /> Rewards</>,
+      dataIndex: 'rewards',
+      key: 'rewards',
+      render: (rewards) => (
+        rewards ? `Claimed: LKR ${rewards.toFixed(2)}` : 'No reward claimed'
+      ),
+    },
   ];
 
   if (loading) return <Spin size="large" />;
   if (error) return <Text type="danger">{error}</Text>;
+
+  const isWithdrawDisabled = () => {
+    const amount = parseFloat(withdrawAmount);
+    if (isNaN(amount) || amount > walletData.earnings || (amount <= 0 && !selectedReward)) {
+      return true;
+    }
+    return false;
+  };
 
   return (
     <Card
@@ -142,7 +189,7 @@ const WalletComponent = () => {
       extra={
         <PrimaryButton 
           onClick={() => setIsWithdrawModalVisible(true)}
-          disabled={walletData.earnings <= 0}
+          disabled={walletData.earnings <= 0 && rewards.length === 0}
         >
           Withdraw Earnings
         </PrimaryButton>
@@ -166,12 +213,18 @@ const WalletComponent = () => {
         title="Withdraw Earnings"
         visible={isWithdrawModalVisible}
         onOk={handleWithdraw}
-        onCancel={() => setIsWithdrawModalVisible(false)}
+        onCancel={() => {
+          setIsWithdrawModalVisible(false);
+          setSelectedReward(null);
+        }}
         footer={[
-          <Button key="back" onClick={() => setIsWithdrawModalVisible(false)}>
+          <Button key="back" onClick={() => {
+            setIsWithdrawModalVisible(false);
+            setSelectedReward(null);
+          }}>
             Cancel
           </Button>,
-          <PrimaryButton key="submit" loading={withdrawLoading} onClick={handleWithdraw}>
+          <PrimaryButton key="submit" loading={withdrawLoading} onClick={handleWithdraw} disabled={isWithdrawDisabled()}>
             Withdraw
           </PrimaryButton>,
         ]}
@@ -184,6 +237,28 @@ const WalletComponent = () => {
           min={0}
           max={walletData.earnings}
         />
+        {rewards.length > 0 && (
+          <div style={{ marginTop: '20px' }}>
+            <Text strong>Available Rewards:</Text>
+            {rewards.map(reward => (
+              <div key={reward.id} style={{ marginTop: '10px' }}>
+                <Text>LKR {reward.rewardAmount.toFixed(2)} - {new Date(reward.date).toLocaleDateString()}</Text>
+                <Button 
+                  type="link" 
+                  onClick={() => setSelectedReward(reward)}
+                  style={{ marginLeft: '10px' }}
+                >
+                  Claim
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+        {selectedReward && (
+          <div style={{ marginTop: '10px' }}>
+            <Text type="success">Selected Reward: LKR {selectedReward.rewardAmount.toFixed(2)}</Text>
+          </div>
+        )}
       </Modal>
     </Card>
   );
