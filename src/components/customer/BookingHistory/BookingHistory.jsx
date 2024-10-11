@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Tag, Rate, Space, Select, DatePicker, Row, Col, Empty, Spin, Button, Pagination, Modal, Input, message, Radio } from 'antd';
 import { CalendarOutlined, EnvironmentOutlined, ClockCircleOutlined, CarOutlined, DollarOutlined, CloseCircleOutlined, UserOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
@@ -35,35 +35,35 @@ const BookingHistory = () => {
     'Other'
   ];
 
-  useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        setLoading(true);
-        const customerId = localStorage.getItem('customerId')
-        const response = await httpService.get(`/customer/myBookings/${customerId}`);
-        const bookingsWithLocations = await Promise.all(response.data.map(async booking => {
-          const startLocation = await getLocationName(booking.startLat, booking.startLong);
-          const destLocation = await getLocationName(booking.destLat, booking.destLong);
-          return { ...booking, startLocation, destLocation };
-        }));
-        setBookings(bookingsWithLocations);
-        setFilteredBookings(bookingsWithLocations);
-        
-        const today = new Date().setHours(0, 0, 0, 0);
-        const todayBookings = bookingsWithLocations.filter(booking => 
-          new Date(booking.bookingDate).setHours(0, 0, 0, 0) === today && booking.status === 'upcoming'
-        );
-        setTodayBookings(todayBookings);
-      } catch (error) {
-        console.error('Error fetching bookings:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-  
-    fetchBookings();
+  const fetchBookings = useCallback(async () => {
+    try {
+      setLoading(true);
+      const customerId = localStorage.getItem('customerId')
+      const response = await httpService.get(`/customer/myBookings/${customerId}`);
+      const bookingsWithLocations = await Promise.all(response.data.map(async booking => {
+        const startLocation = await getLocationName(booking.startLat, booking.startLong);
+        const destLocation = await getLocationName(booking.destLat, booking.destLong);
+        return { ...booking, startLocation, destLocation };
+      }));
+      setBookings(bookingsWithLocations);
+      setFilteredBookings(bookingsWithLocations);
+      
+      const today = new Date().setHours(0, 0, 0, 0);
+      const todayBookings = bookingsWithLocations.filter(booking => 
+        new Date(booking.bookingDate).setHours(0, 0, 0, 0) === today && booking.status === 'upcoming'
+      );
+      setTodayBookings(todayBookings);
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
-  
+
+  useEffect(() => {
+    fetchBookings();
+  }, [fetchBookings]);
+
   const getLocationName = (lat, long) => {
     return new Promise((resolve, reject) => {
       const geocoder = new window.google.maps.Geocoder();
@@ -77,11 +77,7 @@ const BookingHistory = () => {
     });
   };
 
-  useEffect(() => {
-    applyFilters();
-  }, [statusFilter, dateRange, vehicleFilter]);
-
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     let result = bookings;
 
     if (statusFilter !== 'all') {
@@ -102,8 +98,11 @@ const BookingHistory = () => {
 
     setFilteredBookings(result);
     setCurrentPage(1);
-  };
+  }, [bookings, statusFilter, dateRange, vehicleFilter]);
 
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters]);
   const getStatusTag = (status) => {
     const statusColors = {
       upcoming: 'blue',
@@ -136,7 +135,8 @@ const BookingHistory = () => {
         rate: currentRating,
         review: review,
         driverId: currentDriverId,
-        bookingId: currentBookingId
+        bookingId: currentBookingId,
+        bookingType:'original'
       });
       
       if (response.status === 200) {
