@@ -293,7 +293,7 @@ const BookingHistory = () => {
           <Option value="all">All Status</Option>
           <Option value="upcoming">Upcoming</Option>
           <Option value="complete">Completed</Option>
-          <Option value="canceled">Cancelled</Option>
+          <Option value="cancelled">Cancelled</Option>
         </Select>
         
         <RangePicker onChange={(dates) => setDateRange(dates)} />

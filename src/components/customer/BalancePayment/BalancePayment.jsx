@@ -34,8 +34,7 @@ const BalancePayment = () => {
     window.history.pushState(null, document.title, window.location.href);
     window.addEventListener('popstate', preventBackNavigation);
 
-    // Prevent page refresh
-    window.addEventListener('beforeunload', preventRefresh);
+  
 
     return () => {
       window.removeEventListener('popstate', preventBackNavigation);

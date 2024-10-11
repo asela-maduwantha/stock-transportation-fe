@@ -54,6 +54,8 @@ import BalancePayment from '../components/customer/BalancePayment/BalancePayment
 import OwnerProfileUpdate from '../components/owner/OwnerProfileUpdate/OwnerProfileUpdate';
 import CustomerProfileUpdate from '../components/customer/CustomerProfileUpdate/CustomerProfileUpdate';
 import DriverProfileUpdate from '../components/driver/DriverProfileUpdate/DriverProfileUpdate';
+import RewardList from '../components/customer/RewardList/RewardList';
+import StripePayment from '../components/customer/StripePayment/StripePayment';
 
 const WebRoutes = () => {
   return (
@@ -73,9 +75,10 @@ const WebRoutes = () => {
           <Route path='/owner/forgot-password' element={<OwnerForgotPassword/>}/>
           <Route path='/customer/forgot-password' element={<CustomerForgotPassword/>}/>
           <Route path='/driver/forgot-password' element={<DriverForgotPassword/>}/>
-          <Route path="cost-calculator" element={<CostCalculator />} />
+          <Route path="/cost-calculator" element={<CostCalculator />} />
         </Route>
         <Route path="/payment" element={<Payment />} />
+        <Route path="/customer/proceed-bal-payment" element={<StripePayment />} />
 
         <Route
           path="/admin/*"
@@ -156,6 +159,7 @@ const WebRoutes = () => {
           <Route path="pickup-stock" element={<PickupStock />} />
           <Route path="pay-balance" element={<BalancePayment />} />
           <Route path='profile-update' element={<CustomerProfileUpdate/>}/>
+          <Route path='reward-list' element={<RewardList/>}/>
 
         </Route>
       </Routes>

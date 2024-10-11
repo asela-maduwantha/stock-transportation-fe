@@ -10,6 +10,7 @@ import {
   SettingOutlined,
   MenuOutlined,
   UserSwitchOutlined,
+  GiftOutlined,
 } from "@ant-design/icons";
 import Logo from "../../../assets/Logo.png";
 import "./CustomerHeader.css";
@@ -54,6 +55,12 @@ const CustomerHeader = () => {
       icon: <ShareAltOutlined />,
       label: "Shared Booking History",
       link: "/customer/shared-booking-history",
+    },
+    {
+      key: "rewardlist",
+      icon: <GiftOutlined />,
+      label: "Rewards",
+      link: "/customer/reward-list",
     },
     {
       key: 'profile-update',

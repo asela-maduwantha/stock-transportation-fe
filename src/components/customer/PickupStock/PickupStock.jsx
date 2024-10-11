@@ -60,17 +60,16 @@ const PickupStock = () => {
       socket.on('timerUpdate', (data) => {
         if (data.loadingTime) setLoadingTime(data.loadingTime);
         if (data.unloadingTime) setUnloadingTime(data.unloadingTime);
+        if(data.status){navigate('/customer/pay-balance', {
+          state: { bookingId, bookingType }
+        });}
       });
 
       socket.on('coordinates', (data) => {
         setDriverLocation({ lat: data.latitude, lng: data.longitude });
       });
 
-      socket.on('unloadingComplete', () => {
-        navigate('/customer/pay-balance', {
-          state: { bookingId, bookingType }
-        });
-      });
+    
 
       return () => {
         socket.off('timerUpdate');

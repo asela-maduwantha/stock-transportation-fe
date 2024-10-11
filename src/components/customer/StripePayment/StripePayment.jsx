@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Card, Spin, Button, List, message, Modal, Row, Col } from 'antd';
+import { Card, Spin, Button, List, message, Row, Col } from 'antd';
 import { DollarOutlined, GiftOutlined, CreditCardOutlined } from '@ant-design/icons';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import httpService from '../../../services/httpService';
 
 // Replace with your Stripe publishable key
-const stripePromise = loadStripe('your_stripe_publishable_key');
+const stripePromise = loadStripe('pk_test_51Pie4tRtQ613hbe8G3TikfPfnCtZPXAVVm3OoGLCVz9kakWSSsEavxrGfwOi5uruaWhQTLBA5LxJmWATyVeULFXU00vSXeQInt');
 
 const PaymentForm = ({ amount, onPaymentSuccess }) => {
   const stripe = useStripe();
@@ -43,10 +44,16 @@ const PaymentForm = ({ amount, onPaymentSuccess }) => {
         icon={<CreditCardOutlined />}
         style={{ marginTop: 16 }}
       >
-        Pay ${amount.toFixed(2)}
+        Pay LKR {amount.toFixed(2)}
       </Button>
     </form>
   );
+};
+
+// Define prop types for PaymentForm
+PaymentForm.propTypes = {
+  amount: PropTypes.number.isRequired,
+  onPaymentSuccess: PropTypes.func.isRequired,
 };
 
 const StripePayment = () => {
@@ -82,7 +89,7 @@ const StripePayment = () => {
     };
     fetchData();
 
-    // Prevent back navigation and refresh
+    //Prevent back navigation and refresh
     const preventNavigation = (e) => {
       e.preventDefault();
       e.returnValue = '';
@@ -105,7 +112,8 @@ const StripePayment = () => {
         date: new Date().toISOString(),
         serviceCharge: paymentSummary.serviceCharge,
         balPayment: paymentSummary.balancePayment,
-        rewardId: claimedReward?.id
+        rewardId: claimedReward ? claimedReward.id : ''
+        
       });
       message.success('Payment successful!');
       navigate('/payment-confirmation', { state: { paymentId: response.data.id } });
@@ -123,8 +131,8 @@ const StripePayment = () => {
     <Row gutter={[16, 16]} style={{ padding: '24px' }}>
       <Col xs={24} md={16}>
         <Card title="Payment Details" extra={<DollarOutlined />}>
-          <p><strong>Service Charge:</strong> ${paymentSummary.serviceCharge.toFixed(2)}</p>
-          <p><strong>Balance Payment:</strong> ${paymentSummary.balancePayment.toFixed(2)}</p>
+          <p><strong>Service Charge:</strong> LKR {paymentSummary.serviceCharge.toFixed(2)}</p>
+          <p><strong>Balance Payment:</strong> LKR {paymentSummary.balancePayment.toFixed(2)}</p>
           {claimedReward && (
             <p><strong>Discount Applied:</strong> {claimedReward.percentage}%</p>
           )}
@@ -143,8 +151,10 @@ const StripePayment = () => {
             dataSource={rewards}
             renderItem={reward => (
               <List.Item
+                key={reward.id} // Add key prop for each item
                 actions={[
                   <Button 
+                    key={`claim-btn-${reward.id}`} // Add key to Button element
                     onClick={() => handleClaimReward(reward)}
                     disabled={claimedReward}
                   >
