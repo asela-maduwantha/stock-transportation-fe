@@ -1,22 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Tag, Rate, Space, Select, DatePicker, Row, Col, Empty, Spin, Button, Pagination, Modal, Input, message, Radio } from 'antd';
+import { Card, Tag, Rate, Space, Row, Col, Empty, Spin, Button, Modal, Input, message, Radio, Tabs, DatePicker } from 'antd';
 import { CalendarOutlined, EnvironmentOutlined, ClockCircleOutlined, CarOutlined, DollarOutlined, CloseCircleOutlined, UserOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import httpService from '../../../services/httpService';
 
-const { Option } = Select;
-const { RangePicker } = DatePicker;
 const { TextArea } = Input;
+const { TabPane } = Tabs;
+const { RangePicker } = DatePicker;
 
 const BookingHistory = () => {
   const [bookings, setBookings] = useState([]);
   const [filteredBookings, setFilteredBookings] = useState([]);
-  const [todayBookings, setTodayBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [dateRange, setDateRange] = useState(null);
-  const [vehicleFilter, setVehicleFilter] = useState('all');
   const [ratingModalVisible, setRatingModalVisible] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
   const [currentBookingId, setCurrentBookingId] = useState(null);
@@ -24,7 +19,8 @@ const BookingHistory = () => {
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const [review, setReview] = useState('');
   const [cancelReason, setCancelReason] = useState('');
-  const pageSize = 6;
+  const [cancelledReasons, setCancelledReasons] = useState({});
+  const [dateRange, setDateRange] = useState([null, null]);
   const navigate = useNavigate();
 
   const cancelReasons = [
@@ -38,7 +34,7 @@ const BookingHistory = () => {
   const fetchBookings = useCallback(async () => {
     try {
       setLoading(true);
-      const customerId = localStorage.getItem('customerId')
+      const customerId = localStorage.getItem('customerId');
       const response = await httpService.get(`/customer/myBookings/${customerId}`);
       const bookingsWithLocations = await Promise.all(response.data.map(async booking => {
         const startLocation = await getLocationName(booking.startLat, booking.startLong);
@@ -48,23 +44,47 @@ const BookingHistory = () => {
       setBookings(bookingsWithLocations);
       setFilteredBookings(bookingsWithLocations);
       
-      const today = new Date().setHours(0, 0, 0, 0);
-      const todayBookings = bookingsWithLocations.filter(booking => 
-        new Date(booking.bookingDate).setHours(0, 0, 0, 0) === today && booking.status === 'upcoming'
-      );
-      setTodayBookings(todayBookings);
+      // Fetch cancelled reasons for cancelled bookings
+      const cancelledBookings = bookingsWithLocations.filter(booking => booking.status === 'canceled');
+      const cancelledReasonsData = await Promise.all(cancelledBookings.map(async booking => {
+        const reason = await fetchCancelledReason(booking.id);
+        return { [booking.id]: reason };
+      }));
+      setCancelledReasons(Object.assign({}, ...cancelledReasonsData));
     } catch (error) {
       console.error('Error fetching bookings:', error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fetchCancelledReason, getLocationName]);
+
+  const filterBookings = useCallback(() => {
+    if (!dateRange[0] || !dateRange[1]) {
+      setFilteredBookings(bookings);
+      return;
+    }
+
+    const filteredBookings = bookings.filter(booking => {
+      const bookingDate = new Date(booking.bookingDate);
+      return bookingDate >= dateRange[0].startOf('day') && bookingDate <= dateRange[1].endOf('day');
+    });
+
+    setFilteredBookings(filteredBookings);
+  }, [bookings, dateRange]);
 
   useEffect(() => {
     fetchBookings();
   }, [fetchBookings]);
 
-  const getLocationName = (lat, long) => {
+  useEffect(() => {
+    filterBookings();
+  }, [filterBookings]);
+
+  const handleDateRangeChange = (dates) => {
+    setDateRange(dates);
+  };
+
+  const getLocationName = useCallback((lat, long) => {
     return new Promise((resolve, reject) => {
       const geocoder = new window.google.maps.Geocoder();
       geocoder.geocode({ location: { lat, lng: long } }, (results, status) => {
@@ -75,55 +95,39 @@ const BookingHistory = () => {
         }
       });
     });
-  };
+  }, []);
 
-  const applyFilters = useCallback(() => {
-    let result = bookings;
-
-    if (statusFilter !== 'all') {
-      result = result.filter(booking => booking.status === statusFilter);
+  const fetchCancelledReason = useCallback(async (bookingId) => {
+    try {
+      const response = await httpService.get(`/common/cancelledReason/${bookingId}?type=original`);
+      return response.data.reason;
+    } catch (error) {
+      console.error('Error fetching cancelled reason:', error);
+      return 'Unable to fetch reason';
     }
+  }, []);
 
-    if (dateRange) {
-      const [startDate, endDate] = dateRange;
-      result = result.filter(booking => {
-        const bookingDate = new Date(booking.bookingDate);
-        return bookingDate >= startDate.startOf('day').toDate() && bookingDate <= endDate.endOf('day').toDate();
-      });
-    }
-
-    if (vehicleFilter !== 'all') {
-      result = result.filter(booking => booking.vehicle.type === vehicleFilter);
-    }
-
-    setFilteredBookings(result);
-    setCurrentPage(1);
-  }, [bookings, statusFilter, dateRange, vehicleFilter]);
-
-  useEffect(() => {
-    applyFilters();
-  }, [applyFilters]);
-  const getStatusTag = (status) => {
+  const getStatusTag = useCallback((status) => {
     const statusColors = {
       upcoming: 'blue',
       complete: 'green',
       canceled: 'red'
     };
     return <Tag color={statusColors[status]}>{status.charAt(0).toUpperCase() + status.slice(1)}</Tag>;
-  };
+  }, []);
 
-  const formatDateTime = (date, time) => {
+  const formatDateTime = useCallback((date, time) => {
     const dateObj = new Date(date);
     return `${dateObj.toLocaleDateString()} ${time}`;
-  };
+  }, []);
 
-  const handleRateBooking = (bookingId, driverId) => {
+  const handleRateBooking = useCallback((bookingId, driverId) => {
     setCurrentBookingId(bookingId);
     setCurrentDriverId(driverId);
     setRatingModalVisible(true);
-  };
+  }, []);
 
-  const handleSubmitRating = async () => {
+  const handleSubmitRating = useCallback(async () => {
     if (currentRating === 0) {
       message.error('Please select a rating');
       return;
@@ -148,10 +152,7 @@ const BookingHistory = () => {
         setCurrentDriverId(null);
         
         // Update the local state to reflect the rating
-        setBookings(bookings.map(booking => 
-          booking.id === currentBookingId ? {...booking, rated: true} : booking
-        ));
-        setFilteredBookings(filteredBookings.map(booking => 
+        setBookings(prevBookings => prevBookings.map(booking => 
           booking.id === currentBookingId ? {...booking, rated: true} : booking
         ));
       }
@@ -159,14 +160,14 @@ const BookingHistory = () => {
       console.error('Error submitting rating:', error);
       message.error('Failed to submit rating');
     }
-  };
+  }, [currentRating, review, currentDriverId, currentBookingId]);
 
-  const handleCancelBooking = (bookingId) => {
+  const handleCancelBooking = useCallback((bookingId) => {
     setCurrentBookingId(bookingId);
     setCancelModalVisible(true);
-  };
+  }, []);
 
-  const confirmCancelBooking = async () => {
+  const confirmCancelBooking = useCallback(async () => {
     if (!cancelReason) {
       message.error('Please select a reason for cancellation');
       return;
@@ -174,27 +175,24 @@ const BookingHistory = () => {
     try {
       await httpService.put(`/customer/cancelBooking/${currentBookingId}`, { reason: cancelReason });
       message.success('Booking cancelled successfully');
-      setBookings(bookings.map(booking => 
+      setBookings(prevBookings => prevBookings.map(booking => 
         booking.id === currentBookingId ? {...booking, status: 'canceled'} : booking
       ));
-      setFilteredBookings(filteredBookings.map(booking => 
-        booking.id === currentBookingId ? {...booking, status: 'canceled'} : booking
-      ));
-      setTodayBookings(todayBookings.filter(booking => booking.id !== currentBookingId));
       setCancelModalVisible(false);
       setCancelReason('');
+      fetchBookings(); // Refetch bookings to update the cancelled reason
     } catch (error) {
       console.error('Error cancelling booking:', error);
       message.error('Failed to cancel booking');
     }
-  };
+  }, [cancelReason, currentBookingId, fetchBookings]);
 
-  const handleViewRideStatus = (bookingId) => {
+  const handleViewRideStatus = useCallback((bookingId) => {
     localStorage.setItem('bookingId', bookingId);
     navigate('/customer/pickup-stock', { state: { bookingId, bookingType: 'original' } });
-  };
+  }, [navigate]);
 
-  const renderBookingCard = (booking, showRideStatusButton = false) => (
+  const renderBookingCard = useCallback((booking) => (
     <Card 
       title={booking.vehicle.type}
       extra={getStatusTag(booking.status)}
@@ -215,20 +213,21 @@ const BookingHistory = () => {
       {booking.status === 'complete' && booking.driver && (
         <p><UserOutlined style={{ marginRight: '8px' }} />Driver: {`${booking.driver.firstName} ${booking.driver.lastName}`}</p>
       )}
+      {booking.status === 'canceled' && (
+        <p><CloseCircleOutlined style={{ marginRight: '8px' }} />Cancellation Reason: {cancelledReasons[booking.id] || 'Loading...'}</p>
+      )}
       
       <Space direction="vertical" style={{ width: '100%', marginTop: '16px' }}>
         {booking.status === 'upcoming' && (
           <>
-            {showRideStatusButton && (
-              <Button 
-                type="default" 
-                onClick={() => handleViewRideStatus(booking.id)} 
-                style={{ width: '100%' }}
-                className="hover-button"
-              >
-                View Ride Status
-              </Button>
-            )}
+            <Button 
+              type="default" 
+              onClick={() => handleViewRideStatus(booking.id)} 
+              style={{ width: '100%' }}
+              className="hover-button"
+            >
+              View Ride Status
+            </Button>
             <Button 
               type="primary" 
               danger 
@@ -253,77 +252,66 @@ const BookingHistory = () => {
         )}
       </Space>
     </Card>
-  );
+  ), [getStatusTag, formatDateTime, cancelledReasons, handleViewRideStatus, handleCancelBooking, handleRateBooking]);
+
+  const renderBookingList = useCallback((bookings) => (
+    <Row gutter={[24, 24]}>
+      {bookings.map((booking) => (
+        <Col xs={24} sm={12} lg={8} key={booking.id}>
+          {renderBookingCard(booking)}
+        </Col>
+      ))}
+    </Row>
+  ), [renderBookingCard]);
 
   if (loading) {
     return <Spin size="large" />;
   }
 
-  if (bookings.length === 0) {
+  if (filteredBookings.length === 0) {
     return <Empty description="No bookings found" />;
   }
 
-  const paginatedBookings = filteredBookings.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const today = new Date().setHours(0, 0, 0, 0);
+  const todayBookings = filteredBookings.filter(booking => 
+    new Date(booking.bookingDate).setHours(0, 0, 0, 0) === today && booking.status === 'upcoming'
+  );
+  const upcomingBookings = filteredBookings.filter(booking => 
+    new Date(booking.bookingDate) > new Date() && booking.status === 'upcoming'
+  );
+  const canceledBookings = filteredBookings.filter(booking => booking.status === 'canceled');
+  const pastBookings = filteredBookings.filter(booking => 
+    new Date(booking.bookingDate) < new Date() && booking.status === 'complete'
+  );
 
   return (
     <div style={{ padding: '24px' }}>
       <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '24px', textAlign: 'center' }}>Booking History</h1>
       
-      {todayBookings.length > 0 && (
-        <div style={{ marginBottom: '32px' }}>
-          <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '16px' }}>Today&apos;s Bookings</h2>
-          <Row gutter={[24, 24]}>
-            {todayBookings.map((booking) => (
-              <Col xs={24} sm={12} lg={8} key={booking.id}>
-                {renderBookingCard(booking, true)}
-              </Col>
-            ))}
-          </Row>
-        </div>
-      )}
-      
-      <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '16px' }}>All Bookings</h2>
-      
-      <Space wrap style={{ marginBottom: '24px', justifyContent: 'center', width: '100%' }}>
-        <Select 
-          defaultValue="all" 
-          style={{ width: 120 }} 
-          onChange={(value) => setStatusFilter(value)}
-        >
-          <Option value="all">All Status</Option>
-          <Option value="upcoming">Upcoming</Option>
-          <Option value="complete">Completed</Option>
-          <Option value="cancelled">Cancelled</Option>
-        </Select>
-        
-        <RangePicker onChange={(dates) => setDateRange(dates)} />
-        
-        <Select
-          defaultValue="all"
-          style={{ width: 120 }}
-          onChange={(value) => setVehicleFilter(value)}
-        >
-          <Option value="all">All Vehicles</Option>
-          <Option value="Freezer">Freezer</Option>
-          <Option value="Lorry">Lorry</Option>
-        </Select>
+      <Space direction="vertical" style={{ width: '100%', marginBottom: '24px' }}>
+        <RangePicker
+          onChange={handleDateRangeChange}
+          style={{ width: '100%' }}
+        />
       </Space>
 
-      <Row gutter={[24, 24]}>
-        {paginatedBookings.map((booking) => (
-          <Col xs={24} sm={12} lg={8} key={booking.id}>
-            {renderBookingCard(booking)}
-          </Col>
-        ))}
-      </Row>
-
-      <Pagination
-        current={currentPage}
-        total={filteredBookings.length}
-        pageSize={pageSize}
-        onChange={setCurrentPage}
-        style={{ marginTop: '32px', textAlign: 'center' }}
-      />
+      <Tabs defaultActiveKey="today">
+        <TabPane tab="Today's Bookings" key="today">
+          {todayBookings.length > 0 ? renderBookingList(todayBookings) : <Empty description="No bookings for today" />}
+        </TabPane>
+        <TabPane tab="Upcoming Bookings" key="upcoming">
+          {upcomingBookings.length > 0 ? renderBookingList(upcomingBookings) : <Empty description="No upcoming bookings" />}
+        </TabPane>
+        <TabPane tab="Canceled Bookings" key="canceled">
+          {canceledBookings.length > 0 ? renderBookingList(canceledBookings) : <Empty description="No canceled bookings" />}
+        </TabPane>
+        <TabPane tab="Past Bookings" key="past">
+          {pastBookings.length > 0 ? renderBookingList(pastBookings) : <Empty description="No past bookings" />}
+        </TabPane>
+        <TabPane tab="All Bookings" key="all">
+          {renderBookingList(filteredBookings)}
+        </TabPane>
+      </Tabs>
 
       <Modal
         title="Rate your booking"
@@ -367,7 +355,7 @@ const BookingHistory = () => {
           value={cancelReason}
           style={{ marginTop: '16px', display: 'flex', flexDirection: 'column' }}
         >
-        {cancelReasons.map((reason) => (
+          {cancelReasons.map((reason) => (
             <Radio key={reason} value={reason} style={{ marginBottom: '8px' }}>{reason}</Radio>
           ))}
         </Radio.Group>

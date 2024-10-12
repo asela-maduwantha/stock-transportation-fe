@@ -56,6 +56,8 @@ import CustomerProfileUpdate from '../components/customer/CustomerProfileUpdate/
 import DriverProfileUpdate from '../components/driver/DriverProfileUpdate/DriverProfileUpdate';
 import RewardList from '../components/customer/RewardList/RewardList';
 import StripePayment from '../components/customer/StripePayment/StripePayment';
+import OwnerRewardList from '../components/owner/OwnerRewardsList/OwnerRewardList';
+import AdminPasswordChange from '../components/admin/AdminPasswordChange/AdminPasswordChange';
 
 const WebRoutes = () => {
   return (
@@ -92,6 +94,7 @@ const WebRoutes = () => {
           <Route path="owner-requests" element={<ApproveOwnerAccounts />} />
           <Route path="driver-requests" element={<ApproveDriverAccounts />} />
           <Route path="vehicle-requests" element={<ApproveVehicle />} />
+          <Route path="password-change" element={<AdminPasswordChange />} />
         </Route>
 
         <Route
@@ -133,7 +136,8 @@ const WebRoutes = () => {
           <Route path='password-change' element={<OwnerPasswordChange/>}/>
           <Route path='wallet' element={<WalletComponent/>}/>
           <Route path='create-bank-account' element={<CreateBankAccount/>}/>
-          <Route path='profile-update' element={<OwnerProfileUpdate/>}/>
+          <Route path='profile-update' element={<OwnerProfileUpdate/>}/> 
+          <Route path='reward-list' element={<OwnerRewardList/>}/>
           
         </Route>
 
