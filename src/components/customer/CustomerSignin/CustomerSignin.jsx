@@ -31,7 +31,7 @@ const CustomerSignin = () => {
     try {
       const response = await httpService.post('/customer/signin', values);
       if (response.status === 200) {
-        localStorage.setItem('customerId', response.data.customerId);
+        localStorage.setItem('customerId', response.data.id);
         localStorage.setItem('token', response.data.access_token);
         localStorage.setItem('userRole', 'customer');
 

@@ -13,8 +13,8 @@ import {
   DatePicker,
   Modal,
   Tabs,
-  
   Drawer,
+  Statistic,
 } from "antd";
 import {
   EnvironmentOutlined,
@@ -46,6 +46,11 @@ const AssignedTrips = () => {
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [bookingDates, setBookingDates] = useState([]);
   const [selectedTrip, setSelectedTrip] = useState(null);
+  const [statistics, setStatistics] = useState({
+    totalTrips: 0,
+    originalTrips: 0,
+    sharedTrips: 0,
+  });
 
   const getAddressFromCoordinates = async (lat, lng) => {
     try {
@@ -93,6 +98,18 @@ const AssignedTrips = () => {
       );
       setTrips(tripsWithAddresses);
       setBookingDates(tripsWithAddresses.map((trip) => trip.bookingDate));
+      
+      // Calculate statistics
+      const totalTrips = tripsWithAddresses.length;
+      const sharedTrips = tripsWithAddresses.filter(trip => trip.willingToShare).length;
+      const originalTrips = totalTrips - sharedTrips;
+      
+      setStatistics({
+        totalTrips,
+        originalTrips,
+        sharedTrips,
+      });
+      
       setLoading(false);
     } catch (error) {
       console.error("Error fetching trips:", error);
@@ -343,6 +360,17 @@ const AssignedTrips = () => {
         </div>
       ) : (
         <Space direction="vertical" size="large" style={{ width: "100%" }}>
+          <Row gutter={16}>
+            <Col span={8}>
+              <Statistic title="Total Trips" value={statistics.totalTrips} />
+            </Col>
+            <Col span={8}>
+              <Statistic title="Original Trips" value={statistics.originalTrips} />
+            </Col>
+            <Col span={8}>
+              <Statistic title="Shared Trips" value={statistics.sharedTrips} />
+            </Col>
+          </Row>
           <DatePicker
             value={selectedDate}
             onChange={handleDateChange}
@@ -397,8 +425,7 @@ const AssignedTrips = () => {
                   </Text>
                   <Text>{sharedBookingDetails.destAddress}</Text>
                 </Space>
-              </Col>
-              <Col xs={12}>
+              </Col><Col xs={12}>
                 <Text strong>
                   <ClockCircleOutlined /> Travel Time:{" "}
                   {formatTime(

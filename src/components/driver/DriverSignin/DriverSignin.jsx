@@ -40,7 +40,7 @@ const DriverSignin = () => {
       localStorage.setItem('userRole', 'driver');
 
       message.success('Sign-in successful!');
-      navigate('/driver/dashboard');
+      navigate('/driver/assigned-trips');
     } catch (error) {
       console.error('Error signing in:', error);
       message.error('Failed to sign in. Please check your credentials and try again.');

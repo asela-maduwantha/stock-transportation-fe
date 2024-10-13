@@ -31,6 +31,29 @@ const BookingHistory = () => {
     'Other'
   ];
 
+  const getLocationName = useCallback((lat, long) => {
+    return new Promise((resolve, reject) => {
+      const geocoder = new window.google.maps.Geocoder();
+      geocoder.geocode({ location: { lat, lng: long } }, (results, status) => {
+        if (status === 'OK' && results[0]) {
+          resolve(results[0].formatted_address);
+        } else {
+          reject(status);
+        }
+      });
+    });
+  }, []);
+
+  const fetchCancelledReason = useCallback(async (bookingId) => {
+    try {
+      const response = await httpService.get(`/common/cancelledReason/${bookingId}?type=original`);
+      return response.data.reason;
+    } catch (error) {
+      console.error('Error fetching cancelled reason:', error);
+      return 'Unable to fetch reason';
+    }
+  }, []);
+
   const fetchBookings = useCallback(async () => {
     try {
       setLoading(true);
@@ -56,7 +79,7 @@ const BookingHistory = () => {
     } finally {
       setLoading(false);
     }
-  }, [fetchCancelledReason, getLocationName]);
+  }, [getLocationName, fetchCancelledReason]);
 
   const filterBookings = useCallback(() => {
     if (!dateRange[0] || !dateRange[1]) {
@@ -83,29 +106,6 @@ const BookingHistory = () => {
   const handleDateRangeChange = (dates) => {
     setDateRange(dates);
   };
-
-  const getLocationName = useCallback((lat, long) => {
-    return new Promise((resolve, reject) => {
-      const geocoder = new window.google.maps.Geocoder();
-      geocoder.geocode({ location: { lat, lng: long } }, (results, status) => {
-        if (status === 'OK' && results[0]) {
-          resolve(results[0].formatted_address);
-        } else {
-          reject(status);
-        }
-      });
-    });
-  }, []);
-
-  const fetchCancelledReason = useCallback(async (bookingId) => {
-    try {
-      const response = await httpService.get(`/common/cancelledReason/${bookingId}?type=original`);
-      return response.data.reason;
-    } catch (error) {
-      console.error('Error fetching cancelled reason:', error);
-      return 'Unable to fetch reason';
-    }
-  }, []);
 
   const getStatusTag = useCallback((status) => {
     const statusColors = {
@@ -213,7 +213,7 @@ const BookingHistory = () => {
       {booking.status === 'complete' && booking.driver && (
         <p><UserOutlined style={{ marginRight: '8px' }} />Driver: {`${booking.driver.firstName} ${booking.driver.lastName}`}</p>
       )}
-      {booking.status === 'canceled' && (
+      {booking.status === 'cancelled' && (
         <p><CloseCircleOutlined style={{ marginRight: '8px' }} />Cancellation Reason: {cancelledReasons[booking.id] || 'Loading...'}</p>
       )}
       
@@ -279,7 +279,7 @@ const BookingHistory = () => {
   const upcomingBookings = filteredBookings.filter(booking => 
     new Date(booking.bookingDate) > new Date() && booking.status === 'upcoming'
   );
-  const canceledBookings = filteredBookings.filter(booking => booking.status === 'canceled');
+  const canceledBookings = filteredBookings.filter(booking => booking.status === 'cancelled');
   const pastBookings = filteredBookings.filter(booking => 
     new Date(booking.bookingDate) < new Date() && booking.status === 'complete'
   );
@@ -336,6 +336,8 @@ const BookingHistory = () => {
           style={{ marginBottom: '16px' }}
         />
       </Modal>
+
+  
 
       <Modal
         title="Cancel Booking"

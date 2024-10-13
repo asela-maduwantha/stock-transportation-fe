@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button, Menu, Dropdown } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  DashboardOutlined,
+  //DashboardOutlined,
   ContainerOutlined,
   CarOutlined,
   SettingOutlined,
@@ -25,12 +25,12 @@ const DriverHeader = () => {
   };
 
   const menuItems = [
-    {
-      key: "dashboard",
-      icon: <DashboardOutlined />,
-      label: "Dashboard",
-      link: "/driver/dashboard",
-    },
+    // {
+    //   key: "dashboard",
+    //   icon: <DashboardOutlined />,
+    //   label: "Dashboard",
+    //   link: "/driver/dashboard",
+    // },
     {
       key: "pickup-stock",
       icon: <ContainerOutlined />,
