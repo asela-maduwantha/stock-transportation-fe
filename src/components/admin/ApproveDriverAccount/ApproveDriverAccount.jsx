@@ -43,7 +43,7 @@ const ApproveDriverAccounts = () => {
 
   const handleReject = async () => {
     try {
-      await httpService.post(`/admin/rejectDriver/${selectedDriver.id}`);
+      await httpService.delete(`/admin/rejectDriver/${selectedDriver.id}`);
       message.success('Driver rejected successfully');
       setIsModalVisible(false);
       fetchData();

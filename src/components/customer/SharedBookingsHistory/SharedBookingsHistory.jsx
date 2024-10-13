@@ -67,7 +67,6 @@ const SharedBookingsHistory = () => {
       setBookings(bookingsWithLocations);
       setFilteredBookings(bookingsWithLocations);
       
-      // Fetch cancelled reasons for cancelled bookings
       const cancelledBookings = bookingsWithLocations.filter(booking => booking.status === 'canceled');
       const cancelledReasonsData = await Promise.all(cancelledBookings.map(async booking => {
         const reason = await fetchCancelledReason(booking.id);
@@ -79,7 +78,7 @@ const SharedBookingsHistory = () => {
     } finally {
       setLoading(false);
     }
-  }, [fetchCancelledReason,getLocationName]);
+  }, [fetchCancelledReason, getLocationName]);
 
   const filterBookings = useCallback(() => {
     if (!dateRange[0] || !dateRange[1]) {
@@ -106,8 +105,6 @@ const SharedBookingsHistory = () => {
   const handleDateRangeChange = (dates) => {
     setDateRange(dates);
   };
-
-
 
   const getStatusTag = useCallback((status) => {
     const statusColors = {
@@ -153,7 +150,6 @@ const SharedBookingsHistory = () => {
         setCurrentBookingId(null);
         setCurrentDriverId(null);
         
-        // Update the local state to reflect the rating
         setBookings(prevBookings => prevBookings.map(booking => 
           booking.id === currentBookingId ? {...booking, rated: true} : booking
         ));
@@ -182,7 +178,7 @@ const SharedBookingsHistory = () => {
       ));
       setCancelModalVisible(false);
       setCancelReason('');
-      fetchBookings(); // Refetch bookings to update the cancelled reason
+      fetchBookings();
     } catch (error) {
       console.error('Error cancelling booking:', error);
       message.error('Failed to cancel booking');
@@ -190,11 +186,11 @@ const SharedBookingsHistory = () => {
   }, [cancelReason, currentBookingId, fetchBookings]);
 
   const handleViewRideStatus = useCallback((bookingId) => {
-    localStorage.setItem('bookingId', bookingId);
+    localStorage.setItem('sharedBookingId', bookingId);
     navigate('/customer/pickup-stock', { state: { bookingId, bookingType: 'shared' } });
   }, [navigate]);
 
-  const renderBookingCard = useCallback((booking) => (
+  const renderBookingCard = useCallback((booking, isToday = false) => (
     <Card 
       title={booking.vehicle.type}
       extra={getStatusTag(booking.status)}
@@ -222,14 +218,16 @@ const SharedBookingsHistory = () => {
       <Space direction="vertical" style={{ width: '100%', marginTop: '16px' }}>
         {booking.status === 'upcoming' && (
           <>
-            <Button 
-              type="default" 
-              onClick={() => handleViewRideStatus(booking.id)} 
-              style={{ width: '100%' }}
-              className="hover-button"
-            >
-              View Ride Status
-            </Button>
+            {isToday && (
+              <Button 
+                type="default" 
+                onClick={() => handleViewRideStatus(booking.id)} 
+                style={{ width: '100%' }}
+                className="hover-button"
+              >
+                View Ride Status
+              </Button>
+            )}
             <Button 
               type="primary" 
               danger 
@@ -256,11 +254,11 @@ const SharedBookingsHistory = () => {
     </Card>
   ), [getStatusTag, formatDateTime, cancelledReasons, handleCancelBooking, handleRateBooking, handleViewRideStatus]);
 
-  const renderBookingList = useCallback((bookings) => (
+  const renderBookingList = useCallback((bookings, isToday = false) => (
     <Row gutter={[24, 24]}>
       {bookings.map((booking) => (
         <Col xs={24} sm={12} lg={8} key={booking.id}>
-          {renderBookingCard(booking)}
+          {renderBookingCard(booking, isToday)}
         </Col>
       ))}
     </Row>
@@ -279,14 +277,11 @@ const SharedBookingsHistory = () => {
     new Date(booking.date).setHours(0, 0, 0, 0) === today && booking.status === 'upcoming'
   );
   const upcomingBookings = filteredBookings.filter(booking => 
-    new Date(booking.date) > new Date() && booking.status === 'upcoming'
+     booking.status === 'upcoming'
   );
   const canceledBookings = filteredBookings.filter(booking => booking.status === 'canceled');
-  const pastBookings = filteredBookings.filter(booking => 
-    new Date(booking.date) < new Date() && booking.status === 'complete'
+  const pastBookings = filteredBookings.filter(booking => booking.status === 'complete'
   );
-
-  
 
   return (
     <div style={{ padding: '24px' }}>
@@ -301,7 +296,7 @@ const SharedBookingsHistory = () => {
 
       <Tabs defaultActiveKey="today">
         <TabPane tab="Today's Bookings" key="today">
-          {todayBookings.length > 0 ? renderBookingList(todayBookings) : <Empty description="No bookings for today" />}
+          {todayBookings.length > 0 ? renderBookingList(todayBookings, true) : <Empty description="No bookings for today" />}
         </TabPane>
         <TabPane tab="Upcoming Bookings" key="upcoming">
           {upcomingBookings.length > 0 ? renderBookingList(upcomingBookings) : <Empty description="No upcoming bookings" />}

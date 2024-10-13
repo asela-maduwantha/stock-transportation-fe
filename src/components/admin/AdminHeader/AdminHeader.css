@@ -1,59 +1,72 @@
-.admin-header {
-  padding: 5px 10px;
-  height: 50px;
+.customer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
   background-color: #ffffff;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.logo-container {
+  flex: 0 0 auto;
 }
 
 .logo {
   height: 40px;
+  width: auto;
+}
+
+.main-nav {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.desktop-menu {
+  border-bottom: none;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
 }
 
 .logout-btn {
   background-color: #fdb940;
-  color: #ffffff;
-  font-size: 15px;
-  font-weight: normal;
+  color: #fff;
   border: none;
-  transition: background-color 0.3s, color 0.3s;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: opacity 0.3s ease;
 }
 
 .logout-btn:hover {
-  background-color: #e0a828;
-  color: #ffffff;
+  opacity: 0.8;
+}
+
+.mobile-menu-toggle {
+  display: none;
 }
 
 @media (max-width: 768px) {
-  .admin-header {
-    padding: 0 10px;
-    height: 50px;
+  .customer-header {
+    flex-wrap: wrap;
   }
 
-  .logo {
-    height: 30px;
+  .main-nav {
+    display: none;
   }
 
-  .logout-btn {
-    width: 80px;
-    height: 35px;
-    font-size: 14px;
-  }
-}
-
-@media (max-width: 480px) {
-  .admin-header {
-    flex-direction: column;
-    height: auto;
-    align-items: flex-start;
+  .desktop-only {
+    display: none;
   }
 
-  .logo {
-    height: 25px;
+  .mobile-menu-toggle {
+    display: block;
   }
 
-  .logout-btn {
-    width: 70px;
-    height: 30px;
-    font-size: 12px;
+  .actions {
+    margin-left: auto;
   }
 }

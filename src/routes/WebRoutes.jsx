@@ -58,6 +58,8 @@ import RewardList from '../components/customer/RewardList/RewardList';
 import StripePayment from '../components/customer/StripePayment/StripePayment';
 import OwnerRewardList from '../components/owner/OwnerRewardsList/OwnerRewardList';
 import AdminPasswordChange from '../components/admin/AdminPasswordChange/AdminPasswordChange';
+import AdminDashboard from '../components/admin/AdminDashboard/AdminDashboard';
+import AdminBookingDetails from '../components/admin/AdminBookingDetails/AdminBookingDetails';
 
 const WebRoutes = () => {
   return (
@@ -91,10 +93,12 @@ const WebRoutes = () => {
             />
           }
         >
+          <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="owner-requests" element={<ApproveOwnerAccounts />} />
           <Route path="driver-requests" element={<ApproveDriverAccounts />} />
           <Route path="vehicle-requests" element={<ApproveVehicle />} />
           <Route path="password-change" element={<AdminPasswordChange />} />
+          <Route path="booking-details" element={<AdminBookingDetails />} />
         </Route>
 
         <Route

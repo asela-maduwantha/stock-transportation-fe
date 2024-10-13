@@ -40,7 +40,7 @@ const ApproveOwnerAccounts = () => {
 
   const handleReject = async () => {
     try {
-      await httpService.post(`/admin/rejectOwner/${selectedOwner.id}`);
+      await httpService.delete(`/admin/rejectOwner/${selectedOwner.id}`);
       message.success('Owner rejected successfully');
       setIsModalVisible(false);
       fetchData();
