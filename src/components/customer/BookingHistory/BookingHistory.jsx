@@ -54,21 +54,68 @@ const BookingHistory = () => {
     }
   }, []);
 
+  const fetchDriverDetails = useCallback(async (bookingId) => {
+    try {
+      const response = await httpService.get(`/common/upcomingDriver/${bookingId}?type=original`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching driver details:', error);
+      return null;
+    }
+  }, []);
+
+  const fetchOwnerDetails = useCallback(async (bookingId) => {
+    try {
+      const response = await httpService.get(`/common/owner/${bookingId}?type=original`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching owner details:', error);
+      return null;
+    }
+  }, []);
+
+  const fetchRatingDetails = useCallback(async (bookingId) => {
+    try {
+      const response = await httpService.get(`/common/rates/${bookingId}?type=original`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching rating details:', error);
+      return null;
+    }
+  }, []);
+
   const fetchBookings = useCallback(async () => {
     try {
       setLoading(true);
       const customerId = localStorage.getItem('customerId');
       const response = await httpService.get(`/customer/myBookings/${customerId}`);
-      const bookingsWithLocations = await Promise.all(response.data.map(async booking => {
+      const bookingsWithDetails = await Promise.all(response.data.map(async booking => {
         const startLocation = await getLocationName(booking.startLat, booking.startLong);
         const destLocation = await getLocationName(booking.destLat, booking.destLong);
-        return { ...booking, startLocation, destLocation };
+        const ownerDetails = await fetchOwnerDetails(booking.id);
+        let driverDetails = null;
+        let ratingDetails = null;
+
+        if (booking.status === 'upcoming') {
+          driverDetails = await fetchDriverDetails(booking.id);
+        } else if (booking.status === 'complete') {
+          ratingDetails = await fetchRatingDetails(booking.id);
+        }
+
+        return { 
+          ...booking, 
+          startLocation, 
+          destLocation, 
+          ownerDetails,
+          driverDetails,
+          ratingDetails
+        };
       }));
-      setBookings(bookingsWithLocations);
-      setFilteredBookings(bookingsWithLocations);
+      setBookings(bookingsWithDetails);
+      setFilteredBookings(bookingsWithDetails);
       
       // Fetch cancelled reasons for cancelled bookings
-      const cancelledBookings = bookingsWithLocations.filter(booking => booking.status === 'canceled');
+      const cancelledBookings = bookingsWithDetails.filter(booking => booking.status === 'canceled');
       const cancelledReasonsData = await Promise.all(cancelledBookings.map(async booking => {
         const reason = await fetchCancelledReason(booking.id);
         return { [booking.id]: reason };
@@ -79,7 +126,7 @@ const BookingHistory = () => {
     } finally {
       setLoading(false);
     }
-  }, [getLocationName, fetchCancelledReason]);
+  }, [getLocationName, fetchCancelledReason, fetchDriverDetails, fetchOwnerDetails, fetchRatingDetails]);
 
   const filterBookings = useCallback(() => {
     if (!dateRange[0] || !dateRange[1]) {
@@ -210,9 +257,22 @@ const BookingHistory = () => {
       <p><ClockCircleOutlined style={{ marginRight: '8px' }} />Travel Time: {booking.travellingTime.toFixed(2)} min</p>
       <p><CarOutlined style={{ marginRight: '8px' }} />Capacity: {booking.vehicle.capacity} {booking.vehicle.capacityUnit}</p>
       <p><DollarOutlined style={{ marginRight: '8px' }} />Charge: LKR {booking.vehicleCharge.toFixed(2)}</p>
-      {booking.status === 'complete' && booking.driver && (
-        <p><UserOutlined style={{ marginRight: '8px' }} />Driver: {`${booking.driver.firstName} ${booking.driver.lastName}`}</p>
+      
+      {booking.ownerDetails && (
+        <p><UserOutlined style={{ marginRight: '8px' }} />Owner: {`${booking.ownerDetails.firstName} ${booking.ownerDetails.lastName}`}</p>
       )}
+
+      {booking.status === 'upcoming' && booking.driverDetails && (
+        <p><UserOutlined style={{ marginRight: '8px' }} />Driver: {`${booking.driverDetails.firstName} ${booking.driverDetails.lastName}`}</p>
+      )}
+
+      {booking.status === 'complete' && booking.ratingDetails && (
+        <div>
+          <p>Your Rating: <Rate disabled defaultValue={booking.ratingDetails.rate} /></p>
+          {booking.ratingDetails.review && <p>Your Review: {booking.ratingDetails.review}</p>}
+        </div>
+      )}
+
       {booking.status === 'cancelled' && (
         <p><CloseCircleOutlined style={{ marginRight: '8px' }} />Cancellation Reason: {cancelledReasons[booking.id] || 'Loading...'}</p>
       )}
@@ -240,10 +300,10 @@ const BookingHistory = () => {
           </>
         )}
         
-        {booking.status === 'complete' && booking.driver && !booking.rated && (
+        {booking.status === 'complete' && !booking.ratingDetails && (
           <Button 
             type="default" 
-            onClick={() => handleRateBooking(booking.id, booking.driver.id)} 
+            onClick={() => handleRateBooking(booking.id, booking.driverDetails?.id)} 
             style={{ width: '100%' }}
             className="hover-button"
           >

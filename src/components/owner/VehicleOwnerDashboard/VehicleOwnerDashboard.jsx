@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Card, Statistic, Row, Col, Typography, Spin, message } from 'antd';
+import { Card, Statistic, Row, Col, Typography, Spin, message } from 'antd';
 import { UserOutlined, BookOutlined, TrophyOutlined } from '@ant-design/icons';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import httpService from '../../../services/httpService';
 
 const { Title } = Typography;
@@ -21,7 +22,6 @@ const VehicleOwnerDashboard = () => {
         setLoading(false);
       }
     };
-
     fetchDrivers();
   }, []);
 
@@ -30,30 +30,15 @@ const VehicleOwnerDashboard = () => {
   const totalBookings = drivers.reduce((sum, driver) => sum + driver.bookingCount, 0);
   const topDriver = drivers.reduce((max, driver) => (max.bookingCount > driver.bookingCount ? max : driver), {});
 
-  const columns = [
-    {
-      title: 'Name',
-      dataIndex: 'firstName',
-      key: 'name',
-      render: (text, record) => `${record.firstName} ${record.lastName}`,
-    },
-    {
-      title: 'Driver ID',
-      dataIndex: 'driverId',
-      key: 'driverId',
-    },
-    {
-      title: 'Bookings',
-      dataIndex: 'bookingCount',
-      key: 'bookingCount',
-      sorter: (a, b) => a.bookingCount - b.bookingCount,
-    },
-  ];
+  const chartData = drivers.map(driver => ({
+    name: `${driver.firstName} ${driver.lastName}`,
+    bookings: driver.bookingCount
+  }));
 
   return (
     <div style={{ padding: '24px' }}>
       <Title level={2}>Vehicle Owner Dashboard</Title>
-      
+     
       <Row gutter={16} style={{ marginBottom: '24px' }}>
         <Col span={8}>
           <Card>
@@ -90,14 +75,16 @@ const VehicleOwnerDashboard = () => {
           </Card>
         </Col>
       </Row>
-
-      <Card title="Driver List">
-        <Table
-          dataSource={drivers}
-          columns={columns}
-          rowKey="driverId"
-          pagination={{ pageSize: 10 }}
-        />
+      <Card title="Driver Bookings">
+        <ResponsiveContainer width="100%" height={400}>
+          <BarChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip />
+            <Bar dataKey="bookings" fill="#1890ff" />
+          </BarChart>
+        </ResponsiveContainer>
       </Card>
     </div>
   );

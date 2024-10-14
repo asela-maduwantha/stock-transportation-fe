@@ -54,20 +54,67 @@ const SharedBookingsHistory = () => {
     }
   }, []);
 
+  const fetchDriverDetails = useCallback(async (bookingId) => {
+    try {
+      const response = await httpService.get(`/common/upcomingDriver/${bookingId}?type=shared`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching driver details:', error);
+      return null;
+    }
+  }, []);
+
+  const fetchOwnerDetails = useCallback(async (bookingId) => {
+    try {
+      const response = await httpService.get(`/common/owner/${bookingId}?type=shared`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching owner details:', error);
+      return null;
+    }
+  }, []);
+
+  const fetchRatingDetails = useCallback(async (bookingId) => {
+    try {
+      const response = await httpService.get(`/common/rates/${bookingId}?type=shared`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching rating details:', error);
+      return null;
+    }
+  }, []);
+
   const fetchBookings = useCallback(async () => {
     try {
       setLoading(true);
       const customerId = localStorage.getItem('customerId');
       const response = await httpService.get(`/customer/customerSharedBooking/${customerId}`);
-      const bookingsWithLocations = await Promise.all(response.data.map(async booking => {
+      const bookingsWithDetails = await Promise.all(response.data.map(async booking => {
         const startLocation = await getLocationName(booking.startLat, booking.startLong);
         const destLocation = await getLocationName(booking.destLat, booking.destLong);
-        return { ...booking, startLocation, destLocation };
+        const ownerDetails = await fetchOwnerDetails(booking.id);
+        let driverDetails = null;
+        let ratingDetails = null;
+
+        if (booking.status === 'upcoming') {
+          driverDetails = await fetchDriverDetails(booking.id);
+        } else if (booking.status === 'complete') {
+          ratingDetails = await fetchRatingDetails(booking.id);
+        }
+
+        return { 
+          ...booking, 
+          startLocation, 
+          destLocation, 
+          ownerDetails,
+          driverDetails,
+          ratingDetails
+        };
       }));
-      setBookings(bookingsWithLocations);
-      setFilteredBookings(bookingsWithLocations);
+      setBookings(bookingsWithDetails);
+      setFilteredBookings(bookingsWithDetails);
       
-      const cancelledBookings = bookingsWithLocations.filter(booking => booking.status === 'canceled');
+      const cancelledBookings = bookingsWithDetails.filter(booking => booking.status === 'cancelled');
       const cancelledReasonsData = await Promise.all(cancelledBookings.map(async booking => {
         const reason = await fetchCancelledReason(booking.id);
         return { [booking.id]: reason };
@@ -78,7 +125,7 @@ const SharedBookingsHistory = () => {
     } finally {
       setLoading(false);
     }
-  }, [fetchCancelledReason, getLocationName]);
+  }, [getLocationName, fetchCancelledReason, fetchDriverDetails, fetchOwnerDetails, fetchRatingDetails]);
 
   const filterBookings = useCallback(() => {
     if (!dateRange[0] || !dateRange[1]) {
@@ -110,7 +157,7 @@ const SharedBookingsHistory = () => {
     const statusColors = {
       upcoming: 'blue',
       complete: 'green',
-      canceled: 'red'
+      cancelled: 'red'
     };
     return <Tag color={statusColors[status]}>{status.charAt(0).toUpperCase() + status.slice(1)}</Tag>;
   }, []);
@@ -174,7 +221,7 @@ const SharedBookingsHistory = () => {
       await httpService.put(`/customer/cancelSharedBooking/${currentBookingId}`, { reason: cancelReason });
       message.success('Booking cancelled successfully');
       setBookings(prevBookings => prevBookings.map(booking => 
-        booking.id === currentBookingId ? {...booking, status: 'canceled'} : booking
+        booking.id === currentBookingId ? {...booking, status: 'cancelled'} : booking
       ));
       setCancelModalVisible(false);
       setCancelReason('');
@@ -208,10 +255,23 @@ const SharedBookingsHistory = () => {
       <p><ClockCircleOutlined style={{ marginRight: '8px' }} />Travel Time: {booking.travellingTime.toFixed(2)} min</p>
       <p><CarOutlined style={{ marginRight: '8px' }} />Capacity: {booking.vehicle.capacity} {booking.vehicle.capacityUnit}</p>
       <p><DollarOutlined style={{ marginRight: '8px' }} />Charge: LKR {booking.vehicleCharge.toFixed(2)}</p>
-      {booking.status === 'complete' && booking.driver && (
-        <p><UserOutlined style={{ marginRight: '8px' }} />Driver: {`${booking.driver.firstName} ${booking.driver.lastName}`}</p>
+      
+      {booking.ownerDetails && (
+        <p><UserOutlined style={{ marginRight: '8px' }} />Owner: {`${booking.ownerDetails.firstName} ${booking.ownerDetails.lastName}`}</p>
       )}
-      {booking.status === 'canceled' && (
+
+      {booking.status === 'upcoming' && booking.driverDetails && (
+        <p><UserOutlined style={{ marginRight: '8px' }} />Driver: {`${booking.driverDetails.firstName} ${booking.driverDetails.lastName}`}</p>
+      )}
+
+      {booking.status === 'complete' && booking.ratingDetails && (
+        <div>
+          <p>Your Rating: <Rate disabled defaultValue={booking.ratingDetails.rate} /></p>
+          {booking.ratingDetails.review && <p>Your Review: {booking.ratingDetails.review}</p>}
+        </div>
+      )}
+
+      {booking.status === 'cancelled' && (
         <p><CloseCircleOutlined style={{ marginRight: '8px' }} />Cancellation Reason: {cancelledReasons[booking.id] || 'Loading...'}</p>
       )}
       
@@ -240,10 +300,10 @@ const SharedBookingsHistory = () => {
           </>
         )}
         
-        {booking.status === 'complete' && booking.driver && !booking.rated && (
+        {booking.status === 'complete' && !booking.ratingDetails && (
           <Button 
             type="default" 
-            onClick={() => handleRateBooking(booking.id, booking.driver.id)} 
+            onClick={() => handleRateBooking(booking.id, booking.driverDetails?.id)} 
             style={{ width: '100%' }}
             className="hover-button"
           >
@@ -252,7 +312,7 @@ const SharedBookingsHistory = () => {
         )}
       </Space>
     </Card>
-  ), [getStatusTag, formatDateTime, cancelledReasons, handleCancelBooking, handleRateBooking, handleViewRideStatus]);
+  ), [getStatusTag, formatDateTime, cancelledReasons, handleViewRideStatus, handleCancelBooking, handleRateBooking]);
 
   const renderBookingList = useCallback((bookings, isToday = false) => (
     <Row gutter={[24, 24]}>
@@ -277,11 +337,10 @@ const SharedBookingsHistory = () => {
     new Date(booking.date).setHours(0, 0, 0, 0) === today && booking.status === 'upcoming'
   );
   const upcomingBookings = filteredBookings.filter(booking => 
-     booking.status === 'upcoming'
+    booking.status === 'upcoming'
   );
-  const canceledBookings = filteredBookings.filter(booking => booking.status === 'canceled');
-  const pastBookings = filteredBookings.filter(booking => booking.status === 'complete'
-  );
+  const cancelledBookings = filteredBookings.filter(booking => booking.status === 'cancelled');
+  const pastBookings = filteredBookings.filter(booking => booking.status === 'complete');
 
   return (
     <div style={{ padding: '24px' }}>
@@ -301,8 +360,8 @@ const SharedBookingsHistory = () => {
         <TabPane tab="Upcoming Bookings" key="upcoming">
           {upcomingBookings.length > 0 ? renderBookingList(upcomingBookings) : <Empty description="No upcoming bookings" />}
         </TabPane>
-        <TabPane tab="Canceled Bookings" key="canceled">
-          {canceledBookings.length > 0 ? renderBookingList(canceledBookings) : <Empty description="No canceled bookings" />}
+        <TabPane tab="Cancelled Bookings" key="cancelled">
+          {cancelledBookings.length > 0 ? renderBookingList(cancelledBookings) : <Empty description="No cancelled bookings" />}
         </TabPane>
         <TabPane tab="Past Bookings" key="past">
           {pastBookings.length > 0 ? renderBookingList(pastBookings) : <Empty description="No past bookings" />}
