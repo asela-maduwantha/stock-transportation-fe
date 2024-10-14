@@ -11,6 +11,7 @@ import {
   MenuOutlined,
   UserSwitchOutlined,
   GiftOutlined,
+  MessageOutlined,
 } from "@ant-design/icons";
 import Logo from "../../../assets/Logo.png";
 import "./CustomerHeader.css";
@@ -61,6 +62,12 @@ const CustomerHeader = () => {
       icon: <GiftOutlined />,
       label: "Rewards",
       link: "/customer/reward-list",
+    },
+    {
+      key: "chat",
+      icon: <MessageOutlined />,
+      label: "Chat With owner",
+      link: "/customer/chat-with-owner",
     },
     {
       key: 'profile-update',

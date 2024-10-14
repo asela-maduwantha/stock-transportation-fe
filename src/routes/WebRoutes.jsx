@@ -60,6 +60,8 @@ import OwnerRewardList from '../components/owner/OwnerRewardsList/OwnerRewardLis
 import AdminPasswordChange from '../components/admin/AdminPasswordChange/AdminPasswordChange';
 import AdminDashboard from '../components/admin/AdminDashboard/AdminDashboard';
 import AdminBookingDetails from '../components/admin/AdminBookingDetails/AdminBookingDetails';
+import OwnerChat from '../components/owner/OwnerChat/OwnerChat';
+import CustomerChat from '../components/customer/CustomerChat/CustomerChat';
 
 const WebRoutes = () => {
   return (
@@ -142,6 +144,7 @@ const WebRoutes = () => {
           <Route path='create-bank-account' element={<CreateBankAccount/>}/>
           <Route path='profile-update' element={<OwnerProfileUpdate/>}/> 
           <Route path='reward-list' element={<OwnerRewardList/>}/>
+          <Route path='chat-with-customer' element={<OwnerChat/>}/>
           
         </Route>
 
@@ -168,6 +171,7 @@ const WebRoutes = () => {
           <Route path="pay-balance" element={<BalancePayment />} />
           <Route path='profile-update' element={<CustomerProfileUpdate/>}/>
           <Route path='reward-list' element={<RewardList/>}/>
+          <Route path='chat-with-owner' element={<CustomerChat/>}/>
 
         </Route>
       </Routes>

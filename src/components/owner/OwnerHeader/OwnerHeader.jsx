@@ -12,6 +12,7 @@ import {
   WalletOutlined,
   UserSwitchOutlined,
   GiftOutlined,
+  MessageOutlined,
 } from "@ant-design/icons";
 import Logo from "../../../assets/Logo.png";
 
@@ -74,6 +75,12 @@ const OwnerHeader = () => {
       icon: <GiftOutlined />,
       label: 'Rewards',
       link: '/owner/reward-list',
+    },
+    {
+      key: 'chatcustomer',
+      icon: <MessageOutlined />,
+      label: 'Chat',
+      link: '/owner/chat-with-customer',
     },
     {
       key: 'profile-update',
