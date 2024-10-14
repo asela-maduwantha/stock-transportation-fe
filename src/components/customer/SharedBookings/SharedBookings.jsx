@@ -38,7 +38,7 @@ const SharedBookings = () => {
   const dateCellRender = (value) => {
     const bookingsForDate = getBookingsForDate(value);
     if (bookingsForDate.length === 0) return null;
-  
+
     return (
       <div style={{ height: '100%', position: 'relative' }}>
         <div style={{ fontSize: '12px', padding: '4px' }}>
@@ -48,7 +48,7 @@ const SharedBookings = () => {
               const availableCapacity = booking.freeCapacity * booking.vehicle.capacity;
               const totalCapacity = booking.vehicle.capacity;
               const availablePercentage = (availableCapacity / totalCapacity) * 100;
-  
+
               return (
                 <li key={booking.id} style={{ listStyleType: 'none', marginBottom: '8px' }}>
                   <Tooltip
@@ -62,10 +62,10 @@ const SharedBookings = () => {
                       percent={availablePercentage}
                       showInfo={false}
                       strokeColor={{
-                        '0%': '#fdc540', // Red for used space
-                        '100%': '#fdc540', // Green for available space
+                        '0%': '#fdc540', // Yellow for available space
+                        '100%': '#fdc540',
                       }}
-                      trailColor="#DC143C" 
+                      trailColor="#DC143C" // Red for used space
                       status="active"
                     />
                     <span>{availableCapacity} {booking.vehicle.capacityUnit} Available</span>
@@ -78,7 +78,7 @@ const SharedBookings = () => {
       </div>
     );
   };
-  
+
   const handleDateSelect = (date) => {
     setSelectedDate(date);
     setIsModalVisible(true);
@@ -143,6 +143,12 @@ const SharedBookings = () => {
   return (
     <div style={{ padding: '24px' }}>
       <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '24px', textAlign: 'center' }}>Available Shared Bookings</h1>
+
+      {/* Legend for the progress bar colors */}
+      <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+        <Tag color="#fdc540">Available Space</Tag>
+        <Tag color="#DC143C">Used Space</Tag>
+      </div>
 
       <Calendar 
         dateCellRender={dateCellRender} 
