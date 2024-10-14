@@ -12,6 +12,7 @@ import {
   UserSwitchOutlined,
   GiftOutlined,
   MessageOutlined,
+  BellOutlined,
 } from "@ant-design/icons";
 import Logo from "../../../assets/Logo.png";
 import "./CustomerHeader.css";
@@ -23,7 +24,7 @@ const CustomerHeader = () => {
 
   const handleLogout = () => {
     localStorage.clear();
-    navigate("/customer/signin");
+    navigate("/");
   };
 
   const menuItems = [
@@ -66,8 +67,14 @@ const CustomerHeader = () => {
     {
       key: "chat",
       icon: <MessageOutlined />,
-      label: "Chat With owner",
+      label: "Chat",
       link: "/customer/chat-with-owner",
+    },
+    {
+      key: "notification",
+      icon: <BellOutlined />,
+      label: "Notifications",
+      link: "/customer/notification",
     },
     {
       key: 'profile-update',

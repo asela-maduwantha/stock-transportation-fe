@@ -62,6 +62,7 @@ import AdminDashboard from '../components/admin/AdminDashboard/AdminDashboard';
 import AdminBookingDetails from '../components/admin/AdminBookingDetails/AdminBookingDetails';
 import OwnerChat from '../components/owner/OwnerChat/OwnerChat';
 import CustomerChat from '../components/customer/CustomerChat/CustomerChat';
+import { CustomerNotification, DriverNotification, OwnerNotification } from '../components/common/Notification/Notification';
 
 const WebRoutes = () => {
   return (
@@ -121,6 +122,7 @@ const WebRoutes = () => {
       <Route path='password-change' element={<DriverPasswordChange/>}/>
       <Route path="help" element={<Help />} />
       <Route path="profile-update" element={<DriverProfileUpdate />} />
+      <Route path="notification" element={<DriverNotification />} />
  
         </Route>
 
@@ -145,6 +147,7 @@ const WebRoutes = () => {
           <Route path='profile-update' element={<OwnerProfileUpdate/>}/> 
           <Route path='reward-list' element={<OwnerRewardList/>}/>
           <Route path='chat-with-customer' element={<OwnerChat/>}/>
+          <Route path='notification' element={<OwnerNotification/>}/>
           
         </Route>
 
@@ -172,6 +175,7 @@ const WebRoutes = () => {
           <Route path='profile-update' element={<CustomerProfileUpdate/>}/>
           <Route path='reward-list' element={<RewardList/>}/>
           <Route path='chat-with-owner' element={<CustomerChat/>}/>
+          <Route path='notification' element={<CustomerNotification/>}/>
 
         </Route>
       </Routes>

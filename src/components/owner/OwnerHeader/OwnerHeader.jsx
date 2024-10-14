@@ -13,6 +13,7 @@ import {
   UserSwitchOutlined,
   GiftOutlined,
   MessageOutlined,
+  BellOutlined,
 } from "@ant-design/icons";
 import Logo from "../../../assets/Logo.png";
 
@@ -81,6 +82,12 @@ const OwnerHeader = () => {
       icon: <MessageOutlined />,
       label: 'Chat',
       link: '/owner/chat-with-customer',
+    },
+    {
+      key: "notification",
+      icon: <BellOutlined />,
+      label: "Notifications",
+      link: "/owner/notification",
     },
     {
       key: 'profile-update',

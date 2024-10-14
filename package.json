@@ -16,6 +16,7 @@
     "dotenv": "^16.4.5",
     "firebase": "^10.12.2",
     "google-map-react": "^2.2.1",
+    "js-cookie": "^3.0.5",
     "lottie-web": "^5.12.2",
     "lucide-react": "^0.439.0",
     "moment": "^2.30.1",

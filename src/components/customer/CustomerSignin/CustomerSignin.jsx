@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
-import { Button, Input, Form, message } from 'antd';
+import { Button, Input, Form, message, Checkbox } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 import httpService from '../../../services/httpService';
-import CustomerImg from '../../../assets/images/ownersignin.jpg'; 
+import CustomerImg from '../../../assets/images/ownersignin.jpg';
+import Cookies from 'js-cookie';
 
 // Custom hook to detect screen size
 const useScreenSize = () => {
@@ -23,10 +24,11 @@ const useScreenSize = () => {
 
 const CustomerSignin = () => {
   const [loading, setLoading] = useState(false);
+  const [form] = Form.useForm();
   const navigate = useNavigate();
-  const isMobile = useScreenSize(); // Use custom hook to detect mobile
+  const isMobile = useScreenSize();
 
-  const onFinish = async (values) => {
+  const onFinish = useCallback(async (values) => {
     setLoading(true);
     try {
       const response = await httpService.post('/customer/signin', values);
@@ -34,6 +36,14 @@ const CustomerSignin = () => {
         localStorage.setItem('customerId', response.data.id);
         localStorage.setItem('token', response.data.access_token);
         localStorage.setItem('userRole', 'customer');
+
+        if (values.remember) {
+          Cookies.set('customerUsername', values.userName, { expires: 30 });
+          Cookies.set('customerPassword', values.password, { expires: 30 });
+        } else {
+          Cookies.remove('customerUsername');
+          Cookies.remove('customerPassword');
+        }
 
         message.success('Sign-in successful');
         navigate('/customer/dashboard');
@@ -48,7 +58,21 @@ const CustomerSignin = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
+
+  useEffect(() => {
+    const savedUsername = Cookies.get('customerUsername');
+    const savedPassword = Cookies.get('customerPassword');
+    
+    if (savedUsername && savedPassword) {
+      form.setFieldsValue({
+        userName: savedUsername,
+        password: savedPassword,
+        remember: true,
+      });
+      onFinish({ userName: savedUsername, password: savedPassword, remember: true });
+    }
+  }, [form, onFinish]);
 
   const containerStyle = {
     display: 'flex',
@@ -133,7 +157,7 @@ const CustomerSignin = () => {
         </div>
         <div style={formStyle}>
           <h1 style={titleStyle}>Customer Signin</h1>
-          <Form onFinish={onFinish}>
+          <Form form={form} onFinish={onFinish}>
             <Form.Item
               name="userName"
               rules={[{ required: true, message: 'Please input your username!' }]}
@@ -155,6 +179,9 @@ const CustomerSignin = () => {
                 size="large"
                 style={inputStyle}
               />
+            </Form.Item>
+            <Form.Item name="remember" valuePropName="checked">
+              <Checkbox>Remember me</Checkbox>
             </Form.Item>
             <Form.Item>
               <Button

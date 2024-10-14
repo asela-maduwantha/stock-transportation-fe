@@ -10,6 +10,7 @@ import {
   MenuOutlined,
   LogoutOutlined,
   UserSwitchOutlined,
+  BellOutlined,
 } from "@ant-design/icons";
 import Logo from "../../../assets/Logo.png";
 import "./DriverHeader.css";
@@ -48,6 +49,12 @@ const DriverHeader = () => {
       icon: <CarOutlined />,
       label: "Vehicles",
       link: "/driver/vehicles",
+    },
+    {
+      key: "notification",
+      icon: <BellOutlined />,
+      label: "Notifications",
+      link: "/driver/notification",
     },
     {
       key: 'profile-update',
