@@ -79,7 +79,7 @@ const WebRoutes = () => {
           <Route path='/owner/forgot-password' element={<OwnerForgotPassword/>}/>
           <Route path='/customer/forgot-password' element={<CustomerForgotPassword/>}/>
           <Route path='/driver/forgot-password' element={<DriverForgotPassword/>}/>
-          <Route path="/cost-calculator" element={<CostCalculator />} />
+          <Route path="/customer/cost-calculator" element={<CostCalculator />} />
         </Route>
         <Route path="/payment" element={<Payment />} />
         <Route path="/customer/proceed-bal-payment" element={<StripePayment />} />

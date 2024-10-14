@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Select, Input, Button, List, Card, Tag, Spin } from 'antd';
+import { Typography, Select, Input, Button, List, Card, Tag, Spin, Modal } from 'antd';
 import { SearchOutlined, EnvironmentOutlined, CarOutlined, DollarOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import CostCalculator from '../../customer/CostCalculator/CostCalculator'; // Make sure to import the CostCalculator component
 import './HomeSearch.css';
+import httpService from '../../../services/httpService';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -15,11 +16,13 @@ const HomeSearch = () => {
   const [vehicles, setVehicles] = useState([]);
   const [filteredVehicles, setFilteredVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedVehicle, setSelectedVehicle] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   useEffect(() => {
     const fetchVehicles = async () => {
       try {
-        const response = await axios.get('https://stocktrans.azurewebsites.net/customer/vehicles');
+        const response = await httpService.get('/customer/vehicles');
         setVehicles(response.data);
         setFilteredVehicles(response.data);
       } catch (error) {
@@ -46,6 +49,16 @@ const HomeSearch = () => {
       vehicle.preferredArea.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredVehicles(filtered);
+  };
+
+  const handleBookNow = (vehicle) => {
+    setSelectedVehicle(vehicle);
+    setIsModalVisible(true);
+  };
+
+  const handleModalClose = () => {
+    setIsModalVisible(false);
+    setSelectedVehicle(null);
   };
 
   return (
@@ -109,15 +122,25 @@ const HomeSearch = () => {
                     <span><CarOutlined /> Capacity: {item.capacity} {item.capacityUnit}</span>
                     <span><DollarOutlined /> {item.chargePerKm} LKR/km</span>
                   </div>
-                  <Button type="primary" className="book-button">Book Now</Button>
+                  <Button type="primary" className="book-button" onClick={() => handleBookNow(item)}>Calculate Cost</Button>
                 </Card>
               </List.Item>
             )}
           />
         ) : (
-          <div className="no-results"></div>
+          <div className="no-results">No vehicles found</div>
         )}
       </div>
+
+      <Modal
+        title="Cost Calculator"
+        visible={isModalVisible}
+        onCancel={handleModalClose}
+        footer={null}
+        width={800}
+      >
+        {selectedVehicle && <CostCalculator selectedVehicle={selectedVehicle} />}
+      </Modal>
     </div>
   );
 };
