@@ -1,63 +1,28 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Tabs, Typography, Layout, Card, Row, Col, Statistic, Avatar, List, Tag, Space } from 'antd';
-import { CarOutlined, UserOutlined, EnvironmentOutlined } from '@ant-design/icons';
+import React, { useState, useCallback } from 'react';
+import { Tabs, Typography, Layout, Card, Row, Col, Statistic } from 'antd';
+import { CarOutlined, UserOutlined } from '@ant-design/icons';
 import OwnerUnassignedVehicles from '../OwnerUnassignedVehicles/OwnerUnassignedVehicles';
 import AssignedVehicles from '../AssignedVehicles/AssignedVehicles';
-import httpService from '../../../services/httpService';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { Content } = Layout;
 const { TabPane } = Tabs;
 
 const OwnerVehicles = () => {
   const [activeTab, setActiveTab] = useState('1');
   const [statistics, setStatistics] = useState({ total: 0, assigned: 0, unassigned: 0 });
-  const [loading, setLoading] = useState(true);
-  const ownerId = localStorage.getItem('ownerId');
-
-  const fetchVehicleStatistics = useCallback(async () => {
-    try {
-      const response = await httpService.get(`/owner/vehicleStatistics/${ownerId}`);
-      setStatistics(response.data);
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching vehicle statistics:', error);
-      setLoading(false);
-    }
-  }, [ownerId]);
-
-  useEffect(() => {
-    fetchVehicleStatistics();
-  }, [fetchVehicleStatistics]);
 
   const handleTabChange = (key) => {
     setActiveTab(key);
   };
 
-  const renderVehicleList = (vehicles) => (
-    <List
-      itemLayout="horizontal"
-      dataSource={vehicles}
-      renderItem={(vehicle) => (
-        <List.Item>
-          <List.Item.Meta
-            avatar={<Avatar size={64} icon={<CarOutlined />} src={vehicle.photoUrl} />}
-            title={<Text strong>{`${vehicle.type} - ${vehicle.regNo}`}</Text>}
-            description={
-              <Space direction="vertical">
-                <Text><EnvironmentOutlined /> Preferred Area: {vehicle.preferredArea}</Text>
-                <Text>Capacity: {vehicle.capacity} {vehicle.capacityUnit}</Text>
-                <Space>
-                  <Tag color="blue">{vehicle.status}</Tag>
-                  {vehicle.heavyVehicle && <Tag color="orange">Heavy Vehicle</Tag>}
-                </Space>
-              </Space>
-            }
-          />
-        </List.Item>
-      )}
-    />
-  );
+  const updateStatistics = useCallback((assignedCount, unassignedCount) => {
+    setStatistics({
+      total: assignedCount + unassignedCount,
+      assigned: assignedCount,
+      unassigned: unassignedCount
+    });
+  }, []);
 
   return (
     <Layout style={{ minHeight: '100vh', backgroundColor: '#f0f2f5' }}>
@@ -73,7 +38,6 @@ const OwnerVehicles = () => {
                 title="Total Vehicles"
                 value={statistics.total}
                 prefix={<CarOutlined />}
-                loading={loading}
               />
             </Card>
           </Col>
@@ -83,7 +47,6 @@ const OwnerVehicles = () => {
                 title="Assigned Vehicles"
                 value={statistics.assigned}
                 prefix={<UserOutlined />}
-                loading={loading}
                 valueStyle={{ color: '#3f8600' }}
               />
             </Card>
@@ -94,7 +57,6 @@ const OwnerVehicles = () => {
                 title="Unassigned Vehicles"
                 value={statistics.unassigned}
                 prefix={<CarOutlined />}
-                loading={loading}
                 valueStyle={{ color: '#cf1322' }}
               />
             </Card>
@@ -117,7 +79,7 @@ const OwnerVehicles = () => {
               } 
               key="1"
             >
-              <AssignedVehicles renderVehicleList={renderVehicleList} />
+              <AssignedVehicles updateStatistics={updateStatistics} />
             </TabPane>
             <TabPane 
               tab={
@@ -128,7 +90,7 @@ const OwnerVehicles = () => {
               } 
               key="2"
             >
-              <OwnerUnassignedVehicles renderVehicleList={renderVehicleList} />
+              <OwnerUnassignedVehicles updateStatistics={updateStatistics} />
             </TabPane>
           </Tabs>
         </Card>

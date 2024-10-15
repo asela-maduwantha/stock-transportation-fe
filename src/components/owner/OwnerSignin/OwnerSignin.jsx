@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
-import { Button, Input, message } from 'antd';
+import { Button, Input, message, Checkbox } from 'antd';
 import { useNavigate, Link } from 'react-router-dom';
 import httpService from '../../../services/httpService';
 import OwnerImg from '../../../assets/images/ownersignin.jpg';
-
+import Cookies from 'js-cookie';
 
 const useScreenSize = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -24,21 +24,30 @@ const useScreenSize = () => {
 const OwnerSignin = () => {
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
-  const isMobile = useScreenSize(); 
+  const isMobile = useScreenSize();
 
-  const handleSignIn = async () => {
-    if (!userName || !password) {
+  const handleSignIn = useCallback(async (username, pass) => {
+    if (!username || !pass) {
       message.error('Please provide both username and password.');
       return;
     }
 
     try {
-      const response = await httpService.post('/owner/signin', { userName, password });
+      const response = await httpService.post('/owner/signin', { userName: username, password: pass });
       const { id } = response.data;
       localStorage.setItem('ownerId', id);
       localStorage.setItem('token', response.data.access_token);
       localStorage.setItem('userRole', 'owner');
+
+      if (rememberMe) {
+        Cookies.set('ownerUsername', username, { expires: 30 });
+        Cookies.set('ownerPassword', pass, { expires: 30 });
+      } else {
+        Cookies.remove('ownerUsername');
+        Cookies.remove('ownerPassword');
+      }
 
       message.success('Sign-in successful!');
       navigate('/owner/dashboard');
@@ -46,7 +55,20 @@ const OwnerSignin = () => {
       console.error('Error signing in:', error);
       message.error('Failed to sign in. Please check your credentials and try again.');
     }
-  };
+  }, [navigate, rememberMe]);
+
+  useEffect(() => {
+    const savedUsername = Cookies.get('ownerUsername');
+    const savedPassword = Cookies.get('ownerPassword');
+    if (savedUsername && savedPassword) {
+      setUserName(savedUsername);
+      setPassword(savedPassword);
+      setRememberMe(true);
+      handleSignIn(savedUsername, savedPassword);
+    }
+  }, [handleSignIn]);
+
+  const onSignInClick = () => handleSignIn(userName, password);
 
   const containerStyle = {
     width: '100%',
@@ -146,11 +168,18 @@ const OwnerSignin = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+          <Checkbox
+            checked={rememberMe}
+            onChange={(e) => setRememberMe(e.target.checked)}
+            style={{ marginBottom: '16px' }}
+          >
+            Remember Me
+          </Checkbox>
           <Button
             type="primary"
             size="large"
             style={buttonStyle}
-            onClick={handleSignIn}
+            onClick={onSignInClick}
           >
             Sign In
           </Button>

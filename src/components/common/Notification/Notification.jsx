@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { List, Typography, Button, Space, Pagination } from 'antd';
+import { List, Typography, Button, Space, Pagination, message } from 'antd';
 import { CheckOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import io from 'socket.io-client';
+import httpService from '../../../services/httpService';
 
 const { Text, Title } = Typography;
 
@@ -12,26 +13,78 @@ const Notification = ({ userType }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10; // Number of notifications per page
 
-  useEffect(() => {
-    const newSocket = io('http://your-backend-url');
-    setSocket(newSocket);
-    newSocket.on(`${userType}_notification`, (notification) => {
-      setNotifications(prev => [notification, ...prev]);
-    });
-    return () => newSocket.close();
+  const getUserId = useCallback(() => {
+    switch (userType) {
+      case 'customer':
+        return localStorage.getItem('customerId');
+      case 'owner':
+        return localStorage.getItem('ownerId');
+      case 'driver':
+        return localStorage.getItem('driverId');
+      default:
+        return null;
+    }
   }, [userType]);
 
-  const handleMarkAsRead = (id) => {
-    socket.emit('mark_as_read', { userType, id });
-    setNotifications(notifications.map(n =>
-      n.id === id ? { ...n, read: true } : n
-    ));
-  };
+  const fetchNotifications = useCallback(async (userId) => {
+    try {
+      const response = await httpService.get(`/${userType}/notification/${userId}`);
+      setNotifications(response.data);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      message.error('Failed to fetch notifications');
+    }
+  }, [userType]);
 
-  const handleMarkAllAsRead = () => {
-    socket.emit('mark_all_as_read', { userType });
-    setNotifications(notifications.map(n => ({ ...n, read: true })));
-  };
+  useEffect(() => {
+    const userId = getUserId();
+    if (!userId) {
+      message.error(`${userType} ID not found in local storage`);
+      return;
+    }
+
+    // Fetch initial notifications
+    fetchNotifications(userId);
+
+    // Set up WebSocket connection
+    const newSocket = io('https://stocktrans.azurewebsites.net/');
+    setSocket(newSocket);
+
+    newSocket.on('connect', () => {
+      newSocket.emit(`join${userType.charAt(0).toUpperCase() + userType.slice(1)}NotifyRoom`, userId);
+    });
+
+    newSocket.on('notification', (data) => {
+      setNotifications(prev => [data.request, ...prev]);
+    });
+
+    return () => {
+      newSocket.emit(`leave${userType.charAt(0).toUpperCase() + userType.slice(1)}NotifyRoom`, userId);
+      newSocket.close();
+    };
+  }, [userType, fetchNotifications, getUserId]);
+
+  const handleMarkAsRead = useCallback((id) => {
+    if (socket) {
+      socket.emit('markAsRead', { userType, id });
+      setNotifications(prevNotifications =>
+        prevNotifications.map(n => n.id === id ? { ...n, read: true } : n)
+      );
+    } else {
+      console.error('Socket connection not established');
+    }
+  }, [socket, userType]);
+
+  const handleMarkAllAsRead = useCallback(() => {
+    if (socket) {
+      socket.emit('markAllAsRead', { userType });
+      setNotifications(prevNotifications =>
+        prevNotifications.map(n => ({ ...n, read: true }))
+      );
+    } else {
+      console.error('Socket connection not established');
+    }
+  }, [socket, userType]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -81,11 +134,15 @@ const Notification = ({ userType }) => {
               ]}
             >
               <List.Item.Meta
-                title={<Text strong={!item.read}>{item.message}</Text>}
+                title={<Text strong={!item.read}>{item.title}</Text>}
                 description={
-                  <Text type="secondary" style={{ fontSize: '12px' }}>
-                    {new Date(item.timestamp).toLocaleString()}
-                  </Text>
+                  <>
+                    <Text>{item.message}</Text>
+                    <br />
+                    <Text type="secondary" style={{ fontSize: '12px' }}>
+                      {new Date(item.timeStamp).toLocaleString()}
+                    </Text>
+                  </>
                 }
               />
             </List.Item>
@@ -106,7 +163,7 @@ const Notification = ({ userType }) => {
 };
 
 Notification.propTypes = {
-  userType: PropTypes.string.isRequired,
+  userType: PropTypes.oneOf(['owner', 'driver', 'customer']).isRequired,
 };
 
 const OwnerNotification = () => <Notification userType="owner" />;

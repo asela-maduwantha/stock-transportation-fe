@@ -34,7 +34,7 @@ import httpService from "../../../services/httpService";
 const { Text, Title } = Typography;
 const { TabPane } = Tabs;
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyA4AnscOsaLsNUGrCnWrJH-k8XlBsltPgM";
+const GOOGLE_MAPS_API_KEY = "AIzaSyCZai7VHlL_ERUPIvG3x-ztG6NJugx08Bo";
 
 const AssignedTrips = () => {
   const navigate = useNavigate();

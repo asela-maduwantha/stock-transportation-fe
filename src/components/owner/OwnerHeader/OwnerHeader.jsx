@@ -16,6 +16,8 @@ import {
   BellOutlined,
 } from "@ant-design/icons";
 import Logo from "../../../assets/Logo.png";
+import Cookies from 'js-cookie'
+
 
 
 const OwnerHeader = () => {
@@ -26,6 +28,8 @@ const OwnerHeader = () => {
   const handleLogout = () => {
     localStorage.clear();
     navigate("/owner/signin");
+    Cookies.remove('ownerUsername');
+    Cookies.remove('ownerPassword');
   };
 
   const menuItems = [
@@ -44,7 +48,7 @@ const OwnerHeader = () => {
     {
       key: 'my-drivers',
       icon: <IdcardOutlined />,
-      label: 'My Drivers',
+      label: 'Drivers',
       link: '/owner/drivers',
     },
     {
@@ -56,13 +60,13 @@ const OwnerHeader = () => {
     {
       key: 'view-vehicle',
       icon: <CarOutlined />,
-      label: 'My Vehicles',
+      label: 'Vehicles',
       link: '/owner/vehicles',
     },
     {
       key: 'my-bookings',
       icon: <CarOutlined />,
-      label: 'My Bookings',
+      label: 'Bookings',
       link: '/owner/my-bookings',
     },
     {
@@ -133,37 +137,37 @@ const OwnerHeader = () => {
   };
 
   return (
-    <header className="driver-header">
-      <div className="logo-container">
-        <img src={Logo} alt="Logo" className="logo" />
-      </div>
-      <nav className="main-nav">
-        <Menu mode="horizontal" className="desktop-menu">
-          {renderMenuItems()}
-        </Menu>
-      </nav>
-      <div className="actions">
-        <Button
-          type="primary"
-          onClick={handleLogout}
-          className="logout-btn desktop-only"
-          style={logoutButtonStyle}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          Logout
-        </Button>
-        <Dropdown
-          overlay={mobileMenu}
-          trigger={["click"]}
-          visible={isMenuOpen}
-          onVisibleChange={setIsMenuOpen}
-        >
-          <Button icon={<MenuOutlined />} className="mobile-menu-toggle" />
-        </Dropdown>
-      </div>
-    </header>
-  );
+    <header className="customer-header">
+    <div className="logo-container">
+      <img src={Logo} alt="Logo" className="logo" />
+    </div>
+    <nav className="main-nav">
+      <Menu mode="horizontal" className="desktop-menu">
+        {renderMenuItems()}
+      </Menu>
+    </nav>
+    <div className="actions">
+      <Button
+        type="primary"
+        onClick={handleLogout}
+        className="logout-btn desktop-only"
+        style={logoutButtonStyle}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        Logout
+      </Button>
+      <Dropdown
+        overlay={mobileMenu}
+        trigger={["click"]}
+        visible={isMenuOpen}
+        onVisibleChange={setIsMenuOpen}
+      >
+        <Button icon={<MenuOutlined />} className="mobile-menu-toggle" />
+      </Dropdown>
+    </div>
+  </header>
+);
 };
 
 export default OwnerHeader;

@@ -78,7 +78,7 @@ const BookingNavigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: "AIzaSyA4AnscOsaLsNUGrCnWrJH-k8XlBsltPgM",
+    googleMapsApiKey: "AIzaSyCZai7VHlL_ERUPIvG3x-ztG6NJugx08Bo",
   });
 
   // Styles

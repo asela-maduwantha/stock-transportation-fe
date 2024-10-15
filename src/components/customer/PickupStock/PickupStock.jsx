@@ -16,7 +16,7 @@ const PickupStock = () => {
   const navigate = useNavigate();
 
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: 'AIzaSyA4AnscOsaLsNUGrCnWrJH-k8XlBsltPgM',
+    googleMapsApiKey: 'AIzaSyCZai7VHlL_ERUPIvG3x-ztG6NJugx08Bo',
     libraries: ['places'],
   });
 

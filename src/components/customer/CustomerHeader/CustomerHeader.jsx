@@ -16,6 +16,7 @@ import {
 } from "@ant-design/icons";
 import Logo from "../../../assets/Logo.png";
 import "./CustomerHeader.css";
+import Cookies from 'js-cookie';
 
 const CustomerHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -23,7 +24,14 @@ const CustomerHeader = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    // Clear local storage
     localStorage.clear();
+    
+    // Remove cookies related to the user session
+    Cookies.remove('customerUsername');
+    Cookies.remove('customerPassword');
+    
+    // Navigate to the home page after logout
     navigate("/");
   };
 

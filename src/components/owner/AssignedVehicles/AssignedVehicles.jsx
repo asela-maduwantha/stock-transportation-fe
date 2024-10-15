@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Button, Modal, message, Input, Row, Col, Empty, Spin } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import httpService from '../../../services/httpService';
+import PropTypes from 'prop-types';
 
 const { Meta } = Card;
 
-const AssignedVehicles = () => {
+const AssignedVehicles = ({ updateStatistics }) => {
   const [assignedVehicles, setAssignedVehicles] = useState([]);
   const [filteredVehicles, setFilteredVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,9 +14,25 @@ const AssignedVehicles = () => {
   const [selectedDriver, setSelectedDriver] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Wrap fetchAssignedVehicles in useCallback to avoid the warning
+  const fetchAssignedVehicles = useCallback(async () => {
+    try {
+      const ownerId = localStorage.getItem('ownerId');
+      const response = await httpService.get(`/owner/assignedDrivers/${ownerId}`);
+      setAssignedVehicles(response.data);
+      setFilteredVehicles(response.data);
+      updateStatistics(response.data.length, 0); // Update statistics
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching assigned vehicles:', error);
+      message.error('Failed to fetch assigned vehicles');
+      setLoading(false);
+    }
+  }, [updateStatistics]);
+
   useEffect(() => {
     fetchAssignedVehicles();
-  }, []);
+  }, [fetchAssignedVehicles]);
 
   useEffect(() => {
     const filtered = assignedVehicles.filter(vehicle => 
@@ -25,20 +42,6 @@ const AssignedVehicles = () => {
     );
     setFilteredVehicles(filtered);
   }, [searchTerm, assignedVehicles]);
-
-  const fetchAssignedVehicles = async () => {
-    try {
-      const ownerId = localStorage.getItem('ownerId');
-      const response = await httpService.get(`/owner/assignedDrivers/${ownerId}`);
-      setAssignedVehicles(response.data);
-      setFilteredVehicles(response.data);
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching assigned vehicles:', error);
-      message.error('Failed to fetch assigned vehicles');
-      setLoading(false);
-    }
-  };
 
   const handleViewDriver = (driver) => {
     setSelectedDriver(driver);
@@ -113,6 +116,10 @@ const AssignedVehicles = () => {
       </Modal>
     </div>
   );
+};
+
+AssignedVehicles.propTypes = {
+  updateStatistics: PropTypes.func.isRequired, 
 };
 
 export default AssignedVehicles;

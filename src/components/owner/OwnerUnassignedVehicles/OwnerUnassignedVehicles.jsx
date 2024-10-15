@@ -2,12 +2,14 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Row, Col, Typography, Select, Button, Modal, Form, message, Input, Empty, Spin } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import httpService from '../../../services/httpService';
+import PropTypes from 'prop-types';
+
 
 const { Title } = Typography;
 const { Option } = Select;
 const { Meta } = Card;
 
-const OwnerUnassignedVehicles = () => {
+const OwnerUnassignedVehicles = ({ updateStatistics }) => {
     const [vehicles, setVehicles] = useState([]);
     const [filteredVehicles, setFilteredVehicles] = useState([]);
     const [drivers, setDrivers] = useState([]);
@@ -24,13 +26,14 @@ const OwnerUnassignedVehicles = () => {
             const response = await httpService.get(`/owner/unassignedVehi/${ownerId}`);
             setVehicles(response.data);
             setFilteredVehicles(response.data);
+            updateStatistics(0, response.data.length); // Update statistics
         } catch (error) {
             console.log(error);
             message.error('Failed to fetch unassigned vehicles.');
         } finally {
             setLoading(false);
         }
-    }, [ownerId]);
+    }, [ownerId, updateStatistics]);
 
     const fetchUnassignedDrivers = useCallback(async () => {
         setDriversLoading(true);
@@ -179,7 +182,16 @@ const OwnerUnassignedVehicles = () => {
                 )}
             </Modal>
         </div>
+
+        
     );
+
+    
 };
+
+OwnerUnassignedVehicles.propTypes = {
+    updateStatistics: PropTypes.func.isRequired, 
+};
+
 
 export default OwnerUnassignedVehicles;

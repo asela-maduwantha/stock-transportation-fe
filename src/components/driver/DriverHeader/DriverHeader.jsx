@@ -14,6 +14,7 @@ import {
 } from "@ant-design/icons";
 import Logo from "../../../assets/Logo.png";
 import "./DriverHeader.css";
+import Cookies from 'js-cookie'
 
 const DriverHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -23,6 +24,9 @@ const DriverHeader = () => {
   const handleLogout = () => {
     localStorage.clear();
     navigate("/driver/signin");
+
+    Cookies.remove('driverUsername');
+    Cookies.remove('driverPassword');
   };
 
   const menuItems = [
