@@ -55,6 +55,7 @@ const BookingSummary = () => {
 
             if (response.data.bookingId) {
                 localStorage.setItem('bookingId', response.data.bookingId);
+                localStorage.setItem('bookingType', 'normal')
                 message.success('Booking confirmed!');
                 
                 navigate('/payment', {

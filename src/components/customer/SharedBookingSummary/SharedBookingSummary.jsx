@@ -50,6 +50,7 @@ const SharedBookingSummary = () => {
            
             localStorage.removeItem('bookingId')
             localStorage.setItem('bookingId',response.data.bokingId)
+            localStorage.setItem('bookingType', 'normal')
             message.success("Booking confirmed successfully!");
 
             // Navigate to the Payment component and pass the needed data

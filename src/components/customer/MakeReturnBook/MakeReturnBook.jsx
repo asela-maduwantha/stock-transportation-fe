@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Card, Button, message, Typography, Space, InputNumber, Switch } from 'antd';
+import { Card, Button, Typography, Space, Select, Divider } from 'antd';
 import { CarOutlined, EnvironmentOutlined, DollarOutlined, CalendarOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import httpService from '../../../services/httpService';
 
 const { Text, Title } = Typography;
+const { Option } = Select;
 
 const MakeReturnBook = () => {
   const location = useLocation();
@@ -12,13 +13,12 @@ const MakeReturnBook = () => {
   const { vehicleData, startCoordinates, destCoordinates, distance, duration, charges, pickupTime } = location.state || {};
 
   const [loading, setLoading] = useState(false);
-  const [loadingTime, setLoadingTime] = useState(0);
-  const [unloadingTime, setUnloadingTime] = useState(0);
-  const [willingToShare, setWillingToShare] = useState(false);
+  const [loadingTime, setLoadingTime] = useState(15);
+  const [unloadingTime, setUnloadingTime] = useState(15);
 
   const handleConfirmBooking = async () => {
     if (!vehicleData || !startCoordinates || !destCoordinates) {
-      message.error('Missing required booking information');
+      httpService.message.error('Missing required booking information');
       return;
     }
 
@@ -38,7 +38,7 @@ const MakeReturnBook = () => {
         serviceCharge: charges.serviceCharge,
         loadingCapacity: vehicleData.capacity,
         isReturnTrip: true,
-        willingToShare,
+        willingToShare: false,
         avgHandlingTime: (loadingTime + unloadingTime) / 2,
         status: "upcoming",
         vehicleId: vehicleData.id,
@@ -46,15 +46,35 @@ const MakeReturnBook = () => {
       };
 
       const response = await httpService.post('customer/booking', bookingData);
-      message.success(`Booking confirmed! Booking ID: ${response.data.bookingId}`);
-      navigate('/booking-confirmation', { state: { bookingId: response.data.bookingId } });
+      const bookingId = response.data.bookingId;
+      localStorage.setItem('bookingId', bookingId);
+      localStorage.setItem('bookingType', 'return');
+      
+      navigate('/payment', {
+        state: {
+          bookingId: bookingId,
+          vehicle: vehicleData,
+          pickupLocation: `${startCoordinates.lat}, ${startCoordinates.lng}`,
+          dropLocation: `${destCoordinates.lat}, ${destCoordinates.lng}`,
+          returnTrip: true,
+          advanceAmount: charges.advancePayment,
+          totalPrice: charges.total * 20 / 100,
+          type: 'original'
+        }
+      });
     } catch (error) {
       console.error('Error making booking:', error);
-      message.error('An error occurred while making the booking. Please try again.');
+      // Error handling is managed by httpService
     } finally {
       setLoading(false);
     }
   };
+
+  const timeOptions = [
+    { value: 15, label: '15 minutes' },
+    { value: 30, label: '30 minutes' },
+    { value: 45, label: '45 minutes' },
+  ];
 
   return (
     <div style={{ padding: '20px' }}>
@@ -86,28 +106,43 @@ const MakeReturnBook = () => {
           <Text>Vehicle Charge: LKR {charges.vehicleCharge}</Text>
           <br />
           <Text>Service Charge: LKR {charges.serviceCharge}</Text>
-          <br />
+          <Divider />
           <Text strong>Total: LKR {charges.total}</Text>
           <br />
           <Text type="secondary">Advance Payment Required: LKR {charges.advancePayment}</Text>
         </Card>
 
-        <Space direction="vertical">
-          <Text>Loading Time (minutes):</Text>
-          <InputNumber min={0} value={loadingTime} onChange={setLoadingTime} />
-        </Space>
+        <Card title={<><ClockCircleOutlined /> Loading and Unloading Time</>}>
+          <Space direction="vertical" style={{ width: '100%' }}>
+            <Text>Loading Time:</Text>
+            <Select
+              style={{ width: '100%' }}
+              value={loadingTime}
+              onChange={(value) => setLoadingTime(value)}
+            >
+              {timeOptions.map((option) => (
+                <Option key={option.value} value={option.value}>
+                  {option.label}
+                </Option>
+              ))}
+            </Select>
 
-        <Space direction="vertical">
-          <Text>Unloading Time (minutes):</Text>
-          <InputNumber min={0} value={unloadingTime} onChange={setUnloadingTime} />
-        </Space>
+            <Text>Unloading Time:</Text>
+            <Select
+              style={{ width: '100%' }}
+              value={unloadingTime}
+              onChange={(value) => setUnloadingTime(value)}
+            >
+              {timeOptions.map((option) => (
+                <Option key={option.value} value={option.value}>
+                  {option.label}
+                </Option>
+              ))}
+            </Select>
+          </Space>
+        </Card>
 
-        <Space>
-          <Text>Willing to Share:</Text>
-          <Switch checked={willingToShare} onChange={setWillingToShare} />
-        </Space>
-
-        <Button type="primary" onClick={handleConfirmBooking} loading={loading}>
+        <Button type="primary" onClick={handleConfirmBooking} loading={loading} block>
           Confirm and Proceed to Payment
         </Button>
       </Space>

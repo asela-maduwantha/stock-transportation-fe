@@ -68,8 +68,8 @@ const CheckoutForm = ({ totalPrice, bookingId, type }) => {
           type: type,
         };
 
-      
-        await httpService.post(`/customer/advancePayment/${bookingId}`, paymentData);
+       const bookingType = localStorage.getItem('bookigType')
+        await httpService.post(`/customer/advancePayment/${bookingId}?type=${bookingType}`, paymentData);
 
         setModalContent({
           title: 'Payment Successful',
@@ -77,6 +77,8 @@ const CheckoutForm = ({ totalPrice, bookingId, type }) => {
           success: true,
         });
         setIsModalVisible(true);
+        localStorage.removeItem('bookingType')
+        localStorage.removeItem('bookingId')
       } else {
         message.warning('Payment not completed. Please try again.');
       }
