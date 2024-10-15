@@ -185,7 +185,7 @@ const BookingsList = () => {
             <Text strong>Phone:</Text> {selectedBooking.customer.mobileNum}
           </Col>
           <Col span={24}>
-            <Text strong>Email:</Text> {selectedBooking.customer.email}
+            <Text strong>Address:</Text> {JSON.stringify(selectedBooking.customer)};
           </Col>
         </Row>
         <Divider />

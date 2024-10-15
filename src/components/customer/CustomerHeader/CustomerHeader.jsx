@@ -12,6 +12,7 @@ import {
   UserSwitchOutlined,
   GiftOutlined,
   BellOutlined,
+  ArrowLeftOutlined,
 } from "@ant-design/icons";
 import Logo from "../../../assets/Logo.png";
 import "./CustomerHeader.css";
@@ -50,8 +51,15 @@ const CustomerHeader = () => {
     {
       key: "shared-booking",
       icon: <CarFilled />,
-      label: "Make Shared Booking",
+      label: "Shared Booking",
       link: "/customer/shared-booking",
+    }
+    ,
+    {
+      key: "return-booking",
+      icon: <ArrowLeftOutlined />,
+      label: "Retun Trips",
+      link: "/customer/available-return-trips",
     },
     {
       key: "booking-history",

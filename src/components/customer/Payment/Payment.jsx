@@ -151,7 +151,7 @@ const CheckoutForm = ({ totalPrice, bookingId, type }) => {
         onCancel={() => setIsModalVisible(false)}
         footer={[
           modalContent.success ? (
-            <Button key="dashboard" type="primary" onClick={() => navigate('/dashboard')}>
+            <Button key="dashboard" type="primary" onClick={() => navigate('/customer/dashboard')}>
               Go to Dashboard
             </Button>
           ) : (

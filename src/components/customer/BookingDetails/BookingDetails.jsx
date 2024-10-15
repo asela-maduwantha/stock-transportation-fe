@@ -113,40 +113,40 @@ const BookingDetails = ({ selectedVehicle }) => {
   };
 
   useEffect(() => {
-    if (pickupLocation && dropLocation && pickupDate && pickupTime) {
-      const directionsService = new window.google.maps.DirectionsService();
-      directionsService.route(
-        {
-          origin: new window.google.maps.LatLng(
-            pickupLocation.lat,
-            pickupLocation.lng
-          ),
-          destination: new window.google.maps.LatLng(
-            dropLocation.lat,
-            dropLocation.lng
-          ),
-          travelMode: window.google.maps.TravelMode.DRIVING,
-        },
-        (result, status) => {
-          if (status === window.google.maps.DirectionsStatus.OK) {
-            setDirections(result);
-            const routeDistance =
-              result.routes[0].legs[0].distance.value / 1000;
-            setDistance(routeDistance);
-            setFormattedDistance(result.routes[0].legs[0].distance.text);
+      if (pickupLocation && dropLocation && pickupDate && pickupTime) {
+        const directionsService = new window.google.maps.DirectionsService();
+        directionsService.route(
+          {
+            origin: new window.google.maps.LatLng(
+              pickupLocation.lat,
+              pickupLocation.lng
+            ),
+            destination: new window.google.maps.LatLng(
+              dropLocation.lat,
+              dropLocation.lng
+            ),
+            travelMode: window.google.maps.TravelMode.DRIVING,
+          },
+          (result, status) => {
+            if (status === window.google.maps.DirectionsStatus.OK) {
+              setDirections(result);
+              const routeDistance =
+                result.routes[0].legs[0].distance.value / 1000;
+              setDistance(routeDistance);
+              setFormattedDistance(result.routes[0].legs[0].distance.text);
 
-            const travelDurationInSeconds =
-              result.routes[0].legs[0].duration.value;
-            setTravelTime(formatTravelTime(travelDurationInSeconds));
+              const travelDurationInSeconds =
+                result.routes[0].legs[0].duration.value;
+              setTravelTime(formatTravelTime(travelDurationInSeconds));
 
-            const pickupDateTime = moment(`${pickupDate} ${pickupTime}`);
-            const dropDateTime = pickupDateTime
-              .clone()
-              .add(travelDurationInSeconds, "seconds");
-            setCalculatedDropDateTime({
-              date: dropDateTime.format("YYYY-MM-DD"),
-              time: dropDateTime.format("HH:mm"),
-            });
+              const pickupDateTime = moment(`${pickupDate} ${pickupTime}`);
+              const dropDateTime = pickupDateTime
+                .clone()
+                .add(travelDurationInSeconds, "seconds");
+              setCalculatedDropDateTime({
+                date: dropDateTime.format("YYYY-MM-DD"),
+                time: dropDateTime.format("HH:mm"),
+              });
             fetchCharges();
           }
         }

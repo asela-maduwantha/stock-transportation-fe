@@ -212,6 +212,10 @@ const SharedBookingsHistory = () => {
     setCancelModalVisible(true);
   }, []);
 
+  const handleChatWithOwner = useCallback((ownerId) => {
+    navigate('/customer/chat-with-owner', { state: { ownerId } });
+  }, [navigate]);
+
   const confirmCancelBooking = useCallback(async () => {
     if (!cancelReason) {
       message.error('Please select a reason for cancellation');
@@ -310,9 +314,20 @@ const SharedBookingsHistory = () => {
             Rate
           </Button>
         )}
+
+{booking.status === 'upcoming'&&booking.ownerDetails && (
+  <Button 
+    type="default" 
+    onClick={() => handleChatWithOwner(booking.ownerDetails.id)} 
+    style={{ width: '100%' }}
+    className="hover-button"
+  >
+    Chat with Owner
+  </Button>
+)}
       </Space>
     </Card>
-  ), [getStatusTag, formatDateTime, cancelledReasons, handleViewRideStatus, handleCancelBooking, handleRateBooking]);
+  ), [getStatusTag, formatDateTime, cancelledReasons, handleViewRideStatus, handleCancelBooking, handleRateBooking,handleChatWithOwner]);
 
   const renderBookingList = useCallback((bookings, isToday = false) => (
     <Row gutter={[24, 24]}>

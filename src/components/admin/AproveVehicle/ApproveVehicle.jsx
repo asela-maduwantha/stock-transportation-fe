@@ -62,7 +62,7 @@ const ApproveVehicle = () => {
     try {
       const vehicleId = selectedVehicle.id;
      
-      await httpService.post(`admin/rejectVehicle/${vehicleId}`);
+      await httpService.delete(`admin/rejectVehicle/${vehicleId}`);
       message.success('Vehicle rejected successfully');
       setIsModalVisible(false);
       fetchData();

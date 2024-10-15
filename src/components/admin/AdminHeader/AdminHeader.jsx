@@ -28,7 +28,6 @@ const AdminHeader = () => {
     { key: 'vehicle-requests', icon: <ContainerOutlined />, label: 'Vehicle Requests', link: '/admin/vehicle-requests' },
     { key: 'driver-requests', icon: <ContainerOutlined />, label: 'Driver Requests', link: '/admin/driver-requests' },
     { key: 'booking-details', icon: <BookOutlined />, label: 'Booking Details', link: '/admin/booking-details' },
-    { key: 'settings', icon: <SettingOutlined />, label: 'Settings', link: '/settings' }
   ];
 
   const renderMenuItems = () =>

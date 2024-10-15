@@ -19,7 +19,6 @@ import BookingHistory from '../components/customer/BookingHistory/BookingHistory
 import CostCalculator from '../components/customer/CostCalculator/CostCalculator';
 import CustomerDashboard from '../components/customer/CustomerDashboard/CustomerDashboard';
 import ProfileSettings from '../components/customer/ProfileSettings/ProfileSettings';
-import VehicleDetails from '../components/common/VehicleDetails/VehicleDetails';
 import AboutUs from '../components/common/AboutUs/AboutUs';
 import VehicleOwnerDashboard from '../components/owner/VehicleOwnerDashboard/VehicleOwnerDashboard';
 import Payment from '../components/customer/Payment/Payment';
@@ -63,6 +62,8 @@ import AdminBookingDetails from '../components/admin/AdminBookingDetails/AdminBo
 import OwnerChat from '../components/owner/OwnerChat/OwnerChat';
 import CustomerChat from '../components/customer/CustomerChat/CustomerChat';
 import { CustomerNotification, DriverNotification, OwnerNotification } from '../components/common/Notification/Notification';
+import AvailableReturnTrips from '../components/customer/AvailableReturnTrips/AvailableReturnTrips';
+import MakeReturnBook from '../components/customer/MakeReturnBook/MakeReturnBook';
 
 const WebRoutes = () => {
   return (
@@ -78,7 +79,6 @@ const WebRoutes = () => {
           <Route path="customer/signin" element={<CustomerSignin />} />
           <Route path="owner/signin" element={<OwnerSignin />} />
           <Route path="driver/signin" element={<DriverSignin />} />
-          <Route path="vehicle/:id" element={<VehicleDetails />} />
           <Route path='/owner/forgot-password' element={<OwnerForgotPassword/>}/>
           <Route path='/customer/forgot-password' element={<CustomerForgotPassword/>}/>
           <Route path='/driver/forgot-password' element={<DriverForgotPassword/>}/>
@@ -176,6 +176,8 @@ const WebRoutes = () => {
           <Route path='reward-list' element={<RewardList/>}/>
           <Route path='chat-with-owner' element={<CustomerChat/>}/>
           <Route path='notification' element={<CustomerNotification/>}/>
+          <Route path='available-return-trips' element={<AvailableReturnTrips/>}/>
+          <Route path='make-return-book' element={<MakeReturnBook/>}/>
 
         </Route>
       </Routes>
