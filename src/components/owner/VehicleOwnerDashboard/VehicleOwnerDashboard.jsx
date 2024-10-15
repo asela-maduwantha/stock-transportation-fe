@@ -13,7 +13,7 @@ const VehicleOwnerDashboard = () => {
   useEffect(() => {
     const fetchDrivers = async () => {
       try {
-        const ownerId = localStorage.getItem('ownerId'); // Get ownerId from localStorage
+        const ownerId = localStorage.getItem('ownerId'); 
         const response = await httpService.get(`/owner/driverBookings/${ownerId}`);
         setDrivers(response.data);
         setLoading(false);

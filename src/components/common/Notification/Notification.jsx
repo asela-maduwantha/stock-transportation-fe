@@ -49,7 +49,7 @@ const Notification = ({ userType }) => {
     // Set up WebSocket connection
     const newSocket = io('https://stocktrans.azurewebsites.net/');
     setSocket(newSocket);
-
+   
     newSocket.on('connect', () => {
       newSocket.emit(`join${userType.charAt(0).toUpperCase() + userType.slice(1)}NotifyRoom`, userId);
     });

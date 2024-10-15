@@ -1,71 +1,76 @@
-import React, { useState, useEffect } from 'react';
-import { io } from 'socket.io-client';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, Input, Button, List, Avatar, Typography, Badge, message } from 'antd';
 import { SendOutlined, UserOutlined } from '@ant-design/icons';
+import httpService from '../../../services/httpService';
 
 const { Text } = Typography;
 
 const OwnerChat = () => {
-  const [socket, setSocket] = useState(null);
-  const [messages, setMessages] = useState([]);
+  const [chatData, setChatData] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [activeCustomer, setActiveCustomer] = useState(null);
-  const [customers, setCustomers] = useState([]);
-  const [unreadCounts, setUnreadCounts] = useState({});
   const [ownerId, setOwnerId] = useState(null);
+  const chatContainerRef = useRef(null);
 
   useEffect(() => {
-    // Initialize the socket connection (replace with your server URL)
-    const newSocket = io('http://localhost:3000'); // Replace with your server's URL
-    setSocket(newSocket);
-
-    // Retrieve ownerId from localStorage
     const storedOwnerId = localStorage.getItem('ownerId');
     if (storedOwnerId) {
       setOwnerId(storedOwnerId);
+      fetchChatHistory(storedOwnerId);
     } else {
-      message.error('Owner ID not found in localStorage');
+      message.error('Owner data missing. Please try again.');
     }
+  }, []);
 
-    // Fetch customers (mock data for now, replace with API call)
-    const fetchCustomers = async () => {
-      try {
-        // Placeholder for API call
-        setCustomers([{ id: 'customer1', name: 'Customer 1' }, { id: 'customer2', name: 'Customer 2' }]);
-      } catch (error) {
-        message.error('Failed to fetch customers');
-      }
-    };
-    fetchCustomers();
-
-    // Socket event listeners
-    newSocket.on('receiveMessage', (message) => {
-      setMessages((prevMessages) => [...prevMessages, message]);
-      if (message.sender !== activeCustomer?.id) {
-        setUnreadCounts((prevCounts) => ({
-          ...prevCounts,
-          [message.sender]: (prevCounts[message.sender] || 0) + 1,
-        }));
-      }
-    });
-
-    // Cleanup on unmount
-    return () => {
-      newSocket.disconnect();
-    };
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
   }, [activeCustomer]);
 
-  const sendMessage = () => {
+  const fetchChatHistory = async (ownerId) => {
+    try {
+      const response = await httpService.get(`/chat/chatOwner/${ownerId}`);
+      setChatData(response.data);
+      
+      if (response.data.length > 0) {
+        setActiveCustomer(response.data[0]);
+      }
+    } catch (error) {
+      message.error('Failed to fetch chat history');
+      console.error('Error fetching chat history:', error);
+    }
+  };
+
+  const sendMessage = async () => {
     if (inputMessage.trim() && activeCustomer && ownerId) {
-      const message = {
-        text: inputMessage,
-        sender: ownerId,
-        receiver: activeCustomer.id,
-        timestamp: new Date().toISOString(),
+      const chatReq = {
+        ownerId: ownerId,
+        customerId: activeCustomer.customerId,
+        role: 'owner',
+        message: inputMessage,
+        timeStamp: new Date().toISOString(),
       };
-      socket.emit('sendMessage', message);
-      setMessages((prevMessages) => [...prevMessages, message]);
-      setInputMessage('');
+  
+      try {
+        const response = await httpService.post('/chat/chat', chatReq);
+        if (response.status === 200) {
+          setChatData(prevData => 
+            prevData.map(customer => 
+              customer.customerId === activeCustomer.customerId
+                ? { ...customer, messages: [...customer.messages, chatReq] }
+                : customer
+            )
+          );
+          setInputMessage('');
+          message.success('Message sent successfully');
+        } else {
+          message.error('Failed to send message');
+        }
+      } catch (error) {
+        message.error('Error sending message');
+        console.error('Error while sending message:', error);
+      }
     } else if (!ownerId) {
       message.error('Owner ID not available');
     } else if (!activeCustomer) {
@@ -75,27 +80,30 @@ const OwnerChat = () => {
 
   const handleCustomerSelect = (customer) => {
     setActiveCustomer(customer);
-    setUnreadCounts((prevCounts) => ({ ...prevCounts, [customer.id]: 0 }));
+  };
+
+  const getUnreadCount = (customer) => {
+    return customer.messages.filter(m => m.role === 'customer').length;
   };
 
   return (
     <div style={{ display: 'flex', height: '100vh', padding: '20px' }}>
       <Card style={{ width: '30%', marginRight: '20px', overflowY: 'auto' }}>
         <List
-          dataSource={customers}
+          dataSource={chatData}
           renderItem={(customer) => (
             <List.Item
               onClick={() => handleCustomerSelect(customer)}
               style={{
                 cursor: 'pointer',
-                backgroundColor: activeCustomer?.id === customer.id ? '#e6f7ff' : 'white',
+                backgroundColor: activeCustomer?.customerId === customer.customerId ? '#e6f7ff' : 'white',
               }}
             >
               <List.Item.Meta
                 avatar={<Avatar icon={<UserOutlined />} />}
                 title={
-                  <Badge count={unreadCounts[customer.id] || 0} size="small">
-                    <span>{customer.name}</span>
+                  <Badge count={getUnreadCount(customer)} size="small">
+                    <span>{customer.customerName}</span>
                   </Badge>
                 }
               />
@@ -105,27 +113,27 @@ const OwnerChat = () => {
       </Card>
 
       <Card style={{ width: '70%', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ flexGrow: 1, overflowY: 'auto', marginBottom: '20px' }}>
-          <List
-            dataSource={messages.filter(
-              (m) => m.sender === activeCustomer?.id || m.receiver === activeCustomer?.id
-            )}
-            renderItem={(message) => (
-              <List.Item style={{ justifyContent: message.sender === ownerId ? 'flex-end' : 'flex-start' }}>
-                <Card style={{ maxWidth: '70%', backgroundColor: message.sender === ownerId ? '#e6f7ff' : '#f0f0f0' }}>
-                  <Text>{message.text}</Text>
-                  <div>
-                    <Text type="secondary" style={{ fontSize: '12px' }}>
-                      {new Date(message.timestamp).toLocaleTimeString()}
-                    </Text>
-                  </div>
-                </Card>
-              </List.Item>
-            )}
-          />
+        <div ref={chatContainerRef} style={{ flexGrow: 1, overflowY: 'auto', marginBottom: '20px', height: 'calc(100vh - 180px)' }}>
+          {activeCustomer && (
+            <List
+              dataSource={activeCustomer.messages}
+              renderItem={(message) => (
+                <List.Item style={{ justifyContent: message.role === 'owner' ? 'flex-end' : 'flex-start' }}>
+                  <Card style={{ maxWidth: '70%', backgroundColor: message.role === 'owner' ? '#e6f7ff' : '#f0f0f0' }}>
+                    <Text>{message.message}</Text>
+                    <div>
+                      <Text type="secondary" style={{ fontSize: '12px' }}>
+                        {new Date(message.timeStamp).toLocaleTimeString()}
+                      </Text>
+                    </div>
+                  </Card>
+                </List.Item>
+              )}
+            />
+          )}
         </div>
 
-        <div style={{ display: 'flex' }}>
+        <div style={{ display: 'flex', position: 'sticky', bottom: 0, backgroundColor: 'white', padding: '10px 0' }}>
           <Input
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Tag, Rate, Space, Row, Col, Empty, Spin, Button, Modal, Input, message, Radio, Tabs, DatePicker } from 'antd';
-import { CalendarOutlined, EnvironmentOutlined, ClockCircleOutlined, CarOutlined, DollarOutlined, CloseCircleOutlined, UserOutlined } from '@ant-design/icons';
+import { CalendarOutlined, EnvironmentOutlined, ClockCircleOutlined, CarOutlined, DollarOutlined, CloseCircleOutlined, UserOutlined, MessageOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import httpService from '../../../services/httpService';
 
@@ -127,6 +127,10 @@ const BookingHistory = () => {
       setLoading(false);
     }
   }, [getLocationName, fetchCancelledReason, fetchDriverDetails, fetchOwnerDetails, fetchRatingDetails]);
+
+  const handleChatClick = useCallback((ownerId) => {
+    navigate('/customer/chat-with-owner', { state: { ownerId } });
+  }, [navigate]);
 
   const filterBookings = useCallback(() => {
     if (!dateRange[0] || !dateRange[1]) {
@@ -297,6 +301,15 @@ const BookingHistory = () => {
             >
               Cancel Booking
             </Button>
+            <Button 
+              type="default" 
+              icon={<MessageOutlined />}
+              onClick={() => handleChatClick(booking.ownerDetails.id)} 
+              style={{ width: '100%' }}
+              className="hover-button"
+            >
+              Chat with Owner
+            </Button>
           </>
         )}
         
@@ -312,7 +325,7 @@ const BookingHistory = () => {
         )}
       </Space>
     </Card>
-  ), [getStatusTag, formatDateTime, cancelledReasons, handleViewRideStatus, handleCancelBooking, handleRateBooking]);
+  ), [getStatusTag, formatDateTime, cancelledReasons, handleViewRideStatus, handleCancelBooking, handleRateBooking, handleChatClick]);
 
   const renderBookingList = useCallback((bookings) => (
     <Row gutter={[24, 24]}>
