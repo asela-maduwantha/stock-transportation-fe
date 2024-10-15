@@ -62,12 +62,13 @@ const CheckoutForm = ({ totalPrice, bookingId, type }) => {
 
       if (paymentIntent.status === 'succeeded') {
         const paymentData = {
-          id: bookingId,
           stripeId: paymentIntent.id,
           date: new Date().toISOString(),
           amount: paymentIntent.amount,
           type: type,
         };
+
+      
         await httpService.post(`/customer/advancePayment/${bookingId}`, paymentData);
 
         setModalContent({

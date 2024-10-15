@@ -33,7 +33,7 @@ const SharedBookingSummary = () => {
         const response = await httpService.post(
             "/customer/sharedBooking",
             {
-                bookingId: bookingData.bookingId,
+                
                 startLong: bookingData.startLong,
                 startLat: bookingData.startLat,
                 destLong: bookingData.destLong,
@@ -47,12 +47,15 @@ const SharedBookingSummary = () => {
         );
 
         if (response.status === 200) {
+           
+            localStorage.removeItem('bookingId')
+            localStorage.setItem('bookingId',response.data.bokingId)
             message.success("Booking confirmed successfully!");
 
             // Navigate to the Payment component and pass the needed data
             navigate("/payment", {
                 state: {
-                    bookingId: bookingData.bookingId,
+                    bookingId: localStorage.getItem('bookingId'),
                     vehicle: bookingData.selectedVehicle,
                     pickupLocation: bookingData.pickupLocation,
                     dropLocation: bookingData.dropoffLocation,
