@@ -23,6 +23,7 @@ const BookingsList = () => {
     try {
       const ownerId = localStorage.getItem("ownerId");
       const response = await httpService.get(`/owner/myBookings/${ownerId}`);
+      console.log(response.data)
       setBookings(response.data);
     } catch (error) {
       setError(error.message);
@@ -184,9 +185,7 @@ const BookingsList = () => {
           <Col span={12}>
             <Text strong>Phone:</Text> {selectedBooking.customer.mobileNum}
           </Col>
-          <Col span={24}>
-            <Text strong>Address:</Text> {JSON.stringify(selectedBooking.customer)};
-          </Col>
+          
         </Row>
         <Divider />
   

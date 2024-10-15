@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Card, Button, Typography, Space, Select, Divider } from 'antd';
+import { Card, Button, Typography, Space, Select, Divider, Row, Col, message, Spin } from 'antd';
 import { CarOutlined, EnvironmentOutlined, DollarOutlined, CalendarOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import httpService from '../../../services/httpService';
 
@@ -15,15 +15,63 @@ const MakeReturnBook = () => {
   const [loading, setLoading] = useState(false);
   const [loadingTime, setLoadingTime] = useState(15);
   const [unloadingTime, setUnloadingTime] = useState(15);
+  const [startAddress, setStartAddress] = useState('');
+  const [destAddress, setDestAddress] = useState('');
+  const [addressesLoading, setAddressesLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      if (startCoordinates && destCoordinates) {
+        setAddressesLoading(true);
+        try {
+          const [start, dest] = await Promise.all([
+            getAddressFromCoordinates(startCoordinates),
+            getAddressFromCoordinates(destCoordinates)
+          ]);
+          setStartAddress(start);
+          setDestAddress(dest);
+        } catch (error) {
+          console.error('Error fetching addresses:', error);
+          message.error('Failed to load addresses. Displaying coordinates instead.');
+          setStartAddress(`${startCoordinates.lat}, ${startCoordinates.lng}`);
+          setDestAddress(`${destCoordinates.lat}, ${destCoordinates.lng}`);
+        } finally {
+          setAddressesLoading(false);
+        }
+      }
+    };
+    fetchAddresses();
+  }, [startCoordinates, destCoordinates]);
+
+  const getAddressFromCoordinates = async (coordinates) => {
+    try {
+      const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${coordinates.lat},${coordinates.lng}&key=AIzaSyCZai7VHlL_ERUPIvG3x-ztG6NJugx08Bo`);
+      const data = await response.json();
+      if (data.results && data.results.length > 0) {
+        return data.results[0].formatted_address;
+      }
+      throw new Error('No results found');
+    } catch (error) {
+      console.error('Error fetching address:', error);
+      throw error;
+    }
+  };
+
+
+  const convertDurationToMinutes = (durationString) => {
+    const [hours, minutes] = durationString.match(/\d+/g).map(Number);
+    return hours * 60 + minutes;
+  };
 
   const handleConfirmBooking = async () => {
     if (!vehicleData || !startCoordinates || !destCoordinates) {
-      httpService.message.error('Missing required booking information');
+      message.error('Missing required booking information');
       return;
     }
 
     try {
       setLoading(true);
+      const durationInMinutes = convertDurationToMinutes(duration);
       const bookingData = {
         bookingDate: new Date().toISOString(),
         pickupTime: pickupTime,
@@ -33,7 +81,7 @@ const MakeReturnBook = () => {
         startLat: startCoordinates.lat,
         destLong: destCoordinates.lng,
         destLat: destCoordinates.lat,
-        travellingTime: duration,
+        travellingTime: durationInMinutes,
         vehicleCharge: charges.vehicleCharge,
         serviceCharge: charges.serviceCharge,
         loadingCapacity: vehicleData.capacity,
@@ -54,11 +102,11 @@ const MakeReturnBook = () => {
         state: {
           bookingId: bookingId,
           vehicle: vehicleData,
-          pickupLocation: `${startCoordinates.lat}, ${startCoordinates.lng}`,
-          dropLocation: `${destCoordinates.lat}, ${destCoordinates.lng}`,
+          pickupLocation: startAddress,
+          dropLocation: destAddress,
           returnTrip: true,
           advanceAmount: charges.advancePayment,
-          totalPrice: charges.total * 20 / 100,
+          totalPrice: charges.total * 80 / 100,
           type: 'original'
         }
       });
@@ -77,69 +125,90 @@ const MakeReturnBook = () => {
   ];
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
       <Title level={2}>Confirm Return Trip Booking</Title>
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
-        <Card title={<><CarOutlined /> Vehicle Details</>}>
-          <Text>Type: {vehicleData.type}</Text>
-          <br />
-          <Text>Registration: {vehicleData.regNo}</Text>
-          <br />
-          <Text>Capacity: {vehicleData.capacity} {vehicleData.capacityUnit}</Text>
-        </Card>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Card title={<><CarOutlined /> Vehicle Details</>}>
+              <Text>Type: {vehicleData.type}</Text>
+              <br />
+              <Text>Registration: {vehicleData.regNo}</Text>
+              <br />
+              <Text>Capacity: {vehicleData.capacity} {vehicleData.capacityUnit}</Text>
+            </Card>
+          </Col>
+          <Col span={12}>
+            <Card title={<><EnvironmentOutlined /> Trip Details</>}>
+              {addressesLoading ? (
+                <Spin tip="Loading addresses..." />
+              ) : (
+                <>
+                  <Text>From: {startAddress}</Text>
+                  <br />
+                  <Text>To: {destAddress}</Text>
+                  <br />
+                  <Text>Distance: {distance}</Text>
+                  <br />
+                  <Text>Estimated Travel Time: {duration}</Text>
+                </>
+              )}
+            </Card>
+          </Col>
+        </Row>
 
-        <Card title={<><EnvironmentOutlined /> Trip Details</>}>
-          <Text>From: {startCoordinates.lat}, {startCoordinates.lng}</Text>
-          <br />
-          <Text>To: {destCoordinates.lat}, {destCoordinates.lng}</Text>
-          <br />
-          <Text>Distance: {distance}</Text>
-          <br />
-          <Text>Estimated Travel Time: {duration}</Text>
-        </Card>
-
-        <Card title={<><CalendarOutlined /> Pickup Details</>}>
-          <Text><ClockCircleOutlined /> Pickup Time: {new Date(pickupTime).toLocaleString()}</Text>
-        </Card>
-
-        <Card title={<><DollarOutlined /> Charges</>}>
-          <Text>Vehicle Charge: LKR {charges.vehicleCharge}</Text>
-          <br />
-          <Text>Service Charge: LKR {charges.serviceCharge}</Text>
-          <Divider />
-          <Text strong>Total: LKR {charges.total}</Text>
-          <br />
-          <Text type="secondary">Advance Payment Required: LKR {charges.advancePayment}</Text>
-        </Card>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Card title={<><CalendarOutlined /> Pickup Details</>}>
+              <Text><ClockCircleOutlined /> Pickup Time: {pickupTime}</Text>
+            </Card>
+          </Col>
+          <Col span={12}>
+            <Card title={<><DollarOutlined /> Charges</>}>
+              <Text>Vehicle Charge: LKR {charges.vehicleCharge}</Text>
+              <br />
+              <Text>Service Charge: LKR {charges.serviceCharge}</Text>
+              <Divider />
+              <Text strong>
+                Total: LKR {charges.total} (After Discount: LKR {(charges.total * 0.8).toFixed(2)})
+              </Text>
+              <br />
+              <Text type="secondary">Advance Payment Required: LKR {(charges.advancePayment).toFixed(2)}</Text>
+            </Card>
+          </Col>
+        </Row>
 
         <Card title={<><ClockCircleOutlined /> Loading and Unloading Time</>}>
-          <Space direction="vertical" style={{ width: '100%' }}>
-            <Text>Loading Time:</Text>
-            <Select
-              style={{ width: '100%' }}
-              value={loadingTime}
-              onChange={(value) => setLoadingTime(value)}
-            >
-              {timeOptions.map((option) => (
-                <Option key={option.value} value={option.value}>
-                  {option.label}
-                </Option>
-              ))}
-            </Select>
-
-            <Text>Unloading Time:</Text>
-            <Select
-              style={{ width: '100%' }}
-              value={unloadingTime}
-              onChange={(value) => setUnloadingTime(value)}
-            >
-              {timeOptions.map((option) => (
-                <Option key={option.value} value={option.value}>
-                  {option.label}
-                </Option>
-              ))}
-            </Select>
-          </Space>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Text>Loading Time:</Text>
+              <Select
+                style={{ width: '100%' }}
+                value={loadingTime}
+                onChange={(value) => setLoadingTime(value)}
+              >
+                {timeOptions.map((option) => (
+                  <Option key={option.value} value={option.value}>
+                    {option.label}
+                  </Option>
+                ))}
+              </Select>
+            </Col>
+            <Col span={12}>
+              <Text>Unloading Time:</Text>
+              <Select
+                style={{ width: '100%' }}
+                value={unloadingTime}
+                onChange={(value) => setUnloadingTime(value)}
+              >
+                {timeOptions.map((option) => (
+                  <Option key={option.value} value={option.value}>
+                    {option.label}
+                  </Option>
+                ))}
+              </Select>
+            </Col>
+          </Row>
         </Card>
 
         <Button type="primary" onClick={handleConfirmBooking} loading={loading} block>

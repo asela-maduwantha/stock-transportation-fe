@@ -5,9 +5,20 @@ import { MailOutlined, PhoneOutlined, EnvironmentOutlined } from '@ant-design/ic
 const { Title } = Typography;
 const { Meta } = Card;
 const { Content, Footer } = Layout;
+
+// Assume this is imported correctly in your project
 import ContactImg from '../../../assets/images/contact.jpg'
 
 const Contact = () => {
+  const [form] = Form.useForm();
+
+  const onFinish = (values) => {
+    const { name, email, message } = values;
+    const mailtoLink = `mailto:gulftransportationsolution@gmail.com?subject=New Contact Form Submission&body=Name: ${name}%0D%0AEmail: ${email}%0D%0AMessage: ${message}`;
+    
+    window.location.href = mailtoLink;
+  };
+
   return (
     <Layout>
       <Content style={{ padding: '0 20px', marginTop: '20px' }}>
@@ -24,7 +35,7 @@ const Contact = () => {
                 <Meta
                   description={
                     <>
-                      <div><MailOutlined /> Email: contact@example.com</div>
+                      <div><MailOutlined /> Email: gulftransportationsolution@gmail.com</div>
                       <div><PhoneOutlined /> Phone: +123 456 7890</div>
                       <div><EnvironmentOutlined /> Address: 123 Main St, City, Country</div>
                     </>
@@ -35,10 +46,9 @@ const Contact = () => {
             <Col xs={24} sm={24} md={12} lg={12} xl={12}>
               <Card title="Send Us a Message" bordered={false}>
                 <Form
+                  form={form}
                   layout="vertical"
-                  onFinish={(values) => {
-                    console.log('Received values:', values);
-                  }}
+                  onFinish={onFinish}
                 >
                   <Form.Item
                     label="Name"
@@ -50,7 +60,10 @@ const Contact = () => {
                   <Form.Item
                     label="Email"
                     name="email"
-                    rules={[{ required: true, message: 'Please input your email!' }]}
+                    rules={[
+                      { required: true, message: 'Please input your email!' },
+                      { type: 'email', message: 'Please enter a valid email address!' }
+                    ]}
                   >
                     <Input />
                   </Form.Item>
@@ -63,7 +76,7 @@ const Contact = () => {
                   </Form.Item>
                   <Form.Item>
                     <Button type="primary" htmlType="submit">
-                      Send
+                      Send Email
                     </Button>
                   </Form.Item>
                 </Form>
