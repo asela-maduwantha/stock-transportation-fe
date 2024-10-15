@@ -3,7 +3,6 @@ import { Button, Menu, Dropdown } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ContainerOutlined,
-  SettingOutlined,
   MenuOutlined,
   PieChartOutlined,
   DesktopOutlined,
