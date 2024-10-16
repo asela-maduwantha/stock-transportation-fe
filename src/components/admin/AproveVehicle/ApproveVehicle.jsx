@@ -27,8 +27,11 @@ const ApproveVehicle = () => {
       );
       setData(vehiclesData);
     } catch (error) {
-      
-      message.error('No vehicle requests');
+      if (error.response && error.response.status === 404) {
+        message.warning('No request available');
+      } else {
+        console.error('Error fetching data:', error);
+      }
     }
   };
 
@@ -67,12 +70,8 @@ const ApproveVehicle = () => {
       setIsModalVisible(false);
       fetchData();
     } catch (error) {
-      if (error.response && error.response.status === 404) {
-        message.warning('No request available');
-      } else {
-        console.error('Error fetching data:', error);
-        message.error('Error fetching vehicles');
-      }
+      console.error('Error rejecting vehicle:', error);
+      message.error(`Error rejecting vehicle: ${error.response?.data || error.message}`);
     }
   };
 

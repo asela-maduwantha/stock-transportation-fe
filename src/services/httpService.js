@@ -64,6 +64,7 @@ httpService.interceptors.response.use(
           break;
         case 404: {
           const msg = data?.message || 'No Requests available.';
+          message.warning(msg)
           return Promise.reject(new Error(msg));
         }
         default:
