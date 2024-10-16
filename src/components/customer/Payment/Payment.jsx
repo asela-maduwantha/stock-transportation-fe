@@ -68,7 +68,7 @@ const CheckoutForm = ({ totalPrice, bookingId, type }) => {
           type: type,
         };
 
-       const bookingType = localStorage.getItem('bookigType')
+       const bookingType = localStorage.getItem('bookingType')
         await httpService.post(`/customer/advancePayment/${bookingId}?type=${bookingType}`, paymentData);
 
         setModalContent({
