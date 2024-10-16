@@ -59,10 +59,10 @@ const FooterComponent = () => {
           <Col xs={24} sm={8} style={sectionStyle}>
             <Title level={4} style={footerTitleStyle}>Company</Title>
             <Space direction="vertical" size="small" style={{ width: '100%' }}>
-              <a href="/about-us" style={linkStyle}>About Us</a>
+              <a href="/about" style={linkStyle}>About Us</a>
               <a href="/careers" style={linkStyle}>Careers</a>
               <a href="/press" style={linkStyle}>Press</a>
-              <a href="/contact-us" style={linkStyle}>Contact Us</a>
+              <a href="/contact" style={linkStyle}>Contact Us</a>
             </Space>
           </Col>
 
@@ -84,7 +84,7 @@ const FooterComponent = () => {
               <a href="/privacy-policy" style={linkStyle}>Privacy Policy</a>
               <a href="/terms-of-service" style={linkStyle}>Terms of Service</a>
               <a href="/faqs" style={linkStyle}>FAQs</a>
-              <a href="/support" style={linkStyle}>Support</a>
+              <a href="/contact" style={linkStyle}>Support</a>
             </Space>
           </Col>
         </Row>

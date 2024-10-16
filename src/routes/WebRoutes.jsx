@@ -64,6 +64,16 @@ import CustomerChat from '../components/customer/CustomerChat/CustomerChat';
 import { CustomerNotification, DriverNotification, OwnerNotification } from '../components/common/Notification/Notification';
 import AvailableReturnTrips from '../components/customer/AvailableReturnTrips/AvailableReturnTrips';
 import MakeReturnBook from '../components/customer/MakeReturnBook/MakeReturnBook';
+import PrivacyPolicy from '../components/common/PrivacyPolicy/PrivacyPolicy'
+import FAQs from '../components/common/FAQs/FAQs'
+import FleetManagement from '../components/common/FleetManagement/FleetManagement'
+import LogisticsSolutions from '../components/common/LogisticSolutions/LogisticSolutions'
+import Tracking from '../components/common/Tracking/Tracking';
+import TransportServices from '../components/common/TransportServices/TransportServices'
+import Press from '../components/common/Press/Press';
+import Careers from '../components/common/Careers/Careers';
+
+
 
 const WebRoutes = () => {
   return (
@@ -71,7 +81,15 @@ const WebRoutes = () => {
       <Routes>
         <Route path="/" element={<HomePage />}>
           <Route path="about" element={<AboutUs />} />
+          <Route path="privacy-policy" element={<PrivacyPolicy/>} />
+          <Route path="faqs" element={<FAQs />} />
+          <Route path="transport-services" element={<TransportServices />} />
+          <Route path="logistics-solutions" element={<LogisticsSolutions />} />
+          <Route path="fleet-management" element={<FleetManagement />} />
+          <Route path="tracking" element={<Tracking />} />
           <Route path="contact" element={<Contact />} />
+          <Route path="press" element={<Press />} />
+          <Route path="careers" element={<Careers />} />
           <Route path="admin/create" element={<AdminCreate />} />
           <Route path="admin/signin" element={<AdminSignin />} />
           <Route path="vehicle-owner/reg" element={<VehicleOwnerRegistration />} />

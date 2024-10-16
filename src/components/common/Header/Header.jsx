@@ -67,12 +67,12 @@ const Header = () => {
         <span></span>
         <span></span>
       </button>
-      <nav className={`navigation ${menuOpen ? 'open' : ''}`}>
+      <nav className={`navigation ${menuOpen ? 'open' : ''}`} style={{paddingLeft:'10%'}}>
         <ul>
-          <li><Link to="/vehicle-owner/reg">Vehicle Owner</Link></li>
-          <li><Link to="/customer/reg">Customer</Link></li>
-          <li><Link to="/contact">Contact Us</Link></li>
-          <li><Link to="/about">About Us</Link></li>
+          <li><Link to="/vehicle-owner/reg"><strong>Vehicle Owner</strong></Link></li>
+          <li><Link to="/customer/reg"><strong>Customer</strong></Link></li>
+          <li><Link to="/contact"><strong>Contact Us</strong></Link></li>
+          <li><Link to="/about"><strong>About Us</strong></Link></li>
         </ul>
       </nav>
       <div className="signin-container">
