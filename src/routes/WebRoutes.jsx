@@ -72,6 +72,7 @@ import Tracking from '../components/common/Tracking/Tracking';
 import TransportServices from '../components/common/TransportServices/TransportServices'
 import Press from '../components/common/Press/Press';
 import Careers from '../components/common/Careers/Careers';
+import TermsConditions from '../components/common/TermsConditions/TermsConditions';
 
 
 
@@ -89,6 +90,7 @@ const WebRoutes = () => {
           <Route path="tracking" element={<Tracking />} />
           <Route path="contact" element={<Contact />} />
           <Route path="press" element={<Press />} />
+          <Route path="terms-of-service" element={<TermsConditions />} />
           <Route path="careers" element={<Careers />} />
           <Route path="admin/create" element={<AdminCreate />} />
           <Route path="admin/signin" element={<AdminSignin />} />
