@@ -69,7 +69,7 @@ const Header = () => {
       </button>
       <nav className={`navigation ${menuOpen ? 'open' : ''}`} style={{paddingLeft:'10%'}}>
         <ul>
-        <li><Link to="/home"><strong>Home</strong></Link></li>
+        <li><Link to="/"><strong>Home</strong></Link></li>
           <li><Link to="/vehicle-owner/reg"><strong>Vehicle Owner</strong></Link></li>
           <li><Link to="/customer/reg"><strong>Customer</strong></Link></li>
           <li><Link to="/contact"><strong>Contact Us</strong></Link></li>
