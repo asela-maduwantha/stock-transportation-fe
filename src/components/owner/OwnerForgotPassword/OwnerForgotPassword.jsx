@@ -6,20 +6,20 @@ import httpService from '../../../services/httpService';
 
 const OwnerForgotPassword = () => {
   const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [otp, setOtp] = useState(['', '', '', '']);
   const [newPassword, setNewPassword] = useState('');
   const [step, setStep] = useState(1);
   const [timer, setTimer] = useState(120);
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+  const [userId, setUserId] = useState('');
   const timerRef = useRef(null);
   const inputRefs = useRef([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     if (step === 2) {
-      // Start the timer when entering OTP verification step
       timerRef.current = setInterval(() => {
-        setTimer(prev => {
+        setTimer((prev) => {
           if (prev <= 1) {
             clearInterval(timerRef.current);
             setIsButtonDisabled(true);
@@ -29,11 +29,10 @@ const OwnerForgotPassword = () => {
         });
       }, 1000);
     } else {
-      // Reset timer when not in OTP verification step
       setTimer(120);
       clearInterval(timerRef.current);
     }
-    
+
     return () => clearInterval(timerRef.current);
   }, [step]);
 
@@ -44,7 +43,8 @@ const OwnerForgotPassword = () => {
     }
 
     try {
-      await httpService.post('/owner/forgot-password', { email });
+      const response = await httpService.post(`/common/otp/${email}?userType=owner`);
+      setUserId(response.data.id);
       message.success('OTP sent to your email.');
       setStep(2);
     } catch (error) {
@@ -59,15 +59,13 @@ const OwnerForgotPassword = () => {
       const newOtp = [...otp];
       newOtp[index] = value;
       setOtp(newOtp);
-      setIsButtonDisabled(newOtp.some(val => val === ''));
-      
+      setIsButtonDisabled(newOtp.some((val) => val === ''));
+
       if (value) {
-        // Move to next input
         if (index < otp.length - 1) {
           inputRefs.current[index + 1].focus();
         }
       } else {
-        // Move to previous input if erased
         if (index > 0 && !otp[index - 1]) {
           inputRefs.current[index - 1].focus();
         }
@@ -77,13 +75,15 @@ const OwnerForgotPassword = () => {
 
   const handleOtpSubmit = async () => {
     const otpString = otp.join('');
-    if (otpString.length < 6) {
-      message.error('Please enter all 6 digits.');
+    if (otpString.length < 4) {
+      message.error('Please enter all 4 digits.');
       return;
     }
 
     try {
-      await httpService.post('/owner/verify-otp', { email, otp: otpString });
+      await httpService.post(`/common/verifyOtp/${userId}?userType=owner`, {
+        data: { otp: otpString }
+      });
       message.success('OTP verified.');
       setStep(3);
     } catch (error) {
@@ -99,7 +99,9 @@ const OwnerForgotPassword = () => {
     }
 
     try {
-      await httpService.post('/owner/reset-password', { email, newPassword });
+      await httpService.put(`/common/changePassword/${userId}?userType=owner`, {
+        password: newPassword
+      });
       message.success('Password reset successful!');
       navigate('/owner/signin');
     } catch (error) {
@@ -192,7 +194,7 @@ const OwnerForgotPassword = () => {
               {otp.map((digit, index) => (
                 <Input
                   key={index}
-                  ref={el => inputRefs.current[index] = el}
+                  ref={(el) => (inputRefs.current[index] = el)}
                   style={otpInputStyle}
                   maxLength={1}
                   value={digit}
