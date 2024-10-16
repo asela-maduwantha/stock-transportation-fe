@@ -9,7 +9,7 @@ const DriverForgotPassword = () => {
   const [otp, setOtp] = useState(['', '', '', '']);
   const [newPassword, setNewPassword] = useState('');
   const [step, setStep] = useState(1);
-  const [timer, setTimer] = useState(120);
+  const [timer, setTimer] = useState(300);
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
   const [userId, setUserId] = useState('');
   const timerRef = useRef(null);
@@ -82,7 +82,7 @@ const DriverForgotPassword = () => {
 
     try {
       await httpService.post(`/common/verifyOtp/${userId}?userType=driver`, {
-        data: { otp: otpString }
+        otp: otpString 
       });
       message.success('OTP verified.');
       setStep(3);
