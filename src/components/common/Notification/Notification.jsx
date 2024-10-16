@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { List, Typography, Button, Space, Pagination, message } from 'antd';
-import { CheckOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { CheckOutlined } from '@ant-design/icons';
 import io from 'socket.io-client';
 import httpService from '../../../services/httpService';
 
@@ -11,7 +11,7 @@ const Notification = ({ userType }) => {
   const [notifications, setNotifications] = useState([]);
   const [socket, setSocket] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10; // Number of notifications per page
+  const pageSize = 4; // Number of notifications per page
 
   const getUserId = useCallback(() => {
     switch (userType) {
@@ -75,17 +75,6 @@ const Notification = ({ userType }) => {
     }
   }, [socket, userType]);
 
-  const handleMarkAllAsRead = useCallback(() => {
-    if (socket) {
-      socket.emit('markAllAsRead', { userType });
-      setNotifications(prevNotifications =>
-        prevNotifications.map(n => ({ ...n, read: true }))
-      );
-    } else {
-      console.error('Socket connection not established');
-    }
-  }, [socket, userType]);
-
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
@@ -95,19 +84,19 @@ const Notification = ({ userType }) => {
     currentPage * pageSize
   );
 
+  const getNotificationColor = (title) => {
+    if (title.toLowerCase().includes('payment alert')) {
+      return '#e6f7ff'; // Light blue for payment alerts
+    } else if (title.toLowerCase().includes('booking alert')) {
+      return '#f6ffed'; // Light green for booking alerts
+    }
+    return '#fff'; // White for other notifications
+  };
+
   return (
     <div style={{ maxWidth: 600, margin: '0 auto' }}>
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
-        <Space style={{ justifyContent: 'space-between', width: '100%' }}>
-          <Title level={4}>{`${userType.charAt(0).toUpperCase() + userType.slice(1)} Notifications`}</Title>
-          <Button
-            type="primary"
-            icon={<CheckCircleOutlined />}
-            onClick={handleMarkAllAsRead}
-          >
-            Mark All as Read
-          </Button>
-        </Space>
+        <Title level={4}>{`${userType.charAt(0).toUpperCase() + userType.slice(1)} Notifications`}</Title>
 
         <List
           itemLayout="horizontal"
@@ -116,7 +105,7 @@ const Notification = ({ userType }) => {
             <List.Item
               key={item.id}
               style={{
-                backgroundColor: item.read ? '#f0f2f5' : '#e6f7ff',
+                backgroundColor: getNotificationColor(item.title),
                 padding: '12px 16px',
                 marginBottom: 8,
                 borderRadius: 4,
