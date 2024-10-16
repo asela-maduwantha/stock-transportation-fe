@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Form, Input, Button, Upload, message, Radio } from 'antd';
-import {  UploadOutlined } from '@ant-design/icons';
+import { UploadOutlined } from '@ant-design/icons';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../../config/firebaseconfig'; // Adjust the import path as needed
 import lottie from 'lottie-web';
@@ -131,6 +131,12 @@ const AddDriver = () => {
     message.error('Please check the form for errors.');
   };
 
+  const customRequest = ({  onSuccess }) => {
+    setTimeout(() => {
+      onSuccess("ok");
+    }, 0);
+  };
+
   return (
     <div className="registration-container">
       <div className="user-reg-img">
@@ -193,10 +199,20 @@ const AddDriver = () => {
             getValueFromEvent={(e) => Array.isArray(e) ? e : e && e.fileList}
             rules={[{ required: true, message: 'Please upload your driver\'s license!' }]}
           >
-            <Upload name="licenseUrl" listType="picture">
+            <Upload 
+              name="licenseUrl" 
+              listType="picture"
+              customRequest={customRequest}
+              showUploadList={{
+                showPreviewIcon: true,
+                showRemoveIcon: true,
+                showDownloadIcon: false,
+              }}
+            >
               <Button icon={<UploadOutlined />}>Click to Upload Driver&apos;s License</Button>
             </Upload>
           </Form.Item>
+
           <Form.Item
             name="heavyVehicleLic"
             label="Heavy Vehicle License"
@@ -214,12 +230,19 @@ const AddDriver = () => {
             getValueFromEvent={(e) => Array.isArray(e) ? e : e && e.fileList}
             rules={[{ required: true, message: 'Please upload your photo!' }]}
           >
-            <Upload name="photoUrl" listType="picture">
+            <Upload 
+              name="photoUrl" 
+              listType="picture"
+              customRequest={customRequest}
+              showUploadList={{
+                showPreviewIcon: true,
+                showRemoveIcon: true,
+                showDownloadIcon: false,
+              }}
+            >
               <Button icon={<UploadOutlined />}>Click to Upload Driver&apos;s Photo</Button>
             </Upload>
           </Form.Item>
-
-        
 
           <Form.Item
             name="policeCertiUrl"
@@ -227,7 +250,16 @@ const AddDriver = () => {
             getValueFromEvent={(e) => Array.isArray(e) ? e : e && e.fileList}
             rules={[{ required: true, message: 'Please upload your police certificate!' }]}
           >
-            <Upload name="policeCertificate" listType="picture">
+            <Upload 
+              name="policeCertificate" 
+              listType="picture"
+              customRequest={customRequest}
+              showUploadList={{
+                showPreviewIcon: true,
+                showRemoveIcon: true,
+                showDownloadIcon: false,
+              }}
+            >
               <Button icon={<UploadOutlined />}>Click to Upload Police Certificate</Button>
             </Upload>
           </Form.Item>

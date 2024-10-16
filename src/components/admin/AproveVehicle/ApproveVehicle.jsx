@@ -67,8 +67,12 @@ const ApproveVehicle = () => {
       setIsModalVisible(false);
       fetchData();
     } catch (error) {
-      console.error('Error rejecting vehicle:', error);
-      message.error(`Error rejecting vehicle: ${error.response?.data || error.message}`);
+      if (error.response && error.response.status === 404) {
+        message.warning('No request available');
+      } else {
+        console.error('Error fetching data:', error);
+        message.error('Error fetching vehicles');
+      }
     }
   };
 

@@ -19,11 +19,15 @@ const ApproveDriverAccounts = () => {
       );
       setData(drivers);
     } catch (error) {
-      console.error('Error fetching data:', error);
-      message.error('Error fetching drivers');
+      if (error.response && error.response.status === 404) {
+        message.warning('No request available');
+      } else {
+        console.error('Error fetching data:', error);
+        message.error('Error fetching drivers');
+      }
     }
   };
-
+  
   const handleViewMore = (record) => {
     setSelectedDriver(record);
     setIsModalVisible(true);

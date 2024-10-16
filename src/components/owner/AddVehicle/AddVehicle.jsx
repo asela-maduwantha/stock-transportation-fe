@@ -135,6 +135,12 @@ const AddVehicle = () => {
     setIsFormValid(allValid);
   };
 
+  const customRequest = ({  onSuccess }) => {
+    setTimeout(() => {
+      onSuccess("ok");
+    }, 0);
+  };
+
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '20px' }}>
       <div ref={container} id="animation-container" style={{ paddingLeft: '20px' }} />
@@ -191,13 +197,31 @@ const AddVehicle = () => {
           </Form.Item>
 
           <Form.Item name="vehiclePhoto" valuePropName="fileList" getValueFromEvent={(e) => Array.isArray(e) ? e : e && e.fileList} rules={[{ required: true, message: 'Please upload your vehicle photo!' }]}>
-            <Upload name="vehiclePhoto" listType="picture">
+            <Upload 
+              name="vehiclePhoto" 
+              listType="picture"
+              customRequest={customRequest}
+              showUploadList={{
+                showPreviewIcon: true,
+                showRemoveIcon: true,
+                showDownloadIcon: false,
+              }}
+            >
               <Button icon={<UploadOutlined />}>Upload Vehicle Photo</Button>
             </Upload>
           </Form.Item>
 
           <Form.Item name="bookPhoto" valuePropName="fileList" getValueFromEvent={(e) => Array.isArray(e) ? e : e && e.fileList}>
-            <Upload name="bookPhoto" listType="picture">
+            <Upload 
+              name="bookPhoto" 
+              listType="picture"
+              customRequest={customRequest}
+              showUploadList={{
+                showPreviewIcon: true,
+                showRemoveIcon: true,
+                showDownloadIcon: false,
+              }}
+            >
               <Button icon={<UploadOutlined />}>Upload Vehicle Book Photo</Button>
             </Upload>
           </Form.Item>

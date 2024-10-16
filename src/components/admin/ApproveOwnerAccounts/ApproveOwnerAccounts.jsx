@@ -16,8 +16,12 @@ const ApproveOwnerAccounts = () => {
       const response = await httpService.get('/admin/getTempOwners');
       setData(response.data);
     } catch (error) {
-      console.error('Error fetching data:', error);
-      message.error('No Owner requests');
+      if (error.response && error.response.status === 404) {
+        message.warning('No request available');
+      } else {
+        console.error('Error fetching data:', error);
+        message.error('Error fetching owners');
+      }
     }
   };
 
