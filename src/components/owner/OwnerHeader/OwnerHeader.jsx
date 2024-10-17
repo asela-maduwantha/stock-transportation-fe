@@ -4,21 +4,21 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   HomeOutlined,
   UserAddOutlined,
-  IdcardOutlined,
+  TeamOutlined,
   CarOutlined,
-  SettingOutlined,
-  LogoutOutlined,
-  MenuOutlined,
+  PlusSquareOutlined,
+  CalendarOutlined,
   WalletOutlined,
-  UserSwitchOutlined,
   GiftOutlined,
   MessageOutlined,
   BellOutlined,
+  UserOutlined,
+  LockOutlined,
+  MenuOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons";
 import Logo from "../../../assets/Logo.png";
 import Cookies from 'js-cookie'
-
-
 
 const OwnerHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -47,13 +47,13 @@ const OwnerHeader = () => {
     },
     {
       key: 'my-drivers',
-      icon: <IdcardOutlined />,
+      icon: <TeamOutlined />,
       label: 'Drivers',
       link: '/owner/drivers',
     },
     {
       key: 'add-vehicle',
-      icon: <CarOutlined />,
+      icon: <PlusSquareOutlined />,
       label: 'Add Vehicle',
       link: '/owner/add-vehicle',
     },
@@ -65,7 +65,7 @@ const OwnerHeader = () => {
     },
     {
       key: 'my-bookings',
-      icon: <CarOutlined />,
+      icon: <CalendarOutlined />,
       label: 'Bookings',
       link: '/owner/my-bookings',
     },
@@ -95,13 +95,13 @@ const OwnerHeader = () => {
     },
     {
       key: 'profile-update',
-      icon: <UserSwitchOutlined />,
+      icon: <UserOutlined />,
       label: 'Profile Update',
       link: '/owner/profile-update',
     },
     {
       key: 'password-change',
-      icon: <SettingOutlined />,
+      icon: <LockOutlined />,
       label: 'Password Change',
       link: '/owner/password-change',
     }

@@ -8,6 +8,7 @@ import {
   DesktopOutlined,
   BookOutlined,
   MessageOutlined,
+  UserSwitchOutlined,
 } from "@ant-design/icons";
 import Logo from "../../../assets/Logo.png";
 import "./AdminHeader.css";
@@ -19,7 +20,7 @@ const AdminHeader = () => {
 
   const handleLogout = () => {
     localStorage.clear();
-    navigate("/customer/signin");
+    navigate("/admin/signin");
   };
 
   const menuItems = [
@@ -28,6 +29,7 @@ const AdminHeader = () => {
     { key: 'vehicle-requests', icon: <ContainerOutlined />, label: 'Vehicle Requests', link: '/admin/vehicle-requests' },
     { key: 'driver-requests', icon: <ContainerOutlined />, label: 'Driver Requests', link: '/admin/driver-requests' },
     { key: 'booking-details', icon: <BookOutlined />, label: 'Booking Details', link: '/admin/booking-details' },
+    { key: 'user-profiles', icon: <UserSwitchOutlined />, label: 'User Management', link: '/admin/user-profiles' },
     { key: 'feedbacks', icon: <MessageOutlined />, label: 'Customer Feedbacks', link: '/admin/customer-feedbacks' },
   ];
 

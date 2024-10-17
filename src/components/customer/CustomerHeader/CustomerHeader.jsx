@@ -4,15 +4,16 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   DashboardOutlined,
   CarOutlined,
-  CarFilled,
-  ShareAltOutlined,
+  UserOutlined,
   HistoryOutlined,
-  SettingOutlined,
+  LockOutlined,
   MenuOutlined,
-  UserSwitchOutlined,
+  UsergroupAddOutlined,
   GiftOutlined,
   BellOutlined,
-  ArrowLeftOutlined,
+  SwapOutlined,
+  TeamOutlined
+
 } from "@ant-design/icons";
 import Logo from "../../../assets/Logo.png";
 import "./CustomerHeader.css";
@@ -50,15 +51,14 @@ const CustomerHeader = () => {
     },
     {
       key: "shared-booking",
-      icon: <CarFilled />,
+      icon: <TeamOutlined />,
       label: "Shared Booking",
       link: "/customer/shared-booking",
-    }
-    ,
+    },
     {
       key: "return-booking",
-      icon: <ArrowLeftOutlined />,
-      label: "Retun Trips",
+      icon: <SwapOutlined />,
+      label: "Return Trips",
       link: "/customer/available-return-trips",
     },
     {
@@ -69,7 +69,7 @@ const CustomerHeader = () => {
     },
     {
       key: "sharedbookinghistory",
-      icon: <ShareAltOutlined />,
+      icon: <UsergroupAddOutlined />,
       label: "Shared Booking History",
       link: "/customer/shared-booking-history",
     },
@@ -87,13 +87,13 @@ const CustomerHeader = () => {
     },
     {
       key: 'profile-update',
-      icon: <UserSwitchOutlined />,
+      icon: <UserOutlined />,
       label: 'Profile Update',
       link: '/customer/profile-update',
     },
     {
       key: 'password-change',
-      icon: <SettingOutlined />,
+      icon: <LockOutlined />,
       label: 'Password Change',
       link: '/customer/password-change',
     }

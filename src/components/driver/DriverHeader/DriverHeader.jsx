@@ -3,14 +3,15 @@ import { Button, Menu, Dropdown } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import {
   //DashboardOutlined,
-  ContainerOutlined,
+  ProfileOutlined,
   CarOutlined,
-  SettingOutlined,
+  LockOutlined,
   QuestionCircleOutlined,
   MenuOutlined,
   LogoutOutlined,
-  UserSwitchOutlined,
+  InboxOutlined,
   BellOutlined,
+  UserOutlined
 } from "@ant-design/icons";
 import Logo from "../../../assets/Logo.png";
 import "./DriverHeader.css";
@@ -30,15 +31,9 @@ const DriverHeader = () => {
   };
 
   const menuItems = [
-    // {
-    //   key: "dashboard",
-    //   icon: <DashboardOutlined />,
-    //   label: "Dashboard",
-    //   link: "/driver/dashboard",
-    // },
     {
       key: "pickup-stock",
-      icon: <ContainerOutlined />,
+      icon: <InboxOutlined />,
       label: "Stock Pending Pickup",
       link: "/driver/pickup-stock",
     },
@@ -50,7 +45,7 @@ const DriverHeader = () => {
     },
     {
       key: "vehicles",
-      icon: <CarOutlined />,
+      icon: <ProfileOutlined />,
       label: "Vehicles",
       link: "/driver/vehicles",
     },
@@ -62,13 +57,13 @@ const DriverHeader = () => {
     },
     {
       key: 'profile-update',
-      icon: <UserSwitchOutlined />,
+      icon: <UserOutlined />,
       label: 'Profile Update',
       link: '/driver/profile-update',
     },
     {
       key: 'password-change',
-      icon: <SettingOutlined />,
+      icon: <LockOutlined />,
       label: 'Password Change',
       link: '/driver/password-change',
     },

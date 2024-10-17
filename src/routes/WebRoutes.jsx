@@ -74,6 +74,7 @@ import Press from '../components/common/Press/Press';
 import Careers from '../components/common/Careers/Careers';
 import TermsConditions from '../components/common/TermsConditions/TermsConditions';
 import AdminFeedback from '../components/admin/AdminFeedback/AdminFeedback';
+import UserProfiles from '../components/admin/UserProfiles/UserProfiles';
 
 
 
@@ -124,6 +125,7 @@ const WebRoutes = () => {
           <Route path="password-change" element={<AdminPasswordChange />} />
           <Route path="booking-details" element={<AdminBookingDetails />} />
           <Route path="customer-Feedbacks" element={<AdminFeedback />} />
+          <Route path="user-profiles" element={<UserProfiles />} />
         </Route>
 
         <Route

@@ -1,19 +1,24 @@
 import React, { useState } from 'react';
-import { Card, Row, Col, Typography, theme, Button, Modal, Input, message } from 'antd';
+import { Card, Row, Col, Typography, theme, Button, Modal, Input, message,  Space } from 'antd';
 import {
   DashboardOutlined,
   CarOutlined,
-  CarFilled,
+  TeamOutlined,
+  SwapOutlined,
   HistoryOutlined,
-  ShareAltOutlined,
+  UsergroupAddOutlined,
   GiftOutlined,
-  UserSwitchOutlined,
-  MessageOutlined
+  BellOutlined,
+  UserOutlined,
+  LockOutlined,
+  MessageOutlined,
+  SmileOutlined,
+  SendOutlined
 } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import httpService from '../../../services/httpService';
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph, Text } = Typography;
 const { useToken } = theme;
 const { TextArea } = Input;
 
@@ -34,10 +39,17 @@ const navigationItems = [
   },
   {
     key: "shared-booking",
-    icon: <CarFilled />,
-    label: "Make Shared Booking",
+    icon: <TeamOutlined />,
+    label: "Shared Booking",
     link: "/customer/shared-booking",
     description: "Book a shared ride to save costs and reduce environmental impact."
+  },
+  {
+    key: "return-booking",
+    icon: <SwapOutlined />,
+    label: "Return Trips",
+    link: "/customer/available-return-trips",
+    description: "Book a return trip for your journey."
   },
   {
     key: "booking-history",
@@ -48,7 +60,7 @@ const navigationItems = [
   },
   {
     key: "sharedbookinghistory",
-    icon: <ShareAltOutlined />,
+    icon: <UsergroupAddOutlined />,
     label: "Shared Booking History",
     link: "/customer/shared-booking-history",
     description: "Access your history of shared rides and carpools."
@@ -61,11 +73,25 @@ const navigationItems = [
     description: "Check your reward points and available perks."
   },
   {
+    key: "notification",
+    icon: <BellOutlined />,
+    label: "Notifications",
+    link: "/customer/notification",
+    description: "View your latest notifications and updates."
+  },
+  {
     key: 'profile-update',
-    icon: <UserSwitchOutlined />,
+    icon: <UserOutlined />,
     label: 'Profile Update',
     link: '/customer/profile-update',
     description: "Update your personal information and preferences."
+  },
+  {
+    key: 'password-change',
+    icon: <LockOutlined />,
+    label: 'Password Change',
+    link: '/customer/password-change',
+    description: "Change your account password for security."
   }
 ];
 
@@ -93,9 +119,15 @@ const CustomerDashboard = () => {
   const handleCancel = () => {
     setIsModalVisible(false);
     setFeedback('');
+    
   };
 
   const handleSubmit = async () => {
+    if (!feedback.trim() ) {
+      message.warning('Please provide a feedback!');
+      return;
+    }
+
     const customerId = localStorage.getItem('customerId');
     if (!customerId) {
       message.error('Customer ID not found');
@@ -109,8 +141,7 @@ const CustomerDashboard = () => {
       
       if (response.status === 200) {
         message.success('Feedback submitted successfully');
-        setIsModalVisible(false);
-        setFeedback('');
+        handleCancel();
       } else {
         throw new Error('Failed to submit feedback');
       }
@@ -199,20 +230,38 @@ const CustomerDashboard = () => {
 
       {/* Feedback Modal */}
       <Modal
-        title="Provide Feedback"
+        title={
+          <Space align="center">
+            <SmileOutlined style={{ fontSize: '24px', color: customTheme.colorPrimary }} />
+            <Title level={4} style={{ margin: 0 }}>We&apos;d love your feedback!</Title>
+          </Space>
+        }
         visible={isModalVisible}
-        onOk={handleSubmit}
         onCancel={handleCancel}
-        okText="Submit"
-        cancelText="Cancel"
-        confirmLoading={isSubmitting}
+        footer={null}
+        centered
       >
-        <TextArea
-          rows={4}
-          value={feedback}
-          onChange={(e) => setFeedback(e.target.value)}
-          placeholder="Please enter your feedback here..."
-        />
+        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+          <div>
+            <Text strong>Tell us more about your experience:</Text>
+            <TextArea
+              rows={4}
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              placeholder="Your feedback helps us improve..."
+              style={{ marginTop: '8px' }}
+            />
+          </div>
+          <Button
+            type="primary"
+            icon={<SendOutlined />}
+            onClick={handleSubmit}
+            loading={isSubmitting}
+            block
+          >
+            Submit Feedback
+          </Button>
+        </Space>
       </Modal>
     </div>
   );
