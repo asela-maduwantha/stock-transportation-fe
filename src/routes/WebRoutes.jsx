@@ -73,6 +73,7 @@ import TransportServices from '../components/common/TransportServices/TransportS
 import Press from '../components/common/Press/Press';
 import Careers from '../components/common/Careers/Careers';
 import TermsConditions from '../components/common/TermsConditions/TermsConditions';
+import AdminFeedback from '../components/admin/AdminFeedback/AdminFeedback';
 
 
 
@@ -122,6 +123,7 @@ const WebRoutes = () => {
           <Route path="vehicle-requests" element={<ApproveVehicle />} />
           <Route path="password-change" element={<AdminPasswordChange />} />
           <Route path="booking-details" element={<AdminBookingDetails />} />
+          <Route path="customer-Feedbacks" element={<AdminFeedback />} />
         </Route>
 
         <Route

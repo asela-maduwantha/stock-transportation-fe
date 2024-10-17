@@ -1,47 +1,31 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Avatar } from 'antd';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import './ReviewPortal.css';
-import ManImg from '../../../assets/images/man.jpg';
+import httpService from '../../../services/httpService';
 
 const { Meta } = Card;
 
 const ReviewPortal = () => {
-  const reviews = [
-    {
-      name: 'Michael Thompson',
-      title: 'Marketing Manager, Axme Inc.',
-      photoUrl: ManImg,
-      reviewText: "The results we've achieved using this platform's marketing services are exceptional. Our campaigns are more effective, and the team's insights are invaluable.",
-    },
-    {
-      name: 'Chris Doe',
-      title: 'CEO at XYZ',
-      photoUrl: ManImg,
-      reviewText: 'A Computer Science graduate who likes to make things simpler. When he\'s not working, you can find him surfing the web, learning facts, tricks and life hacks. He also enjoys movies in his leisure time.',
-    },
-    {
-      name: 'Jane Roe',
-      title: 'CTO at DEF Inc.',
-      photoUrl: ManImg,
-      reviewText: "Fantastic platform! The insights we gained have transformed our business strategy.",
-    },
-    {
-      name: 'Alex Smith',
-      title: 'CMO at GHI Ltd.',
-      photoUrl: ManImg,
-      reviewText: "We've seen a significant improvement in our marketing efficiency. Highly recommend!",
-    },
-    {
-      name: 'Linda Brown',
-      title: 'Product Manager at JKL Corp.',
-      photoUrl: ManImg,
-      reviewText: "The analytics provided are top-notch. Our team is now better equipped to make informed decisions.",
-    },
-  ];
+  const [reviews, setReviews] = useState([]);
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const response = await httpService.get('/common/feedbacks', {
+          headers: { 'Accept': 'application/json' }
+        });
+        setReviews(response.data);
+      } catch (error) {
+        console.error('Error fetching reviews:', error);
+      }
+    };
+
+    fetchReviews();
+  }, []);
 
   return (
     <div className='review-portal-container'>
@@ -68,16 +52,16 @@ const ReviewPortal = () => {
         }}
         className='review-swiper'
       >
-        {reviews.map((review, index) => (
-          <SwiperSlide key={index}>
+        {reviews.map((review) => (
+          <SwiperSlide key={review.id}>
             <Card className='review-card' bordered={false}>
               <Meta
-                avatar={<Avatar src={review.photoUrl} size={64} />}
-                title={<h3 className="review-name">{review.name}</h3>}
+                avatar={<Avatar src={`/api/placeholder/64/64`} size={64} />}
+                title={<h3 className="review-name">{review.customerName}</h3>}
                 description={
                   <>
-                    <p className="review-title">{review.title}</p>
-                    <p className="review-text">{review.reviewText}</p>
+                    <p className="review-text">{review.feedback}</p>
+                    <p className="review-date">{new Date(review.createdAt).toLocaleDateString()}</p>
                   </>
                 }
               />

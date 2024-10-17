@@ -1,5 +1,5 @@
-import React from 'react';
-import { Card, Row, Col, Typography, theme } from 'antd';
+import React, { useState } from 'react';
+import { Card, Row, Col, Typography, theme, Button, Modal, Input, message } from 'antd';
 import {
   DashboardOutlined,
   CarOutlined,
@@ -7,12 +7,15 @@ import {
   HistoryOutlined,
   ShareAltOutlined,
   GiftOutlined,
-  UserSwitchOutlined
+  UserSwitchOutlined,
+  MessageOutlined
 } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
+import httpService from '../../../services/httpService';
 
 const { Title, Paragraph } = Typography;
 const { useToken } = theme;
+const { TextArea } = Input;
 
 const navigationItems = [
   {
@@ -68,6 +71,9 @@ const navigationItems = [
 
 const CustomerDashboard = () => {
   const { token } = useToken();
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [feedback, setFeedback] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const primaryColor = '#fdb940';
   const secondaryColor = '#4a90e2';
@@ -80,11 +86,48 @@ const CustomerDashboard = () => {
     colorTertiary: tertiaryColor,
   };
 
+  const showModal = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+    setFeedback('');
+  };
+
+  const handleSubmit = async () => {
+    const customerId = localStorage.getItem('customerId');
+    if (!customerId) {
+      message.error('Customer ID not found');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await httpService.post(`/customer/feedback/${customerId}`, { feedback });
+      
+      if (response.status === 200) {
+        message.success('Feedback submitted successfully');
+        setIsModalVisible(false);
+        setFeedback('');
+      } else {
+        throw new Error('Failed to submit feedback');
+      }
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      message.error('Error submitting feedback');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div style={{ 
       padding: '2rem', 
       background: `linear-gradient(135deg, ${customTheme.colorPrimary}22, ${customTheme.colorSecondary}22)`,
-      minHeight: '100vh'
+      minHeight: '100vh',
+      position: 'relative'
     }}>
       <Title level={2} style={{ color: customTheme.colorPrimary }}>Welcome to Your Dashboard</Title>
       <Paragraph style={{ fontSize: '1.1rem', marginBottom: '2rem' }}>
@@ -134,6 +177,43 @@ const CustomerDashboard = () => {
           </Col>
         ))}
       </Row>
+
+      {/* Feedback Button */}
+      <Button
+        type="primary"
+        icon={<MessageOutlined />}
+        onClick={showModal}
+        style={{
+          position: 'fixed',
+          bottom: '2rem',
+          right: '2rem',
+          borderRadius: '50%',
+          width: '60px',
+          height: '60px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+        }}
+      />
+
+      {/* Feedback Modal */}
+      <Modal
+        title="Provide Feedback"
+        visible={isModalVisible}
+        onOk={handleSubmit}
+        onCancel={handleCancel}
+        okText="Submit"
+        cancelText="Cancel"
+        confirmLoading={isSubmitting}
+      >
+        <TextArea
+          rows={4}
+          value={feedback}
+          onChange={(e) => setFeedback(e.target.value)}
+          placeholder="Please enter your feedback here..."
+        />
+      </Modal>
     </div>
   );
 };
