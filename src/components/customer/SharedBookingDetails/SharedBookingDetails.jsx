@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
-
   Form,
-
   message,
   Row,
   Col,
   Card,
   Typography,
-
 } from "antd";
 
 import httpService from "../../../services/httpService";
@@ -42,6 +39,8 @@ const SharedBookingDetails = () => {
   const [dropoffCoords, setDropoffCoords] = useState(null);
   const [mapCenter, setMapCenter] = useState({ lat: 0, lng: 0 });
   const [mapZoom] = useState(10);
+  const [pickupAccepted, setPickupAccepted] = useState(false);
+  const [dropoffAccepted, setDropoffAccepted] = useState(false);
 
   const mapRef = useRef(null);
 
@@ -54,6 +53,7 @@ const SharedBookingDetails = () => {
   }, [isPickupValid, isDropoffValid, charge]);
 
   useEffect(() => {
+    
     if (!selectedBooking) {
       message.error("No booking details available");
     }
@@ -136,9 +136,9 @@ const SharedBookingDetails = () => {
     );
   };
   
-  const isLocationOnRoute = (location, route) => {
+  const isLocationNearRoute = (location, route) => {
     if (!route || !route.overview_path) return false;
-    const threshold = 1000; // 1 km threshold
+    const threshold = 5000; // 5 km threshold
     for (let i = 0; i < route.overview_path.length; i++) {
       const pathPoint = route.overview_path[i];
       const distance = calculateDistance(location, { lat: pathPoint.lat(), lng: pathPoint.lng() });
@@ -154,16 +154,17 @@ const SharedBookingDetails = () => {
       const locationCoords = await getLatLngFromAddress(location);
   
       if (route) {
-        const isOnRoute = isLocationOnRoute(locationCoords, route);
+        const isNearRoute = isLocationNearRoute(locationCoords, route);
         
-        if (!isOnRoute) {
-          message.error(`${isPickup ? "Pickup" : "Dropoff"} location must be on or near the route`);
+        if (!isNearRoute) {
+          message.error(`${isPickup ? "Pickup" : "Dropoff"} location must be near the route`);
           return false;
         }
   
         if (isPickup) {
           setPickupCoords(locationCoords);
           setIsPickupValid(true);
+          setPickupAccepted(true);
         } else {
           if (!pickupCoords) {
             message.error("Please set a valid pickup location first");
@@ -182,6 +183,7 @@ const SharedBookingDetails = () => {
           
           setDropoffCoords(locationCoords);
           setIsDropoffValid(true);
+          setDropoffAccepted(true);
         }
   
         return true;
@@ -194,6 +196,7 @@ const SharedBookingDetails = () => {
       return false;
     }
   };
+
 
   const handlePickupSelect = () => {
     const place = pickupAutocomplete.getPlace();
@@ -336,7 +339,6 @@ const SharedBookingDetails = () => {
     cursor: 'not-allowed',
     backgroundColor: "#ccc",
   };
-
   return (
     <div className="booking-details-form">
       <Title level={2}>Shared Booking Details</Title>
@@ -349,7 +351,7 @@ const SharedBookingDetails = () => {
             <BookingForm 
               form={form}
               onSubmit={handleSubmit}
-              maxCapacity={selectedBooking?.freeCapacity}
+              maxCapacity={selectedBooking?.freeCapacity * selectedBooking?.vehicle.capacity}
               capacityUnit={selectedBooking?.vehicle.capacityUnit}
               isButtonDisabled={isButtonDisabled}
               buttonStyle={isButtonDisabled ? disabledButtonStyle : enabledButtonStyle}
@@ -366,6 +368,8 @@ const SharedBookingDetails = () => {
               unloadingTime={unloadingTime}
               setUnloadingTime={setUnloadingTime}
               setIsHovered={setIsHovered}
+              pickupAccepted={pickupAccepted}
+              dropoffAccepted={dropoffAccepted}
             />
           </Card>
         </Col>

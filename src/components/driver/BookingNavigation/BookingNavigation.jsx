@@ -112,7 +112,6 @@ const BookingNavigation = () => {
       message.error(
         "Booking information is missing. Redirecting to dashboard."
       );
-      navigate("/dashboard");
       return;
     }
     localStorage.setItem("bookingId", location.state.originalBookingId);
@@ -131,7 +130,7 @@ const BookingNavigation = () => {
       message.error("Failed to fetch booking coordinates. Please try again.");
       setLoading(false);
     }
-  }, [location.state, navigate]);
+  }, [location.state]);
 
   const sendCoordinates = async (location) => {
     try {
@@ -559,7 +558,7 @@ const BookingNavigation = () => {
         socketRef.current.disconnect();
       }
       message.success("Ride finished successfully!");
-      navigate("/driver/dashboard");
+      navigate("/driver/assigned-trips");
     } catch (error) {
       console.error("Error finishing ride:", error);
       message.error("Failed to finish the ride. Please try again.");
@@ -984,7 +983,7 @@ const BookingNavigation = () => {
             color: socketConnected ? "green" : "red",
           }}
         >
-          Socket Status: {socketConnected ? "Connected" : "Disconnected"}
+        {socketConnected ? "Connected" : "Disconnected"}
         </Text>
 
         <div
@@ -1100,18 +1099,6 @@ const BookingNavigation = () => {
             justifyContent: "space-between",
           }}
         >
-          <Tooltip
-            title={!rideStarted ? "Ride must be started to navigate" : ""}
-          >
-            <Button
-              onClick={handleNavigate}
-              style={!rideStarted ? disabledButtonStyle : buttonStyle}
-              icon={<CompassOutlined />}
-              disabled={!rideStarted}
-            >
-              Navigate
-            </Button>
-          </Tooltip>
           <Button
             onClick={openInGoogleMaps}
             style={buttonStyle}

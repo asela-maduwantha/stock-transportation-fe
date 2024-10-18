@@ -1,6 +1,6 @@
 import React from 'react';
-import { Form, Input, InputNumber, Select, Button, Typography } from 'antd';
-import { EnvironmentOutlined } from "@ant-design/icons";
+import { Form, Input, InputNumber, Select, Button, Typography, Alert } from 'antd';
+import { EnvironmentOutlined, CheckCircleOutlined } from "@ant-design/icons";
 import { Autocomplete } from "@react-google-maps/api";
 import PropTypes from 'prop-types';
 
@@ -26,7 +26,9 @@ const BookingForm = ({
   setLoadingTime,
   unloadingTime,
   setUnloadingTime,
-  setIsHovered
+  setIsHovered,
+  pickupAccepted,
+  dropoffAccepted
 }) => (
   <Form form={form} layout="vertical" onFinish={onSubmit}>
     <Form.Item
@@ -50,17 +52,28 @@ const BookingForm = ({
       label={<Text strong>Pickup Location</Text>}
       rules={[{ required: true, message: "Please input your pickup location" }]}
     >
-      <Autocomplete
-        onLoad={(autocomplete) => setPickupAutocomplete(autocomplete)}
-        onPlaceChanged={handlePickupSelect}
-      >
-        <Input
-          value={pickupLocation}
-          onChange={(e) => setPickupLocation(e.target.value)}
-          prefix={<EnvironmentOutlined />}
-          placeholder="Enter pickup location"
-        />
-      </Autocomplete>
+      <div>
+        <Autocomplete
+          onLoad={(autocomplete) => setPickupAutocomplete(autocomplete)}
+          onPlaceChanged={handlePickupSelect}
+        >
+          <Input
+            value={pickupLocation}
+            onChange={(e) => setPickupLocation(e.target.value)}
+            prefix={<EnvironmentOutlined />}
+            placeholder="Enter pickup location"
+            suffix={pickupAccepted && <CheckCircleOutlined style={{ color: '#52c41a' }} />}
+          />
+        </Autocomplete>
+        {pickupAccepted && (
+          <Alert
+            message="Pickup location accepted"
+            type="success"
+            showIcon
+            style={{ marginTop: '8px' }}
+          />
+        )}
+      </div>
     </Form.Item>
 
     <Form.Item
@@ -68,17 +81,28 @@ const BookingForm = ({
       label={<Text strong>Dropoff Location</Text>}
       rules={[{ required: true, message: "Please input your dropoff location" }]}
     >
-      <Autocomplete
-        onLoad={(autocomplete) => setDropoffAutocomplete(autocomplete)}
-        onPlaceChanged={handleDropoffSelect}
-      >
-        <Input
-          value={dropoffLocation}
-          onChange={(e) => setDropoffLocation(e.target.value)}
-          prefix={<EnvironmentOutlined />}
-          placeholder="Enter drop-off location"
-        />
-      </Autocomplete>
+      <div>
+        <Autocomplete
+          onLoad={(autocomplete) => setDropoffAutocomplete(autocomplete)}
+          onPlaceChanged={handleDropoffSelect}
+        >
+          <Input
+            value={dropoffLocation}
+            onChange={(e) => setDropoffLocation(e.target.value)}
+            prefix={<EnvironmentOutlined />}
+            placeholder="Enter drop-off location"
+            suffix={dropoffAccepted && <CheckCircleOutlined style={{ color: '#52c41a' }} />}
+          />
+        </Autocomplete>
+        {dropoffAccepted && (
+          <Alert
+            message="Dropoff location accepted"
+            type="success"
+            showIcon
+            style={{ marginTop: '8px' }}
+          />
+        )}
+      </div>
     </Form.Item>
 
     <Form.Item
@@ -147,6 +171,8 @@ BookingForm.propTypes = {
     unloadingTime: PropTypes.number.isRequired,
     setUnloadingTime: PropTypes.func.isRequired,
     setIsHovered: PropTypes.func.isRequired,
+    pickupAccepted: PropTypes.bool.isRequired,
+  dropoffAccepted: PropTypes.bool.isRequired,
   };
   
 

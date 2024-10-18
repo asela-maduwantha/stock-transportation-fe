@@ -9,7 +9,6 @@ import {
   QuestionCircleOutlined,
   MenuOutlined,
   LogoutOutlined,
-  InboxOutlined,
   BellOutlined,
   UserOutlined
 } from "@ant-design/icons";
@@ -31,12 +30,6 @@ const DriverHeader = () => {
   };
 
   const menuItems = [
-    {
-      key: "pickup-stock",
-      icon: <InboxOutlined />,
-      label: "Stock Pending Pickup",
-      link: "/driver/pickup-stock",
-    },
     {
       key: "assigned-trips",
       icon: <CarOutlined />,

@@ -13,7 +13,9 @@ import {
   LockOutlined,
   MessageOutlined,
   SmileOutlined,
-  SendOutlined
+  SendOutlined,
+  SyncOutlined,
+  DollarCircleOutlined
 } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import httpService from '../../../services/httpService';
@@ -71,6 +73,20 @@ const navigationItems = [
     label: "Rewards",
     link: "/customer/reward-list",
     description: "Check your reward points and available perks."
+  },
+  {
+    key: "pedingpayments",
+    icon: <SyncOutlined />,
+    label: "Pending Paymnets",
+    link: "/customer/pending-balance-payments",
+    description: "Complete your payments of past bookings."
+  },
+  {
+    key: "past-payments",
+    icon: <DollarCircleOutlined />,
+    label: "Payment History",
+    link: "/customer/payment-history",
+    description: "View your past payments."
   },
   {
     key: "notification",

@@ -75,6 +75,8 @@ import Careers from '../components/common/Careers/Careers';
 import TermsConditions from '../components/common/TermsConditions/TermsConditions';
 import AdminFeedback from '../components/admin/AdminFeedback/AdminFeedback';
 import UserProfiles from '../components/admin/UserProfiles/UserProfiles';
+import PendingBalancePayments from '../components/customer/PendingBalancePayments/PendingBalancePayments';
+import PaymentHistory from '../components/customer/PaymentHistory/PaymentHistory';
 
 
 
@@ -202,6 +204,8 @@ const WebRoutes = () => {
           <Route path='notification' element={<CustomerNotification/>}/>
           <Route path='available-return-trips' element={<AvailableReturnTrips/>}/>
           <Route path='make-return-book' element={<MakeReturnBook/>}/>
+          <Route path='pending-balance-payments' element={<PendingBalancePayments/>}/>
+          <Route path='payment-history' element={<PaymentHistory/>}/>
 
         </Route>
       </Routes>

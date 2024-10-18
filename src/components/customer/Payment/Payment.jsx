@@ -64,7 +64,7 @@ const CheckoutForm = ({ totalPrice, bookingId, type }) => {
         const paymentData = {
           stripeId: paymentIntent.id,
           date: new Date().toISOString(),
-          amount: paymentIntent.amount,
+          amount: paymentIntent.amount/100,
           type: type,
         };
 

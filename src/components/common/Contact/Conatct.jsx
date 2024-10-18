@@ -15,8 +15,11 @@ const Contact = () => {
   const onFinish = (values) => {
     const { name, email, message } = values;
     const mailtoLink = `mailto:gulftransportationsolution@gmail.com?subject=New Contact Form Submission&body=Name: ${name}%0D%0AEmail: ${email}%0D%0AMessage: ${message}`;
-    
+   
     window.location.href = mailtoLink;
+    
+    // Clear the form after opening the email client
+    form.resetFields();
   };
 
   return (

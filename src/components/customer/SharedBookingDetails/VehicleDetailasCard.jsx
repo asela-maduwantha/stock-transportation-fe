@@ -21,7 +21,7 @@ const VehicleDetailsCard = ({ vehicle, booking }) => (
           <Text><strong>Type:</strong> {vehicle.type}</Text>
           <Text><strong>Preferred Area:</strong> {vehicle.preferredArea}</Text>
           <Text><strong>Capacity:</strong> {vehicle.capacity} {vehicle.capacityUnit}</Text>
-          <Text><strong>Free Capacity:</strong> {booking.freeCapacity} {vehicle.capacityUnit}</Text>
+          <Text><strong>Free Capacity:</strong> {booking.freeCapacity * vehicle.capacity} {vehicle.capacityUnit} {vehicle.capacityUnit}</Text>
           <Text><strong>Booking Date:</strong> {new Date(booking.bookingDate).toLocaleDateString()}</Text>
           <Text><strong>Pickup Time:</strong> {booking.pickupTime}</Text>
           <Text><strong>End Time:</strong> {booking.endTime}</Text>

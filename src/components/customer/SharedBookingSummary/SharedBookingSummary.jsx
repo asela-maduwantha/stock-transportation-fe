@@ -60,8 +60,8 @@ const SharedBookingSummary = () => {
                     vehicle: bookingData.selectedVehicle,
                     pickupLocation: bookingData.pickupLocation,
                     dropLocation: bookingData.dropoffLocation,
-                    returnTrip: false, // Set this based on your logic
-                    advanceAmount: bookingData.advancePayment, // Adjust this if you have an advance amount
+                    returnTrip: false, 
+                    advanceAmount: bookingData.advancePayment, 
                     totalPrice: bookingData.vehicleCharge + bookingData.serviceCharge,
                     type: 'shared'
                 }
