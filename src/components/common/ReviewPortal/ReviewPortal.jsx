@@ -56,7 +56,7 @@ const ReviewPortal = () => {
           <SwiperSlide key={review.id}>
             <Card className='review-card' bordered={false}>
               <Meta
-                avatar={<Avatar src={`/api/placeholder/64/64`} size={64} />}
+                avatar={<Avatar src={review.photoUrl} size={64} />}
                 title={<h3 className="review-name">{review.customerName}</h3>}
                 description={
                   <>
