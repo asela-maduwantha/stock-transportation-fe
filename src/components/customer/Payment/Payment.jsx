@@ -5,7 +5,17 @@ import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import { Row, Col, Form, Input, Button, Typography, Card, Divider, Space, Modal, message } from 'antd';
-import { LockOutlined, CreditCardOutlined, MailOutlined, UserOutlined, CarOutlined, EnvironmentOutlined, SwapOutlined } from '@ant-design/icons';
+import {
+  LockOutlined,
+  CreditCardOutlined,
+  MailOutlined,
+  UserOutlined,
+  CarOutlined,
+  EnvironmentOutlined,
+  SwapOutlined,
+  CheckCircleOutlined,
+  DashboardOutlined
+} from '@ant-design/icons';
 import httpService from '../../../services/httpService';
 
 const { Title, Text, Paragraph } = Typography;
@@ -17,7 +27,6 @@ const CheckoutForm = ({ totalPrice, bookingId, type }) => {
   const elements = useElements();
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [modalContent, setModalContent] = useState({ title: '', description: '', success: false });
   const navigate = useNavigate();
 
   const handleSubmit = async (values) => {
@@ -68,14 +77,9 @@ const CheckoutForm = ({ totalPrice, bookingId, type }) => {
           type: type,
         };
 
-       const bookingType = localStorage.getItem('bookingType')
+        const bookingType = localStorage.getItem('bookingType')
         await httpService.post(`/customer/advancePayment/${bookingId}?type=${bookingType}`, paymentData);
 
-        setModalContent({
-          title: 'Payment Successful',
-          description: 'Your booking is confirmed. Thank you for choosing us!',
-          success: true,
-        });
         setIsModalVisible(true);
         localStorage.removeItem('bookingType')
         localStorage.removeItem('bookingId')
@@ -149,22 +153,24 @@ const CheckoutForm = ({ totalPrice, bookingId, type }) => {
 
       <Modal
         visible={isModalVisible}
-        title={<Title level={4}>{modalContent.title}</Title>}
-        onOk={() => setIsModalVisible(false)}
-        onCancel={() => setIsModalVisible(false)}
-        footer={[
-          modalContent.success ? (
-            <Button key="dashboard" type="primary" onClick={() => navigate('/customer/dashboard')}>
-              Go to Dashboard
-            </Button>
-          ) : (
-            <Button key="close" onClick={() => setIsModalVisible(false)}>
-              Close
-            </Button>
-          ),
-        ]}
+        footer={null}
+        closable={false}
+        centered
       >
-        <p>{modalContent.description}</p>
+        <div style={{ textAlign: 'center', padding: '20px 0' }}>
+          <CheckCircleOutlined style={{ fontSize: 64, color: '#52c41a' }} />
+          <Title level={2} style={{ margin: '20px 0' }}>Payment Successful!</Title>
+          <Text>Your booking is confirmed. Thank you for choosing us!</Text>
+          <Button
+            type="primary"
+            icon={<DashboardOutlined />}
+            onClick={() => navigate('/customer/dashboard')}
+            size="large"
+            style={{ marginTop: 20 }}
+          >
+            Go to Dashboard
+          </Button>
+        </div>
       </Modal>
     </>
   );

@@ -46,10 +46,6 @@ const BookingNavigation = () => {
   const [isUnloadingOriginal, setIsUnloadingOriginal] = useState(false);
   const [originalLoadingTimer, setOriginalLoadingTimer] = useState(0);
   const [originalUnloadingTimer, setOriginalUnloadingTimer] = useState(0);
-  const [isOriginalPickupCompleted, setIsOriginalPickupCompleted] =
-    useState(false);
-  const [isOriginalDestinationCompleted, setIsOriginalDestinationCompleted] =
-    useState(false);
 
   // States for shared booking
   const [sharedPickup, setSharedPickup] = useState(null);
@@ -58,12 +54,12 @@ const BookingNavigation = () => {
   const [isUnloadingShared, setIsUnloadingShared] = useState(false);
   const [sharedLoadingTimer, setSharedLoadingTimer] = useState(0);
   const [sharedUnloadingTimer, setSharedUnloadingTimer] = useState(0);
-  const [isSharedPickupCompleted, setIsSharedPickupCompleted] = useState(false);
-  const [isSharedDestinationCompleted, setIsSharedDestinationCompleted] =
-    useState(false);
 
-  //usestates for current stpe tracking
-  const [currentStep, setCurrentStep] = useState("");
+  // Current step tracking
+  const [currentStep, setCurrentStep] = useState({
+    type: 'original',
+    stage: 'notStarted'
+  });
 
   // Payment summary state
   const [showPaymentSummary, setShowPaymentSummary] = useState(false);
@@ -227,19 +223,19 @@ const BookingNavigation = () => {
 
     let destination;
     if (isSharedBooking) {
-      if (!isOriginalPickupCompleted) {
+      if (currentStep.type === 'original' && currentStep.stage === 'pickup') {
         destination = originalPickup;
-      } else if (!isSharedPickupCompleted) {
+      } else if (currentStep.type === 'shared' && currentStep.stage === 'pickup') {
         destination = sharedPickup;
-      } else if (!isSharedDestinationCompleted) {
+      } else if (currentStep.type === 'shared' && currentStep.stage === 'destination') {
         destination = sharedDestination;
-      } else if (!isOriginalDestinationCompleted) {
+      } else if (currentStep.type === 'original' && currentStep.stage === 'destination') {
         destination = originalDestination;
       }
     } else {
-      if (!isOriginalPickupCompleted) {
+      if (currentStep.stage === 'pickup') {
         destination = originalPickup;
-      } else if (!isOriginalDestinationCompleted) {
+      } else if (currentStep.stage === 'destination') {
         destination = originalDestination;
       }
     }
@@ -272,10 +268,7 @@ const BookingNavigation = () => {
   }, [
     userLocation,
     isSharedBooking,
-    isOriginalPickupCompleted,
-    isSharedPickupCompleted,
-    isSharedDestinationCompleted,
-    isOriginalDestinationCompleted,
+    currentStep,
     originalPickup,
     sharedPickup,
     sharedDestination,
@@ -285,19 +278,19 @@ const BookingNavigation = () => {
   const openInGoogleMaps = () => {
     let destination;
     if (isSharedBooking) {
-      if (!isOriginalPickupCompleted) {
+      if (currentStep.type === 'original' && currentStep.stage === 'pickup') {
         destination = originalPickup;
-      } else if (!isSharedPickupCompleted) {
+      } else if (currentStep.type === 'shared' && currentStep.stage === 'pickup') {
         destination = sharedPickup;
-      } else if (!isSharedDestinationCompleted) {
+      } else if (currentStep.type === 'shared' && currentStep.stage === 'destination') {
         destination = sharedDestination;
-      } else if (!isOriginalDestinationCompleted) {
+      } else if (currentStep.type === 'original' && currentStep.stage === 'destination') {
         destination = originalDestination;
       }
     } else {
-      if (!isOriginalPickupCompleted) {
+      if (currentStep.stage === 'pickup') {
         destination = originalPickup;
-      } else if (!isOriginalDestinationCompleted) {
+      } else if (currentStep.stage === 'destination') {
         destination = originalDestination;
       }
     }
@@ -348,7 +341,7 @@ const BookingNavigation = () => {
         setRideStarted(true);
         startLocationTracking();
         handleNavigate();
-        setCurrentStep("originalPickup");
+        setCurrentStep({ type: 'original', stage: 'pickup' });
       }
     } catch (error) {
       console.error("Error starting ride:", error);
@@ -369,29 +362,13 @@ const BookingNavigation = () => {
       }
 
       try {
-        let currentBookingType = "original";
+        const [bookingType, stage] = type.split('_');
+        let currentBookingType = bookingType;
         let currentBookingId = bookingId;
-        let rideType = "pickup";
+        let rideType = stage;
 
-        if (
-          isSharedBooking &&
-          (type === "sharedPickup" || type === "sharedDestination")
-        ) {
-          currentBookingType = "shared";
+        if (isSharedBooking && bookingType === 'shared') {
           currentBookingId = localStorage.getItem("sharedBookingId");
-          if (type === "sharedPickup") {
-            rideType = "pickup";
-          } else {
-            rideType = "destination";
-          }
-        }
-
-        if (type === "originalPickup") {
-          rideType = "pickup";
-        }
-
-        if (type === "originalDestination") {
-          rideType = "destination";
         }
 
         const response = await httpService.put(`/driver/stopRide/${driverId}`, {
@@ -403,19 +380,18 @@ const BookingNavigation = () => {
         if (response.status === 200) {
           message.success(`Ride stopped for ${location.label}`);
 
-          if (type === "originalPickup") {
-            setIsOriginalPickupCompleted(true);
-            setCurrentStep("originalLoading");
-          } else if (type === "sharedPickup") {
-            setIsSharedPickupCompleted(true);
-            setCurrentStep("sharedLoading");
-          } else if (type === "sharedDestination") {
-            setIsSharedDestinationCompleted(true);
-            setCurrentStep("sharedUnloading");
-          } else if (type === "originalDestination") {
-            setIsOriginalDestinationCompleted(true);
-            setCurrentStep("originalUnloading");
+          let nextStage;
+          if (isSharedBooking) {
+            if (stage === 'pickup') {
+              nextStage = bookingType === 'original' ? 'loading' : 'pickup';
+            } else if (stage === 'destination') {
+              nextStage = bookingType === 'shared' ? 'unloading' : 'destination';
+            }
+          } else {
+            nextStage = stage === 'pickup' ? 'loading' : 'unloading';
           }
+
+          setCurrentStep({ type: bookingType, stage: nextStage });
         }
       } catch (error) {
         console.error("Error stopping ride:", error);
@@ -434,10 +410,10 @@ const BookingNavigation = () => {
       );
       if (stockId === "stock1") {
         setIsLoadingOriginal(true);
-        setCurrentStep("originalLoading");
+        setCurrentStep({ type: 'original', stage: 'loading' });
       } else {
         setIsLoadingShared(true);
-        setCurrentStep("sharedLoading");
+        setCurrentStep({ type: 'shared', stage: 'loading' });
       }
       message.success(`Loading started for ${stockId}`);
     } catch (error) {
@@ -458,10 +434,10 @@ const BookingNavigation = () => {
       );
       if (stockId === "stock1") {
         setIsLoadingOriginal(false);
-        setCurrentStep("originalDestination");
+        setCurrentStep({ type: 'original', stage: 'destination' });
       } else {
         setIsLoadingShared(false);
-        setCurrentStep("sharedDestination");
+        setCurrentStep({ type: 'shared', stage: 'destination' });
       }
       message.success(`Loading stopped for ${stockId}`);
       handleNavigate();
@@ -479,10 +455,10 @@ const BookingNavigation = () => {
       );
       if (stockId === "stock1") {
         setIsUnloadingOriginal(true);
-        setCurrentStep("originalUnloading");
+        setCurrentStep({ type: 'original', stage: 'unloading' });
       } else {
         setIsUnloadingShared(true);
-        setCurrentStep("sharedUnloading");
+        setCurrentStep({ type: 'shared', stage: 'unloading' });
       }
       message.success(`Unloading started for ${stockId}`);
     } catch (error) {
@@ -503,10 +479,10 @@ const BookingNavigation = () => {
       );
       if (stockId === "stock1") {
         setIsUnloadingOriginal(false);
-        setCurrentStep("completed");
+        setCurrentStep({ type: 'original', stage: 'completed' });
       } else {
         setIsUnloadingShared(false);
-        setCurrentStep("originalDestination");
+        setCurrentStep({ type: 'original', stage: 'destination' });
       }
       message.success(`Unloading stopped for ${stockId}`);
       fetchPaymentSummary(stockId);
@@ -520,17 +496,13 @@ const BookingNavigation = () => {
   const fetchPaymentSummary = async (stockId) => {
     let currentBookingId = localStorage.getItem("bookingId");
 
-    // Use sharedBookingId if it's a shared booking
-    if (isSharedBooking) {
+    if (isSharedBooking && stockId === "stock2") {
       currentBookingId = localStorage.getItem("sharedBookingId");
     }
 
     try {
-      // Determine the booking type based on shared booking status and stockId
-      const bookingType =
-        isSharedBooking && stockId === "stock2" ? "shared" : "original";
+      const bookingType = isSharedBooking && stockId === "stock2" ? "shared" : "original";
 
-      // Make API request to fetch payment summary
       const response = await httpService.get(
         `/common/paymentSummery/${currentBookingId}`,
         {
@@ -540,7 +512,6 @@ const BookingNavigation = () => {
         }
       );
 
-      // Set the response data and show the payment summary
       setPaymentSummary(response.data);
       setShowPaymentSummary(true);
     } catch (error) {
@@ -787,11 +758,11 @@ const BookingNavigation = () => {
     const renderActionButtons = () => {
       const getTimer = () => {
         if (location.type === "pickup") {
-          return type === "originalPickup"
+          return type === "original_pickup"
             ? originalLoadingTimer
             : sharedLoadingTimer;
         } else if (location.type === "destination") {
-          return type === "originalDestination"
+          return type === "original_destination"
             ? originalUnloadingTimer
             : sharedUnloadingTimer;
         }
@@ -800,14 +771,10 @@ const BookingNavigation = () => {
 
       const timer = getTimer();
 
-      const isStopRideEnabled = rideStarted && currentStep === type;
-      const isLoadingEnabled =
-        (type === "originalPickup" && currentStep === "originalLoading") ||
-        (type === "sharedPickup" && currentStep === "sharedLoading");
-      const isUnloadingEnabled =
-        (type === "originalDestination" &&
-          currentStep === "originalUnloading") ||
-        (type === "sharedDestination" && currentStep === "sharedUnloading");
+      const [bookingType, stage] = type.split('_');
+      const isStopRideEnabled = rideStarted && currentStep.type === bookingType && currentStep.stage === stage;
+      const isLoadingEnabled = currentStep.type === bookingType && currentStep.stage === 'loading';
+      const isUnloadingEnabled = currentStep.type === bookingType && currentStep.stage === 'unloading';
 
       return (
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -830,7 +797,7 @@ const BookingNavigation = () => {
           {location.type === "pickup" ? (
             <>
               {(
-                type === "originalPickup" ? isLoadingOriginal : isLoadingShared
+                type === "original_pickup" ? isLoadingOriginal : isLoadingShared
               ) ? (
                 <Button
                   onClick={() => stopLoading(location.stockId)}
@@ -859,7 +826,7 @@ const BookingNavigation = () => {
           ) : (
             <>
               {(
-                type === "originalDestination"
+                type === "original_destination"
                   ? isUnloadingOriginal
                   : isUnloadingShared
               ) ? (
@@ -897,10 +864,10 @@ const BookingNavigation = () => {
     const renderTimer = () => {
       const timer =
         location.type === "pickup"
-          ? type === "originalPickup"
+          ? type === "original_pickup"
             ? originalLoadingTimer
             : sharedLoadingTimer
-          : type === "originalDestination"
+          : type === "original_destination"
           ? originalUnloadingTimer
           : sharedUnloadingTimer;
 
@@ -983,7 +950,7 @@ const BookingNavigation = () => {
             color: socketConnected ? "green" : "red",
           }}
         >
-        {socketConnected ? "Connected" : "Disconnected"}
+          {socketConnected ? "Connected" : "Disconnected"}
         </Text>
 
         <div
@@ -995,7 +962,7 @@ const BookingNavigation = () => {
           }}
         >
           <GoogleMap
-            mapContainerStyle={{ width: "100%", height: "100%" }}
+            mapContainerStyle={{width: "100%", height: "100%" }}
             center={
               userLocation ||
               (allLocations[1]
@@ -1085,11 +1052,11 @@ const BookingNavigation = () => {
           }}
           header={<div>Pickup and Destination Locations</div>}
         >
-          {renderLocationItem(originalPickup, "originalPickup")}
-          {isSharedBooking && renderLocationItem(sharedPickup, "sharedPickup")}
+          {renderLocationItem(originalPickup, "original_pickup")}
+          {isSharedBooking && renderLocationItem(sharedPickup, "shared_pickup")}
           {isSharedBooking &&
-            renderLocationItem(sharedDestination, "sharedDestination")}
-          {renderLocationItem(originalDestination, "originalDestination")}
+            renderLocationItem(sharedDestination, "shared_destination")}
+          {renderLocationItem(originalDestination, "original_destination")}
         </List>
 
         <div
@@ -1108,7 +1075,7 @@ const BookingNavigation = () => {
           </Button>
           <Tooltip
             title={
-              currentStep !== "finish"
+              currentStep.stage !== "completed"
                 ? "Complete all steps before finishing the ride"
                 : ""
             }
@@ -1116,11 +1083,11 @@ const BookingNavigation = () => {
             <Button
               onClick={finishRide}
               style={
-                currentStep !== "completed"
+                currentStep.stage !== "completed"
                   ? disabledButtonStyle
                   : { ...buttonStyle, backgroundColor: "#ff4d4f" }
               }
-              disabled={currentStep !== "completed"}
+              disabled={currentStep.stage !== "completed"}
             >
               Finish Ride
             </Button>
@@ -1137,7 +1104,7 @@ const BookingNavigation = () => {
             Close
           </Button>,
         ]}
-        width={600} // Adjust width if necessary
+        width={600}
       >
         {paymentSummary && (
           <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>

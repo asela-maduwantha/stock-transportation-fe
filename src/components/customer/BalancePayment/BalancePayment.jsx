@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Card, Spin, Button, message, Typography, Space, Divider } from 'antd';
-import { LoadingOutlined, ExclamationCircleOutlined, CreditCardOutlined } from '@ant-design/icons';
+import { Card, Spin, Button, message, Typography, Space, Modal } from 'antd';
+import { LoadingOutlined, ExclamationCircleOutlined, CreditCardOutlined, CheckCircleOutlined, DashboardOutlined } from '@ant-design/icons';
 import httpService from '../../../services/httpService';
 
 const { Title, Text } = Typography;
@@ -9,6 +9,7 @@ const { Title, Text } = Typography;
 const BalancePayment = () => {
   const [paymentSummary, setPaymentSummary] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { bookingId, bookingType } = location.state || {};
@@ -57,15 +58,15 @@ const BalancePayment = () => {
 
   const handleProceedPayment = () => {
     if (paymentSummary) {
-      navigate('/customer/proceed-bal-payment', {
-        state: {
-          bookingId,
-          bookingType,
-          serviceCharge: paymentSummary.serviceCharge,
-          balancePayment: paymentSummary.balPayment
-        }
-      });
+      // Simulating a successful payment
+      setTimeout(() => {
+        setShowSuccessModal(true);
+      }, 1000);
     }
+  };
+
+  const handleNavigateToDashboard = () => {
+    navigate('/customer/dashboard');
   };
 
   if (loading) {
@@ -89,8 +90,6 @@ const BalancePayment = () => {
     );
   }
 
-  const formatCurrency = (amount) => `LKR ${amount.toFixed(2)}`;
-
   return (
     <div style={{ padding: '24px', maxWidth: 480, margin: '0 auto' }}>
       <Card
@@ -101,20 +100,19 @@ const BalancePayment = () => {
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
           <div>
             <Text strong>Vehicle Charge:</Text>
-            <Text>{formatCurrency(paymentSummary.vehicleCharge)}</Text>
+            <Text>{`LKR ${paymentSummary.vehicleCharge.toFixed(2)}`}</Text>
           </div>
           <div>
             <Text strong>Service Charge:</Text>
-            <Text>{formatCurrency(paymentSummary.serviceCharge)}</Text>
+            <Text>{`LKR ${paymentSummary.serviceCharge.toFixed(2)}`}</Text>
           </div>
           <div>
             <Text strong>Handling Charge:</Text>
-            <Text>{formatCurrency(paymentSummary.handlingCharge)}</Text>
+            <Text>{`LKR ${paymentSummary.handlingCharge.toFixed(2)}`}</Text>
           </div>
-          <Divider />
           <div>
             <Text strong>Total:</Text>
-            <Text>{formatCurrency(paymentSummary.total)}</Text>
+            <Text>{`LKR ${paymentSummary.total.toFixed(2)}`}</Text>
           </div>
           {paymentSummary.sharedDiscount && (
             <div>
@@ -124,11 +122,11 @@ const BalancePayment = () => {
           )}
           <div>
             <Text strong>Advance Payment:</Text>
-            <Text>{formatCurrency(paymentSummary.advancePayment)}</Text>
+            <Text>{`LKR ${paymentSummary.advancePayment.toFixed(2)}`}</Text>
           </div>
           <div>
             <Text strong type="danger">Balance Payment:</Text>
-            <Text type="danger">{formatCurrency(paymentSummary.balPayment)}</Text>
+            <Text type="danger">{`LKR ${paymentSummary.balPayment.toFixed(2)}`}</Text>
           </div>
           <Button
             type="primary"
@@ -141,6 +139,28 @@ const BalancePayment = () => {
           </Button>
         </Space>
       </Card>
+
+      <Modal
+        visible={showSuccessModal}
+        footer={null}
+        closable={false}
+        centered
+      >
+        <div style={{ textAlign: 'center', padding: '20px 0' }}>
+          <CheckCircleOutlined style={{ fontSize: 64, color: '#52c41a' }} />
+          <Title level={2} style={{ margin: '20px 0' }}>Payment Successful!</Title>
+          <Text>Thank you for your payment.</Text>
+          <Button
+            type="primary"
+            icon={<DashboardOutlined />}
+            onClick={handleNavigateToDashboard}
+            size="large"
+            style={{ marginTop: 20 }}
+          >
+            Go to Dashboard
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 };
