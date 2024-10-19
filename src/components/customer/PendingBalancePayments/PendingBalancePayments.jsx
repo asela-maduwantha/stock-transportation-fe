@@ -22,7 +22,19 @@ const PendingBalancePayments = () => {
       try {
         setLoading(true);
         const response = await httpService.get(`/customer/balPaymentsPending/${customerId}`);
-        setPayments(response.data);
+        const updatedPayments = await Promise.all(
+          Object.entries(response.data).map(async ([key, bookings]) => {
+            const updatedBookings = await Promise.all(
+              bookings.map(async (booking) => {
+                const startAddress = await fetchAddress(booking.startLat, booking.startLong);
+                const destAddress = await fetchAddress(booking.destLat, booking.destLong);
+                return { ...booking, startAddress, destAddress };
+              })
+            );
+            return [key, updatedBookings];
+          })
+        );
+        setPayments(Object.fromEntries(updatedPayments));
       } catch (error) {
         console.error('Error fetching pending payments:', error);
         message.error('Failed to fetch pending payments');
@@ -33,6 +45,16 @@ const PendingBalancePayments = () => {
 
     fetchPendingPayments();
   }, []);
+
+  const fetchAddress = async (lat, long) => {
+    try {
+      const response = await httpService.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${long}`);
+      return response.data.display_name;
+    } catch (error) {
+      console.error('Error fetching address:', error);
+      return 'Address not available';
+    }
+  };
 
   const handlePaymentClick = (booking) => {
     navigate('/customer/pay-balance', {
@@ -45,16 +67,16 @@ const PendingBalancePayments = () => {
 
   const renderBookingList = (bookings, type) => (
     <List
-      itemLayout="horizontal"
+      itemLayout="vertical"
       dataSource={bookings}
       renderItem={(booking) => (
         <List.Item>
-          <Card 
+          <Card
             style={{ width: '100%' }}
             hoverable
             extra={
-              <Button 
-                type="primary" 
+              <Button
+                type="primary"
                 style={{ backgroundColor: '#fdb940' }}
                 onClick={() => handlePaymentClick(booking)}
               >
@@ -68,9 +90,19 @@ const PendingBalancePayments = () => {
               description={`Date: ${new Date(booking.bookingDate).toLocaleDateString()}`}
             />
             <div>
-              <Text>Pickup Time: {booking.pickupTime}</Text>
-              <br />
-              <Text>Travel Time: {booking.travellingTime.toFixed(2)} minutes</Text>
+              <Text strong>Pickup Time:</Text> {booking.pickupTime}<br />
+              <Text strong>Travel Time:</Text> {booking.travellingTime.toFixed(2)} minutes<br />
+              <Text strong>Loading Time:</Text> {booking.loadingTime.toFixed(2)} minutes<br />
+              <Text strong>Unloading Time:</Text> {booking.unloadingTime.toFixed(2)} minutes<br />
+              <Text strong>Loading Capacity:</Text> {booking.loadingCapacity || booking.loadingCapacitiy || 'N/A'}<br />
+              <Text strong>Start Address:</Text> {booking.startAddress}<br />
+              <Text strong>Destination Address:</Text> {booking.destAddress}<br />
+              {booking.isReturnTrip !== undefined && (
+                <><Text strong>Return Trip:</Text> {booking.isReturnTrip ? 'Yes' : 'No'}<br /></>
+              )}
+              {booking.willingToShare !== undefined && (
+                <><Text strong>Willing to Share:</Text> {booking.willingToShare ? 'Yes' : 'No'}<br /></>
+              )}
             </div>
           </Card>
         </List.Item>
@@ -89,14 +121,12 @@ const PendingBalancePayments = () => {
   return (
     <div style={{ padding: '24px', maxWidth: 800, margin: '0 auto' }}>
       <Title level={2}>Pending Balance Payments</Title>
-
       <Title level={3}>Original Bookings</Title>
       {payments.original.length > 0 ? (
         renderBookingList(payments.original, 'original')
       ) : (
         <Empty description="No pending original bookings" />
       )}
-
       <Title level={3} style={{ marginTop: '24px' }}>Shared Bookings</Title>
       {payments.shared.length > 0 ? (
         renderBookingList(payments.shared, 'shared')

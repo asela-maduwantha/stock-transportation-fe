@@ -380,18 +380,26 @@ const BookingNavigation = () => {
         if (response.status === 200) {
           message.success(`Ride stopped for ${location.label}`);
 
-          let nextStage;
+          let nextStep;
           if (isSharedBooking) {
-            if (stage === 'pickup') {
-              nextStage = bookingType === 'original' ? 'loading' : 'pickup';
-            } else if (stage === 'destination') {
-              nextStage = bookingType === 'shared' ? 'unloading' : 'destination';
+            if (bookingType === 'original' && stage === 'pickup') {
+              nextStep = { type: 'original', stage: 'loading' };
+            } else if (bookingType === 'shared' && stage === 'pickup') {
+              nextStep = { type: 'shared', stage: 'loading' };
+            } else if (bookingType === 'shared' && stage === 'destination') {
+              nextStep = { type: 'shared', stage: 'unloading' };
+            } else if (bookingType === 'original' && stage === 'destination') {
+              nextStep = { type: 'original', stage: 'unloading' };
             }
           } else {
-            nextStage = stage === 'pickup' ? 'loading' : 'unloading';
+            if (stage === 'pickup') {
+              nextStep = { type: 'original', stage: 'loading' };
+            } else if (stage === 'destination') {
+              nextStep = { type: 'original', stage: 'unloading' };
+            }
           }
 
-          setCurrentStep({ type: bookingType, stage: nextStage });
+          setCurrentStep(nextStep);
         }
       } catch (error) {
         console.error("Error stopping ride:", error);
@@ -434,7 +442,7 @@ const BookingNavigation = () => {
       );
       if (stockId === "stock1") {
         setIsLoadingOriginal(false);
-        setCurrentStep({ type: 'original', stage: 'destination' });
+        setCurrentStep(isSharedBooking ? { type: 'shared', stage: 'pickup' } : { type: 'original', stage: 'destination' });
       } else {
         setIsLoadingShared(false);
         setCurrentStep({ type: 'shared', stage: 'destination' });
@@ -938,7 +946,7 @@ const BookingNavigation = () => {
       >
         <Text
           strong
-          style={{ fontSize: "18px", marginBottom: "20px", display: "block" }}
+          style={{ fontSize: "18px",marginBottom: "20px", display: "block" }}
         >
           {isSharedBooking ? "Shared Booking" : "Single Booking"}
         </Text>
@@ -962,7 +970,7 @@ const BookingNavigation = () => {
           }}
         >
           <GoogleMap
-            mapContainerStyle={{width: "100%", height: "100%" }}
+            mapContainerStyle={{ width: "100%", height: "100%" }}
             center={
               userLocation ||
               (allLocations[1]
