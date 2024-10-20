@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Card, Spin, Button, message, Typography, Space, Modal } from 'antd';
-import { LoadingOutlined, ExclamationCircleOutlined, CreditCardOutlined, CheckCircleOutlined, DashboardOutlined } from '@ant-design/icons';
+import { Card, Spin, Button, message, Typography, Space } from 'antd';
+import { LoadingOutlined, ExclamationCircleOutlined, CreditCardOutlined } from '@ant-design/icons';
 import httpService from '../../../services/httpService';
 
 const { Title, Text } = Typography;
@@ -9,7 +9,6 @@ const { Title, Text } = Typography;
 const BalancePayment = () => {
   const [paymentSummary, setPaymentSummary] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { bookingId, bookingType } = location.state || {};
@@ -34,39 +33,26 @@ const BalancePayment = () => {
 
     fetchPaymentSummary();
 
-    // Prevent back navigation
-    window.history.pushState(null, document.title, window.location.href);
-    window.addEventListener('popstate', preventBackNavigation);
-    window.addEventListener('beforeunload', preventRefresh);
-
-    return () => {
-      window.removeEventListener('popstate', preventBackNavigation);
-      window.removeEventListener('beforeunload', preventRefresh);
+    // Prevent back navigation and refresh
+    const preventNavigation = (e) => {
+      e.preventDefault();
+      e.returnValue = '';
     };
+    window.addEventListener('beforeunload', preventNavigation);
+    return () => window.removeEventListener('beforeunload', preventNavigation);
   }, [bookingId, bookingType]);
-
-  const preventBackNavigation = (event) => {
-    window.history.pushState(null, document.title, window.location.href);
-    event.preventDefault();
-    message.warning('Back navigation is disabled on this page.');
-  };
-
-  const preventRefresh = (event) => {
-    event.preventDefault();
-    event.returnValue = '';
-  };
 
   const handleProceedPayment = () => {
     if (paymentSummary) {
-      // Simulating a successful payment
-      setTimeout(() => {
-        setShowSuccessModal(true);
-      }, 1000);
+      navigate('/customer/proceed-bal-payment', {
+        state: {
+          bookingId,
+          bookingType,
+          serviceCharge: paymentSummary.serviceCharge,
+          balancePayment: paymentSummary.balPayment
+        }
+      });
     }
-  };
-
-  const handleNavigateToDashboard = () => {
-    navigate('/customer/dashboard');
   };
 
   if (loading) {
@@ -139,28 +125,6 @@ const BalancePayment = () => {
           </Button>
         </Space>
       </Card>
-
-      <Modal
-        visible={showSuccessModal}
-        footer={null}
-        closable={false}
-        centered
-      >
-        <div style={{ textAlign: 'center', padding: '20px 0' }}>
-          <CheckCircleOutlined style={{ fontSize: 64, color: '#52c41a' }} />
-          <Title level={2} style={{ margin: '20px 0' }}>Payment Successful!</Title>
-          <Text>Thank you for your payment.</Text>
-          <Button
-            type="primary"
-            icon={<DashboardOutlined />}
-            onClick={handleNavigateToDashboard}
-            size="large"
-            style={{ marginTop: 20 }}
-          >
-            Go to Dashboard
-          </Button>
-        </div>
-      </Modal>
     </div>
   );
 };

@@ -38,6 +38,7 @@ const PendingBalancePayments = () => {
       } catch (error) {
         console.error('Error fetching pending payments:', error);
         message.error('Failed to fetch pending payments');
+        setPayments({ original: [], shared: [] });
       } finally {
         setLoading(false);
       }
@@ -118,17 +119,29 @@ const PendingBalancePayments = () => {
     );
   }
 
+  const hasOriginalPayments = payments.original && payments.original.length > 0;
+  const hasSharedPayments = payments.shared && payments.shared.length > 0;
+
+  if (!hasOriginalPayments && !hasSharedPayments) {
+    return (
+      <div style={{ padding: '24px', maxWidth: 800, margin: '0 auto' }}>
+        <Title level={2}>Pending Balance Payments</Title>
+        <Empty description="No pending payments available" />
+      </div>
+    );
+  }
+
   return (
     <div style={{ padding: '24px', maxWidth: 800, margin: '0 auto' }}>
       <Title level={2}>Pending Balance Payments</Title>
       <Title level={3}>Original Bookings</Title>
-      {payments.original.length > 0 ? (
+      {hasOriginalPayments ? (
         renderBookingList(payments.original, 'original')
       ) : (
         <Empty description="No pending original bookings" />
       )}
       <Title level={3} style={{ marginTop: '24px' }}>Shared Bookings</Title>
-      {payments.shared.length > 0 ? (
+      {hasSharedPayments ? (
         renderBookingList(payments.shared, 'shared')
       ) : (
         <Empty description="No pending shared bookings" />
