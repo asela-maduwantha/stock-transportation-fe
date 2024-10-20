@@ -103,6 +103,7 @@ const WalletComponent = () => {
 
     try {
       const bankCheckResponse = await httpService.get(`/owner/bankAccAvailability/${ownerId}`);
+      console.log(bankCheckResponse)
       if (bankCheckResponse.status !== 200) {
         message.error('Bank account not found. Please add a bank account first.');
         navigate('/owner/create-bank-account');
@@ -121,6 +122,7 @@ const WalletComponent = () => {
       fetchWalletData();
       fetchRewards();
     } catch (error) {
+      console.log(error)
       message.error('Withdrawal failed. Please try again.');
     } finally {
       setWithdrawLoading(false);

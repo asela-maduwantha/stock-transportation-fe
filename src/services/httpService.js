@@ -63,8 +63,11 @@ httpService.interceptors.response.use(
           message.error('Conflict: The resource already exists.');
           break;
         case 404: {
-          const msg = data?.message || 'No Requests available.';
+          const msg = data?.message || 'Not found.';
           message.warning(msg)
+          if (window.location.pathname !== '/owner/create-bank-account') {
+            window.location.href = '/owner/create-bank-account';
+          }
           return Promise.reject(new Error(msg));
         }
         default:
