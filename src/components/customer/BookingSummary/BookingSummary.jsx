@@ -52,9 +52,10 @@ const BookingSummary = () => {
             };
 
             const response = await httpService.post('/customer/booking', bookingData);
+            console.log(response.data)
 
-            if (response.data.bookingId) {
-                localStorage.setItem('bookingId', response.data.bookingId);
+            if (response.data.id) {
+                localStorage.setItem('bookingId', response.data.id);
                 localStorage.setItem('bookingType', 'normal')
                 message.success('Booking confirmed!');
                 

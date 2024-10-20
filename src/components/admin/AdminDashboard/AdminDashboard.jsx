@@ -101,11 +101,7 @@ const AdminDashboard = () => {
                       value={bookingsCount.totalOriginal}
                       prefix={<UserOutlined style={{ color: '#fdb940' }} />}
                     />
-                    <div style={{ marginTop: '16px' }}>
-                      <p>Upcoming: {bookingsCount.originalUpcoming}</p>
-                      <p>Completed: {bookingsCount.originalCompleted}</p>
-                      <p>Cancelled: {bookingsCount.originalCancelled}</p>
-                    </div>
+                   
                   </Card>
                 </Col>
                 <Col span={8}>
@@ -115,11 +111,6 @@ const AdminDashboard = () => {
                       value={bookingsCount.totalShared}
                       prefix={<UserOutlined style={{ color: '#fdb940' }} />}
                     />
-                    <div style={{ marginTop: '16px' }}>
-                      <p>Upcoming: {bookingsCount.sharedUpcoming}</p>
-                      <p>Completed: {bookingsCount.sharedCompleted}</p>
-                      <p>Cancelled: {bookingsCount.sharedCancelled}</p>
-                    </div>
                   </Card>
                 </Col>
               </Row>
