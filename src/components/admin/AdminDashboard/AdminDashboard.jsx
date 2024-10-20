@@ -64,7 +64,6 @@ const AdminDashboard = () => {
   const rewardsStats = calculateRewards();
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
-
   const bookingsPieChartData = bookingsCount ? [
     { name: 'Original Upcoming', value: bookingsCount.originalUpcoming },
     { name: 'Original Completed', value: bookingsCount.originalCompleted },
@@ -79,7 +78,7 @@ const AdminDashboard = () => {
 
   return (
     <div style={{ padding: '24px' }}>
-      <h1>Admin Dashboard</h1>
+      <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '24px' }}>Admin Dashboard</h1>
       
       <Tabs defaultActiveKey="1">
         <TabPane tab="Bookings" key="1">
@@ -91,7 +90,7 @@ const AdminDashboard = () => {
                     <Statistic
                       title="Total Bookings"
                       value={bookingsCount.total}
-                      prefix={<CarOutlined />}
+                      prefix={<CarOutlined style={{ color: '#fdb940' }} />}
                     />
                   </Card>
                 </Col>
@@ -100,8 +99,13 @@ const AdminDashboard = () => {
                     <Statistic
                       title="Original Bookings"
                       value={bookingsCount.totalOriginal}
-                      prefix={<UserOutlined />}
+                      prefix={<UserOutlined style={{ color: '#fdb940' }} />}
                     />
+                    <div style={{ marginTop: '16px' }}>
+                      <p>Upcoming: {bookingsCount.originalUpcoming}</p>
+                      <p>Completed: {bookingsCount.originalCompleted}</p>
+                      <p>Cancelled: {bookingsCount.originalCancelled}</p>
+                    </div>
                   </Card>
                 </Col>
                 <Col span={8}>
@@ -109,8 +113,13 @@ const AdminDashboard = () => {
                     <Statistic
                       title="Shared Bookings"
                       value={bookingsCount.totalShared}
-                      prefix={<UserOutlined />}
+                      prefix={<UserOutlined style={{ color: '#fdb940' }} />}
                     />
+                    <div style={{ marginTop: '16px' }}>
+                      <p>Upcoming: {bookingsCount.sharedUpcoming}</p>
+                      <p>Completed: {bookingsCount.sharedCompleted}</p>
+                      <p>Cancelled: {bookingsCount.sharedCancelled}</p>
+                    </div>
                   </Card>
                 </Col>
               </Row>
@@ -141,12 +150,12 @@ const AdminDashboard = () => {
                 </Col>
                 <Col span={12}>
                   <Card title="Booking Details">
-                    <Statistic title="Original Upcoming" value={bookingsCount.originalUpcoming} prefix={<CarOutlined />} />
-                    <Statistic title="Original Completed" value={bookingsCount.originalCompleted} prefix={<CheckCircleOutlined />} />
-                    <Statistic title="Original Cancelled" value={bookingsCount.originalCancelled} prefix={<CloseCircleOutlined />} />
-                    <Statistic title="Shared Upcoming" value={bookingsCount.sharedUpcoming} prefix={<CarOutlined />} />
-                    <Statistic title="Shared Completed" value={bookingsCount.sharedCompleted} prefix={<CheckCircleOutlined />} />
-                    <Statistic title="Shared Cancelled" value={bookingsCount.sharedCancelled} prefix={<CloseCircleOutlined />} />
+                    <Statistic title="Original Upcoming" value={bookingsCount.originalUpcoming} prefix={<CarOutlined style={{ color: '#fdb940' }} />} />
+                    <Statistic title="Original Completed" value={bookingsCount.originalCompleted} prefix={<CheckCircleOutlined style={{ color: '#fdb940' }} />} />
+                    <Statistic title="Original Cancelled" value={bookingsCount.originalCancelled} prefix={<CloseCircleOutlined style={{ color: '#fdb940' }} />} />
+                    <Statistic title="Shared Upcoming" value={bookingsCount.sharedUpcoming} prefix={<CarOutlined style={{ color: '#fdb940' }} />} />
+                    <Statistic title="Shared Completed" value={bookingsCount.sharedCompleted} prefix={<CheckCircleOutlined style={{ color: '#fdb940' }} />} />
+                    <Statistic title="Shared Cancelled" value={bookingsCount.sharedCancelled} prefix={<CloseCircleOutlined style={{ color: '#fdb940' }} />} />
                   </Card>
                 </Col>
               </Row>
@@ -161,7 +170,7 @@ const AdminDashboard = () => {
                 <Statistic
                   title="Total Service Charges"
                   value={charges.totalAmount}
-                  prefix={<DollarOutlined />}
+                  prefix={<DollarOutlined style={{ color: '#fdb940' }} />}
                   suffix="LKR"
                 />
               </Card>
@@ -171,7 +180,7 @@ const AdminDashboard = () => {
                 <Statistic
                   title="Completed Service Charges"
                   value={charges.completedAmount}
-                  prefix={<DollarOutlined />}
+                  prefix={<DollarOutlined style={{ color: '#fdb940' }} />}
                   suffix="LKR"
                 />
               </Card>
@@ -181,7 +190,7 @@ const AdminDashboard = () => {
                 <Statistic
                   title="Cancelled Service Charges"
                   value={charges.cancelledAmount}
-                  prefix={<DollarOutlined />}
+                  prefix={<DollarOutlined style={{ color: '#fdb940' }} />}
                   suffix="LKR"
                 />
               </Card>
@@ -198,16 +207,16 @@ const AdminDashboard = () => {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="amount" fill="#8884d8" />
+                    <Bar dataKey="amount" fill="#fdb940" />
                   </BarChart>
                 </ResponsiveContainer>
               </Card>
             </Col>
             <Col span={12}>
               <Card title="Service Charge Details">
-                <Statistic title="Total Service Charge Count" value={charges.totalCount} prefix={<DollarOutlined />} />
-                <Statistic title="Completed Service Charge Count" value={charges.completedCount} prefix={<CheckCircleOutlined />} />
-                <Statistic title="Cancelled Service Charge Count" value={charges.cancelledCount} prefix={<CloseCircleOutlined />} />
+                <Statistic title="Total Service Charge Count" value={charges.totalCount} prefix={<DollarOutlined style={{ color: '#fdb940' }} />} />
+                <Statistic title="Completed Service Charge Count" value={charges.completedCount} prefix={<CheckCircleOutlined style={{ color: '#fdb940' }} />} />
+                <Statistic title="Cancelled Service Charge Count" value={charges.cancelledCount} prefix={<CloseCircleOutlined style={{ color: '#fdb940' }} />} />
               </Card>
             </Col>
           </Row>
@@ -222,7 +231,7 @@ const AdminDashboard = () => {
                     <Statistic
                       title="Total Rewards"
                       value={rewardsStats.totalRewards}
-                      prefix={<GiftOutlined />}
+                      prefix={<GiftOutlined style={{ color: '#fdb940' }} />}
                       suffix="LKR"
                     />
                   </Card>
@@ -232,7 +241,7 @@ const AdminDashboard = () => {
                     <Statistic
                       title="Owner Rewards"
                       value={rewardsStats.ownerRewardsTotal}
-                      prefix={<GiftOutlined />}
+                      prefix={<GiftOutlined style={{ color: '#fdb940' }} />}
                       suffix="LKR"
                     />
                   </Card>
@@ -242,7 +251,7 @@ const AdminDashboard = () => {
                     <Statistic
                       title="Customer Rewards"
                       value={rewardsStats.customerRewardsTotal}
-                      prefix={<GiftOutlined />}
+                      prefix={<GiftOutlined style={{ color: '#fdb940' }} />}
                       suffix="LKR"
                     />
                   </Card>
@@ -277,8 +286,8 @@ const AdminDashboard = () => {
                 </Col>
                 <Col span={12}>
                   <Card title="Rewards Details">
-                    <Statistic title="Owner Rewards Count" value={rewardsStats.ownerRewardsCount} prefix={<GiftOutlined />} />
-                    <Statistic title="Customer Rewards Count" value={rewardsStats.customerRewardsCount} prefix={<GiftOutlined />} />
+                    <Statistic title="Owner Rewards Count" value={rewardsStats.ownerRewardsCount} prefix={<GiftOutlined style={{ color: '#fdb940' }} />} />
+                    <Statistic title="Customer Rewards Count" value={rewardsStats.customerRewardsCount} prefix={<GiftOutlined style={{ color: '#fdb940' }} />} />
                   </Card>
                 </Col>
               </Row>

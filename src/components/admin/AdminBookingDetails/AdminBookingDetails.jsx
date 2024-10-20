@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Card, Button, Spin, Typography, Alert, List, Tag, Collapse, Modal, Input, Space, Descriptions } from 'antd';
-import { UserOutlined, ClockCircleOutlined, CheckCircleOutlined, DownOutlined, CarOutlined, StarOutlined, ExclamationCircleOutlined, SearchOutlined } from '@ant-design/icons';
+import { UserOutlined, ClockCircleOutlined, CheckCircleOutlined, DownOutlined, CarOutlined, StarOutlined, ExclamationCircleOutlined, SearchOutlined, DollarOutlined } from '@ant-design/icons';
 import httpService from '../../../services/httpService';
 
 const { Title, Text } = Typography;
@@ -15,6 +15,8 @@ const AdminBookingDetails = () => {
   const [detailModalContent, setDetailModalContent] = useState(null);
   const [detailModalTitle, setDetailModalTitle] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+
+  const primaryColor = '#fdb940';
 
   const fetchBookings = useCallback(async () => {
     try {
@@ -63,13 +65,19 @@ const AdminBookingDetails = () => {
   };
 
   const renderStatus = (status) => {
-    const color = status === 'Completed' ? 'success' : status === 'Pending' ? 'warning' : 'error';
-    const icon = status === 'Completed' ? <CheckCircleOutlined /> : status === 'Pending' ? <ClockCircleOutlined /> : <ExclamationCircleOutlined />;
-    return (
-      <Tag color={color} icon={icon}>
-        {status}
-      </Tag>
-    );
+    const icon = status === 'complete' ? <CheckCircleOutlined /> : 
+                 status === 'upcoming' ? <ClockCircleOutlined /> : 
+                 <ExclamationCircleOutlined />;
+    const color = status === 'complete' ? 'green' :
+                  status === 'upcoming' ? primaryColor :
+                  'red';
+    return <Tag color={color} icon={icon}>{status}</Tag>;
+  };
+
+  const renderPaymentStatus = (payment, type) => {
+    const isPaid = payment !== null;
+    const color = isPaid ? 'green' : 'red';
+    return <Tag color={color} icon={<DollarOutlined />}>{type} Payment: {isPaid ? 'Paid' : 'Unpaid'}</Tag>;
   };
 
   const renderDetailButtons = (booking) => {
@@ -85,7 +93,7 @@ const AdminBookingDetails = () => {
         <Button size="small" icon={<CarOutlined />} onClick={() => fetchDetails(booking.id, bookingType, '/common/vehicle', 'Vehicle Details')}>
           Vehicle
         </Button>
-        {booking.status === 'Completed' && (
+        {booking.status === 'complete' && (
           <>
             <Button size="small" icon={<UserOutlined />} onClick={() => fetchDetails(booking.id, bookingType, '/common/completedDriver', 'Driver Details')}>
               Driver
@@ -95,12 +103,12 @@ const AdminBookingDetails = () => {
             </Button>
           </>
         )}
-        {booking.status === 'Pending' && (
+        {booking.status === 'upcoming' && (
           <Button size="small" icon={<UserOutlined />} onClick={() => fetchDetails(booking.id, bookingType, '/common/upcomingDriver', 'Upcoming Driver Details')}>
             Upcoming Driver
           </Button>
         )}
-        {booking.status === 'Cancelled' && (
+        {booking.status === 'cancelled' && (
           <Button size="small" icon={<ExclamationCircleOutlined />} onClick={() => fetchDetails(booking.id, bookingType, '/common/cancelledReason', 'Cancellation Reason')}>
             Cancellation Reason
           </Button>
@@ -164,6 +172,30 @@ const AdminBookingDetails = () => {
     </Modal>
   );
 
+  const renderBookingCard = (booking, isShared = false) => (
+    <Card 
+      style={{ width: '100%', margin: '16px' }}
+      title={
+        <Space>
+          <Text strong>{isShared ? 'Shared ' : ''}Booking ID: {booking.id}</Text>
+          {renderStatus(booking.status)}
+        </Space>
+        
+      }
+      extra={
+        <Space>
+          {renderPaymentStatus(booking.balPayment, 'Balance')}
+          {renderPaymentStatus(booking.advancePayment, 'Advance')}
+          <Tag color={isShared ? 'blue' : primaryColor}>{isShared ? 'Shared' : 'Original'}</Tag>
+        </Space>
+      }
+    >
+      <Space direction="vertical" style={{ width: '100%' }}>
+        {renderDetailButtons(booking)}
+      </Space>
+    </Card>
+  );
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -195,47 +227,21 @@ const AdminBookingDetails = () => {
           dataSource={filteredBookings}
           renderItem={(booking) => (
             <List.Item>
-              <Card 
-                style={{ width: '100%' }}
-                title={
-                  <Space>
-                    <Text strong>Booking ID: {booking.id}</Text>
-                    {renderStatus(booking.status)}
-                  </Space>
-                }
-                extra={<Text type="secondary">Type: {booking.sharedBooking.length > 0 ? 'Shared' : 'Original'}</Text>}
-              >
-                {renderDetailButtons(booking)}
-                {booking.sharedBooking.length > 0 && (
-                  <Collapse style={{ marginTop: '16px' }}>
-                    <Panel 
-                      header={`Shared Bookings (${booking.sharedBooking.length})`}
-                      key="1"
-                      extra={<DownOutlined />}
-                    >
-                      <List
-                        dataSource={booking.sharedBooking}
-                        renderItem={(shared) => (
-                          <List.Item>
-                            <Card 
-                              style={{ width: '100%' }}
-                              title={
-                                <Space>
-                                  <Text strong>Shared Booking ID: {shared.id}</Text>
-                                  {renderStatus(shared.status)}
-                                </Space>
-                              }
-                              extra={<Text>Travelling Time: {shared.travellingTime} mins</Text>}
-                            >
-                              {renderDetailButtons(shared)}
-                            </Card>
-                          </List.Item>
-                        )}
-                      />
-                    </Panel>
-                  </Collapse>
-                )}
-              </Card>
+              {renderBookingCard(booking)}
+              {booking.sharedBooking.length > 0 && (
+                <Collapse 
+                  style={{ marginTop: '16px', width: '100%' }}
+                  bordered={false}
+                >
+                  <Panel 
+                    header={`Shared Bookings (${booking.sharedBooking.length})`}
+                    key="1"
+                    extra={<DownOutlined />}
+                  >
+                    {booking.sharedBooking.map((shared) => renderBookingCard(shared, true))}
+                  </Panel>
+                </Collapse>
+              )}
             </List.Item>
           )}
         />
