@@ -315,19 +315,19 @@ const SharedBookingsHistory = () => {
           </Button>
         )}
 
-{booking.status === 'upcoming'&&booking.ownerDetails && (
-  <Button 
-    type="default" 
-    onClick={() => handleChatWithOwner(booking.ownerDetails.id)} 
-    style={{ width: '100%' }}
-    className="hover-button"
-  >
-    Chat with Owner
-  </Button>
-)}
+        {booking.status === 'upcoming' && booking.ownerDetails && (
+          <Button 
+            type="default" 
+            onClick={() => handleChatWithOwner(booking.ownerDetails.id)} 
+            style={{ width: '100%' }}
+            className="hover-button"
+          >
+            Chat with Owner
+          </Button>
+        )}
       </Space>
     </Card>
-  ), [getStatusTag, formatDateTime, cancelledReasons, handleViewRideStatus, handleCancelBooking, handleRateBooking,handleChatWithOwner]);
+  ), [getStatusTag, formatDateTime, cancelledReasons, handleViewRideStatus, handleCancelBooking, handleRateBooking, handleChatWithOwner]);
 
   const renderBookingList = useCallback((bookings, isToday = false) => (
     <Row gutter={[24, 24]}>
@@ -352,7 +352,7 @@ const SharedBookingsHistory = () => {
     new Date(booking.date).setHours(0, 0, 0, 0) === today && booking.status === 'upcoming'
   );
   const upcomingBookings = filteredBookings.filter(booking => 
-    booking.status === 'upcoming'
+    new Date(booking.date).setHours(0, 0, 0, 0) > today && booking.status === 'upcoming'
   );
   const cancelledBookings = filteredBookings.filter(booking => booking.status === 'cancelled');
   const pastBookings = filteredBookings.filter(booking => booking.status === 'complete');

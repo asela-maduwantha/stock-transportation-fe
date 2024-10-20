@@ -29,22 +29,26 @@ const SharedBookingSummary = () => {
 
   const confirmBooking = async () => {
     setIsLoading(true);
+    const sharedBookingData = {
+      bookingId : bookingData.id,         
+      startLong: bookingData.startLong,
+      startLat: bookingData.startLat,
+      destLong: bookingData.destLong,
+      destLat: bookingData.destLat,
+      travellingTime: bookingData.travellingTime,
+      avgHandlingTime: bookingData.avgHandlingTime,
+      vehicleCharge: bookingData.vehicleCharge,
+      serviceCharge: bookingData.serviceCharge,
+      customerId: localStorage.getItem("customerId")
+  }
+  console.log(sharedBookingData)
     try {
         const response = await httpService.post(
-            "/customer/sharedBooking",
-            {
-                
-                startLong: bookingData.startLong,
-                startLat: bookingData.startLat,
-                destLong: bookingData.destLong,
-                destLat: bookingData.destLat,
-                travellingTime: bookingData.travellingTime,
-                avgHandlingTime: bookingData.avgHandlingTime,
-                vehicleCharge: bookingData.vehicleCharge,
-                serviceCharge: bookingData.serviceCharge,
-                customerId: localStorage.getItem("customerId")
-            }
+            "/customer/sharedBooking",sharedBookingData
+            
         );
+
+        console.log(response.data)
 
         if (response.status === 200) {
            

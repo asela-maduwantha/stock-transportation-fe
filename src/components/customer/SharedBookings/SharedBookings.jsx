@@ -85,6 +85,7 @@ const SharedBookings = () => {
   };
 
   const handleMakeBooking = (booking) => {
+    console.log(booking)
     navigate('/customer/shared-booking-details', { state: { booking } });
   };
 
