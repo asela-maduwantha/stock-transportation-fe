@@ -125,10 +125,6 @@ const AssignedTrips = () => {
       );
       if (response.data && response.data.length > 0) {
         const sharedBooking = response.data[0];
-        if(localStorage.getItem('sharedBookingId')){
-          localStorage.removeItem('sharedBookingId');
-        }
-        localStorage.setItem('sharedBookingId', sharedBooking.id)
         const startAddress = await getAddressFromCoordinates(
           sharedBooking.startLat,
           sharedBooking.startLong
@@ -184,12 +180,28 @@ const AssignedTrips = () => {
     setIsModalVisible(true);
   };
 
-  const handleNavigate = (trip) => {
-    fetchSharedBookingDetails(trip.id)
+  const handleNavigate = async (trip) => {
+    let sharedBookingId = null;
+    let bookingType = "original";
+
+    if (trip.willingToShare) {
+      try {
+        const response = await httpService.get(`/driver/sharedBookings/${trip.id}`);
+        if (response.data && response.data.length > 0) {
+          sharedBookingId = response.data[0].id;
+          localStorage.setItem('sharedBookingId',sharedBookingId)
+          bookingType ;
+        }
+      } catch (error) {
+        console.error("Error fetching shared booking details:", error);
+      }
+    }
+
     navigate("/driver/booking-navigations", {
       state: {
         originalBookingId: trip.id,
-        bookingType: "original",
+        sharedBookingId,
+        bookingType,
       },
     });
   };
@@ -422,10 +434,11 @@ const AssignedTrips = () => {
                 <Space direction="vertical" size="small" style={{ width: "100%" }}>
                   <Text strong>
                     <EnvironmentOutlined style={{ color: "#52c41a" }} /> Destination:
-                  </Text>
+                    </Text>
                   <Text>{sharedBookingDetails.destAddress}</Text>
                 </Space>
-              </Col><Col xs={12}>
+              </Col>
+              <Col xs={12}>
                 <Text strong>
                   <ClockCircleOutlined /> Travel Time:{" "}
                   {formatTime(
@@ -479,3 +492,4 @@ const AssignedTrips = () => {
 };
 
 export default AssignedTrips;
+                    

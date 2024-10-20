@@ -237,7 +237,9 @@ const SharedBookingsHistory = () => {
   }, [cancelReason, currentBookingId, fetchBookings]);
 
   const handleViewRideStatus = useCallback((bookingId) => {
+    
     localStorage.setItem('sharedBookingId', bookingId);
+    localStorage.setItem('bookingType','shared');
     navigate('/customer/pickup-stock', { state: { bookingId, bookingType: 'shared' } });
   }, [navigate]);
 

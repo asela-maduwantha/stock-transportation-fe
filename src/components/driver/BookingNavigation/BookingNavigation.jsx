@@ -100,6 +100,7 @@ const BookingNavigation = () => {
 
   // API calls
   const fetchCoordinates = useCallback(async () => {
+    console.log(location.state)
     if (
       !location.state ||
       !location.state.originalBookingId ||
@@ -556,7 +557,7 @@ const BookingNavigation = () => {
     });
 
     socket.on("connect", () => {
-      console.log("WebSocket connected with id:", socket.id);
+      //console.log("WebSocket connected with id:", socket.id);
       setSocketConnected(true);
     });
 
@@ -593,6 +594,15 @@ const BookingNavigation = () => {
         localStorage.getItem("bookingId")
       );
 
+      socketRef.current.emit(
+        "joinLoadingRoom",
+        localStorage.getItem("sharedBookingId")
+      );
+      socketRef.current.emit(
+        "joinUnloadingRoom",
+        localStorage.getItem("sharedBookingId")
+      );
+
       socketRef.current.on("timerUpdate", (data) => {
         if (data.loadingTime) {
           if (isLoadingOriginal) {
@@ -619,6 +629,15 @@ const BookingNavigation = () => {
         socketRef.current.emit(
           "leaveUnloadingRoom",
           localStorage.getItem("bookingId")
+        );
+
+        socketRef.current.emit(
+          "leaveLoadingRoom",
+          localStorage.getItem("sharedBookingId")
+        );
+        socketRef.current.emit(
+          "leaveUnloadingRoom",
+          localStorage.getItem("sharedBookingId")
         );
       };
     }

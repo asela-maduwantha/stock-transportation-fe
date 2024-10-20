@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { GoogleMap, DirectionsRenderer, Marker, useJsApiLoader } from '@react-google-maps/api';
 import { Card, message, Row, Col, Spin } from 'antd';
 import { io } from 'socket.io-client';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const PickupStock = () => {
   const [socket, setSocket] = useState(null);
@@ -14,6 +14,7 @@ const PickupStock = () => {
   const [bookingId, setBookingId] = useState('');
   const [bookingType, setBookingType] = useState('original');
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: 'AIzaSyCZai7VHlL_ERUPIvG3x-ztG6NJugx08Bo',
@@ -21,8 +22,14 @@ const PickupStock = () => {
   });
 
   useEffect(() => {
-    const storedBookingId = localStorage.getItem('bookingId');
     const storedBookingType = localStorage.getItem('bookingType');
+    let storedBookingId;
+ 
+    if (storedBookingType ==='shared') {
+      storedBookingId = localStorage.getItem('sharedBookingId');
+    } else {
+      storedBookingId = localStorage.getItem('bookingId');
+    }
     if (storedBookingId) {
       setBookingId(storedBookingId);
     }
@@ -51,7 +58,7 @@ const PickupStock = () => {
     }
 
     return () => newSocket.close();
-  }, []);
+  }, [location.state]);
 
   useEffect(() => {
     if (socket && bookingId) {
@@ -68,8 +75,6 @@ const PickupStock = () => {
       socket.on('coordinates', (data) => {
         setDriverLocation({ lat: data.latitude, lng: data.longitude });
       });
-
-    
 
       return () => {
         socket.off('timerUpdate');
