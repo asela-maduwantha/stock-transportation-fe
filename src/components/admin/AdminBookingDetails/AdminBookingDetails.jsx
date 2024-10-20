@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Card, Button, Spin, Typography, Alert, List, Tag, Collapse, Modal, Input, Space, Descriptions } from 'antd';
+import { Card, Button, Spin, Typography, Alert, List, Tag, Collapse, Modal, Input, Space, Descriptions, Image } from 'antd';
 import { UserOutlined, ClockCircleOutlined, CheckCircleOutlined, DownOutlined, CarOutlined, StarOutlined, ExclamationCircleOutlined, SearchOutlined, DollarOutlined } from '@ant-design/icons';
 import httpService from '../../../services/httpService';
 
@@ -80,8 +80,8 @@ const AdminBookingDetails = () => {
     return <Tag color={color} icon={<DollarOutlined />}>{type} Payment: {isPaid ? 'Paid' : 'Unpaid'}</Tag>;
   };
 
-  const renderDetailButtons = (booking) => {
-    const bookingType = booking.sharedBooking.length > 0 ? 'shared' : 'original';
+  const renderDetailButtons = (booking, isShared = false) => {
+    const bookingType = isShared ? 'shared' : 'original';
     return (
       <Space wrap>
         <Button size="small" icon={<UserOutlined />} onClick={() => fetchDetails(booking.id, bookingType, '/common/owner', 'Owner Details')}>
@@ -164,7 +164,15 @@ const AdminBookingDetails = () => {
               key={key} 
               label={key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1').trim()}
             >
-              {renderDetailValue(value)}
+              {key === 'photoUrl' && value ? (
+                <Image
+                  width={200}
+                  src={value}
+                  alt="Vehicle"
+                />
+              ) : (
+                renderDetailValue(value)
+              )}
             </Descriptions.Item>
           ))}
         </Descriptions>
@@ -180,8 +188,8 @@ const AdminBookingDetails = () => {
           <Text strong>{isShared ? 'Shared ' : ''}Booking ID: {booking.id}</Text>
           {renderStatus(booking.status)}
         </Space>
-        
       }
+      
       extra={
         <Space>
           {renderPaymentStatus(booking.balPayment, 'Balance')}
@@ -191,7 +199,7 @@ const AdminBookingDetails = () => {
       }
     >
       <Space direction="vertical" style={{ width: '100%' }}>
-        {renderDetailButtons(booking)}
+        {renderDetailButtons(booking, isShared)}
       </Space>
     </Card>
   );
@@ -228,7 +236,7 @@ const AdminBookingDetails = () => {
           renderItem={(booking) => (
             <List.Item>
               {renderBookingCard(booking)}
-              {booking.sharedBooking.length > 0 && (
+              {booking.sharedBooking && booking.sharedBooking.length > 0 && (
                 <Collapse 
                   style={{ marginTop: '16px', width: '100%' }}
                   bordered={false}
