@@ -68,7 +68,8 @@ const WalletComponent = () => {
       const response = await httpService.get(`/owner/wallet/${ownerId}`);
       setWalletData(response.data);
     } catch (err) {
-      setError('Failed to fetch wallet data');
+     
+      message.error('Failed to fetch wallet data');
     } finally {
       setLoading(false);
     }
@@ -79,6 +80,7 @@ const WalletComponent = () => {
     try {
       const response = await httpService.get(`/owner/rewards/${ownerId}`);
       setRewards(response.data.filter(reward => !reward.isClaimed));
+    
     } catch (err) {
       console.error('Failed to fetch rewards', err);
     }

@@ -47,6 +47,7 @@ const CreateBankAccount = () => {
       message.success('Bank account created successfully');
       form.resetFields();
     } catch (error) {
+      console.log(error)
       message.error('Failed to create bank account');
     } finally {
       setLoading(false);
