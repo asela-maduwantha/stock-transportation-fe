@@ -136,6 +136,15 @@ const BookingNavigation = () => {
         longitude: location.lng,
         latitude: location.lat,
       });
+
+      if (isSharedBooking && localStorage.getItem("sharedBookingId") ) {
+        const sharedbookingId = localStorage.getItem("sharedBookingId");
+        await httpService.post("/driver/sendCoordinates", {
+          bookingId: sharedbookingId,
+          longitude: location.lng,
+          latitude: location.lat,
+        });
+      }
     } catch (error) {
       console.error("Error sending coordinates:", error);
     }
@@ -413,9 +422,12 @@ const BookingNavigation = () => {
   // Loading/Unloading functions
   const startLoading = async (stockId) => {
     try {
+      let bookingId = localStorage.getItem("bookingId")
+      if (stockId === "stock2"){
+          bookingId = localStorage.getItem("sharedBookingId")
+      }
       await httpService.post(
-        `/driver/startLoading/${location.state.originalBookingId}`,
-        { stockId }
+        `/driver/startLoading/${bookingId}`
       );
       if (stockId === "stock1") {
         setIsLoadingOriginal(true);
@@ -432,9 +444,13 @@ const BookingNavigation = () => {
   };
 
   const stopLoading = async (stockId) => {
+    let bookingId = localStorage.getItem("bookingId")
+    if (stockId === "stock2"){
+        bookingId = localStorage.getItem("sharedBookingId")
+    }
     try {
       await httpService.put(
-        `/driver/stopLoading/${location.state.originalBookingId}`,
+        `/driver/stopLoading/${bookingId}`,
         {
           bookingType:
             isSharedBooking && stockId === "stock2" ? "shared" : "original",
@@ -458,8 +474,12 @@ const BookingNavigation = () => {
 
   const startUnloading = async (stockId) => {
     try {
+      let bookingId = localStorage.getItem("bookingId")
+      if (stockId === "stock2"){
+          bookingId = localStorage.getItem("sharedBookingId")
+      }
       await httpService.post(
-        `/driver/startUnloading/${location.state.originalBookingId}`,
+        `/driver/startUnloading/${bookingId}`,
         { stockId }
       );
       if (stockId === "stock1") {
@@ -477,9 +497,13 @@ const BookingNavigation = () => {
   };
 
   const stopUnloading = async (stockId) => {
+    let bookingId = localStorage.getItem("bookingId")
+    if (stockId === "stock2"){
+        bookingId = localStorage.getItem("sharedBookingId")
+    }
     try {
       await httpService.put(
-        `/driver/stopUnloading/${location.state.originalBookingId}`,
+        `/driver/stopUnloading/${bookingId}`,
         {
           bookingType:
             isSharedBooking && stockId === "stock2" ? "shared" : "original",
@@ -606,9 +630,10 @@ const BookingNavigation = () => {
       socketRef.current.on("timerUpdate", (data) => {
         if (data.loadingTime) {
           if (isLoadingOriginal) {
-            console.log(data.loadingTime);
+            //console.log(data.loadingTime);
             setOriginalLoadingTimer(data.loadingTime);
           } else {
+            console.log(data.loadingTime)
             setSharedLoadingTimer(data.loadingTime);
           }
         }

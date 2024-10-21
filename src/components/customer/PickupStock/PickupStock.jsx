@@ -61,6 +61,22 @@ const PickupStock = () => {
   }, [location.state]);
 
   useEffect(() => {
+    const storedBookingType = localStorage.getItem('bookingType');
+    let storedBookingId;
+ 
+    if (storedBookingType ==='shared') {
+      storedBookingId = localStorage.getItem('sharedBookingId');
+    } else {
+      storedBookingId = localStorage.getItem('bookingId');
+    }
+    if (storedBookingId) {
+      setBookingId(storedBookingId);
+    }
+    if (storedBookingType) {
+      setBookingType(storedBookingType);
+    }
+
+    
     if (socket && bookingId) {
       socket.emit('joinRideRoom', bookingId);
 
