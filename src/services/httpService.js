@@ -65,7 +65,7 @@ httpService.interceptors.response.use(
         case 404: {
           const msg = data?.message || 'Not found.';
           message.warning(msg)
-          if (window.location.pathname !== '/owner/create-bank-account') {
+          if (window.location.pathname !== '/owner/wallet') {
             window.location.href = '/owner/create-bank-account';
           }
           return Promise.reject(new Error(msg));
