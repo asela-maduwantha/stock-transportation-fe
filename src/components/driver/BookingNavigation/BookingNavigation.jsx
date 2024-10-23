@@ -381,6 +381,10 @@ const BookingNavigation = () => {
           currentBookingId = localStorage.getItem("sharedBookingId");
         }
 
+        if(localStorage.getItem('bookingTypeCancelled')){
+          currentBookingType = localStorage.getItem('bookingTypeCancelled')
+          //localStorage.removeItem('bookingTypeCancelled')
+        }
         const response = await httpService.put(`/driver/stopRide/${driverId}`, {
           bookingId: currentBookingId,
           bookingType: currentBookingType,
@@ -444,16 +448,22 @@ const BookingNavigation = () => {
   };
 
   const stopLoading = async (stockId) => {
-    let bookingId = localStorage.getItem("bookingId")
+    let bookingId = localStorage.getItem("bookingId");
+    
     if (stockId === "stock2"){
         bookingId = localStorage.getItem("sharedBookingId")
     }
     try {
+      let currentBookingType = isSharedBooking && stockId === "stock2" ? "shared" : "original"
+      if(localStorage.getItem('bookingTypeCancelled')){
+        currentBookingType = localStorage.getItem('bookingTypeCancelled')
+        
+      }
       await httpService.put(
         `/driver/stopLoading/${bookingId}`,
         {
           bookingType:
-            isSharedBooking && stockId === "stock2" ? "shared" : "original",
+          currentBookingType,
           stockId,
         }
       );
@@ -502,11 +512,15 @@ const BookingNavigation = () => {
         bookingId = localStorage.getItem("sharedBookingId")
     }
     try {
+      let currentBookingType =  isSharedBooking && stockId === "stock2" ? "shared" : "original";
+      if(localStorage.getItem("bookingTypeCancelled")){
+        currentBookingType = localStorage.getItem("bookingTypeCancelled");
+      }
       await httpService.put(
         `/driver/stopUnloading/${bookingId}`,
         {
           bookingType:
-            isSharedBooking && stockId === "stock2" ? "shared" : "original",
+           currentBookingType,
           stockId,
         }
       );
@@ -534,7 +548,11 @@ const BookingNavigation = () => {
     }
 
     try {
-      const bookingType = isSharedBooking && stockId === "stock2" ? "shared" : "original";
+      let bookingType = isSharedBooking && stockId === "stock2" ? "shared" : "original";
+      if(localStorage.getItem('bookingTypeCancelled')){
+        bookingType = localStorage.getItem('bookingTypeCancelled')
+        //localStorage.removeItem('bookingTypeCancelled')
+      }
 
       const response = await httpService.get(
         `/common/paymentSummery/${currentBookingId}`,
@@ -562,6 +580,7 @@ const BookingNavigation = () => {
         socketRef.current.disconnect();
       }
       message.success("Ride finished successfully!");
+      localStorage.removeItem('bookingTypeCancelled')
       navigate("/driver/assigned-trips");
     } catch (error) {
       console.error("Error finishing ride:", error);

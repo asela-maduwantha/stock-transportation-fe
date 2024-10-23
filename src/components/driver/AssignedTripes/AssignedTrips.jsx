@@ -183,6 +183,9 @@ const AssignedTrips = () => {
   const handleNavigate = async (trip) => {
     let sharedBookingId = null;
     let bookingType = "original";
+    if(localStorage.getItem('bookingTypeCancelled')){
+      localStorage.removeItem('bookingTypeCancelled')
+    }
 
     if (trip.willingToShare) {
       try {
@@ -198,6 +201,7 @@ const AssignedTrips = () => {
     }
     if(trip.type ==='shared'){
       bookingType ='shared'
+      localStorage.setItem('bookingTypeCancelled', 'shared')
     }
 
     navigate("/driver/booking-navigations", {
