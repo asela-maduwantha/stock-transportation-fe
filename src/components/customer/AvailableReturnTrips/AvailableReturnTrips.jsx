@@ -246,6 +246,7 @@ const AvailableReturnTrips = () => {
   }, [fetchTripDetails]);
 
   const handleBooking = (trip) => {
+
     const bookingData = {
       vehicleData: trip.vehicle,
       startCoordinates: { lat: trip.startLat, lng: trip.startLong },

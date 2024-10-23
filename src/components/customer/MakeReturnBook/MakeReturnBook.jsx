@@ -94,10 +94,10 @@ const MakeReturnBook = () => {
       };
 
       const response = await httpService.post('customer/booking', bookingData);
-      const bookingId = response.data.bookingId;
+      const bookingId = response.data.id;
       localStorage.setItem('bookingId', bookingId);
       localStorage.setItem('bookingType', 'return');
-      
+      message.success('Return Booking created Successfully!')
       navigate('/payment', {
         state: {
           bookingId: bookingId,
@@ -112,7 +112,7 @@ const MakeReturnBook = () => {
       });
     } catch (error) {
       console.error('Error making booking:', error);
-      // Error handling is managed by httpService
+      
     } finally {
       setLoading(false);
     }
