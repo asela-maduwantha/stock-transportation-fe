@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Form, Input, Button, message, Typography } from 'antd';
 import { BankOutlined, UserOutlined, BranchesOutlined, NumberOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import httpService from '../../../services/httpService';
 
 const { Title } = Typography;
 
@@ -43,7 +43,7 @@ const CreateBankAccount = () => {
     const ownerId = localStorage.getItem('ownerId');
     
     try {
-      await axios.post(`/owner/bankAccount/${ownerId}`, values);
+      await httpService.post(`/owner/bankAccount/${ownerId}`, values);
       message.success('Bank account created successfully');
       form.resetFields();
     } catch (error) {
