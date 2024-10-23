@@ -115,7 +115,7 @@ const WalletComponent = () => {
       const walletId = bankCheckResponse.data.id;
       await httpService.post(`/owner/makeWithdrawal/${walletId}`, { 
         amount, 
-        rewardId: selectedReward ? selectedReward.id : null 
+        rewardId: selectedReward ? selectedReward.id : '' 
       });
       message.success('Withdrawal successful');
       setIsWithdrawModalVisible(false);

@@ -334,7 +334,7 @@ const BookingHistory = () => {
         )}
 
         <Space direction="vertical" style={{ width: '100%', marginTop: '16px' }}>
-          {booking.status === 'upcoming'|| booking.status === 'shared with cancelled original' && (
+          {(booking.status === 'upcoming'|| booking.status === 'shared with cancelled original') && (
             <>
               <Button
                 type="default"
