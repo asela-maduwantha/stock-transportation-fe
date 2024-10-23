@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Avatar, Tabs, List, Statistic, Row, Col, Button, Collapse, Tag } from 'antd';
+import { Card, Avatar, Tabs, List, Statistic, Row, Col,  Collapse, Tag } from 'antd';
 import { UserOutlined, TeamOutlined, MailOutlined, PhoneOutlined, HomeOutlined, IdcardOutlined } from '@ant-design/icons';
 import httpService from '../../../services/httpService';
 
@@ -118,9 +118,7 @@ const UserProfiles = () => {
             <Statistic title="Total" value={profile.totalBookingCount} />
           </Col>
         </Row>
-        <Button type="primary" style={{ marginTop: '16px', backgroundColor: '#fdb940', borderColor: '#fdb940' }}>
-          View Details
-        </Button>
+      
       </Card>
     );
   };

@@ -247,7 +247,7 @@ const StripePayment = () => {
         <div style={{ textAlign: 'center', padding: '20px 0' }}>
           <CheckCircleOutlined style={{ fontSize: 64, color: '#52c41a' }} />
           <Title level={2} style={{ margin: '20px 0' }}>Payment Successful!</Title>
-          <Text>Thank you for your payment.</Text>
+          <Text>Thank you for your payment.</Text><br></br>
           <Button
             type="primary"
             icon={<DashboardOutlined />}
