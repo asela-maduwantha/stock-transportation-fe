@@ -38,9 +38,9 @@ const AdminDashboard = () => {
     return {
       totalAmount,
       totalCount: serviceCharges.length,
-      completedAmount: completedCharges.reduce((sum, charge) => sum + charge.amount, 0),
+      completedAmount: completedCharges.reduce((sum, charge) => sum + charge.amount, 0).toFixed(2),
       completedCount: completedCharges.length,
-      cancelledAmount: cancelledCharges.reduce((sum, charge) => sum + charge.amount, 0),
+      cancelledAmount: cancelledCharges.reduce((sum, charge) => sum + charge.amount, 0).toFixed(2),
       cancelledCount: cancelledCharges.length
     };
   };
@@ -160,7 +160,7 @@ const AdminDashboard = () => {
               <Card>
                 <Statistic
                   title="Total Service Charges"
-                  value={charges.totalAmount}
+                  value={charges.totalAmount.toFixed(2)}
                   prefix={<DollarOutlined style={{ color: '#fdb940' }} />}
                   suffix="LKR"
                 />
