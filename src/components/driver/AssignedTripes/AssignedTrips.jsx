@@ -196,6 +196,9 @@ const AssignedTrips = () => {
         console.error("Error fetching shared booking details:", error);
       }
     }
+    if(trip.type ==='shared'){
+      bookingType ='shared'
+    }
 
     navigate("/driver/booking-navigations", {
       state: {
