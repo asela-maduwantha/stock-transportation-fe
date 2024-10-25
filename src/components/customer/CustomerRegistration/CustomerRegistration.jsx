@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Form, Input, Button, Row, Col, Select, message } from 'antd';
-import { EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
+import { Form, Input, Button, Row, Col, Select, message, Progress } from 'antd';
+import { EyeInvisibleOutlined, EyeTwoTone, CheckCircleFilled, CloseCircleFilled } from '@ant-design/icons';
+import PropTypes from 'prop-types';
 import lottie from 'lottie-web';
 import './CustomerRegistration.css';
 import { useNavigate } from 'react-router-dom';
@@ -8,12 +9,64 @@ import httpService from '../../../services/httpService';
 
 const { Option } = Select;
 
+const PasswordRequirementItem = ({ met, text }) => (
+  <div style={{ color: met ? '#52c41a' : '#ff4d4f', marginBottom: '4px' }}>
+    {met ? <CheckCircleFilled /> : <CloseCircleFilled />}
+    <span style={{ marginLeft: '8px' }}>{text}</span>
+  </div>
+);
+
+PasswordRequirementItem.propTypes = {
+  met: PropTypes.bool.isRequired,
+  text: PropTypes.string.isRequired
+};
+
 const CustomerRegistration = () => {
   const [form] = Form.useForm();
   const container = useRef(null);
   const lottieInstance = useRef(null);
   const [emailAvailability, setEmailAvailability] = useState(true);
   const navigate = useNavigate();
+  const [passwordStrength, setPasswordStrength] = useState({
+    score: 0,
+    message: '',
+    color: '#ff4d4f'
+  });
+
+  const checkPasswordStrength = (password) => {
+    let score = 0;
+    let checks = {
+      length: password.length >= 8,
+      hasUpperCase: /[A-Z]/.test(password),
+      hasLowerCase: /[a-z]/.test(password),
+      hasNumbers: /\d/.test(password),
+      hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    };
+
+    // Calculate score
+    score += checks.length ? 20 : 0;
+    score += checks.hasUpperCase ? 20 : 0;
+    score += checks.hasLowerCase ? 20 : 0;
+    score += checks.hasNumbers ? 20 : 0;
+    score += checks.hasSpecialChar ? 20 : 0;
+
+    // Determine strength message and color
+    let strengthInfo = {
+      score,
+      message: 'Weak',
+      color: '#ff4d4f'  // red
+    };
+
+    if (score > 60) {
+      strengthInfo.message = 'Strong';
+      strengthInfo.color = '#52c41a';  // green
+    } else if (score > 30) {
+      strengthInfo.message = 'Good';
+      strengthInfo.color = '#faad14';  // yellow
+    }
+
+    return strengthInfo;
+  };
 
   useEffect(() => {
     if (container.current) {
@@ -45,6 +98,11 @@ const CustomerRegistration = () => {
       console.error('Error checking email availability:', error);
       setEmailAvailability(false);
     }
+  };
+
+  const handlePasswordChange = (e) => {
+    const password = e.target.value;
+    setPasswordStrength(checkPasswordStrength(password));
   };
 
   const onFinish = async (values) => {
@@ -151,13 +209,48 @@ const CustomerRegistration = () => {
 
           <Form.Item
             name="password"
-            rules={[{ required: true, message: 'Please input your password!' }]}
+            rules={[
+              { required: true, message: 'Please input your password!' },
+              { min: 8, message: 'Password must be at least 8 characters!' },
+              {
+                pattern: /^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|<>]).*$/,
+                message: 'Password must contain at least one uppercase letter, one number, and one special character!'
+              }
+            ]}
           >
             <Input.Password
               placeholder="Password"
+              onChange={handlePasswordChange}
               iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
             />
           </Form.Item>
+
+          <div style={{ marginBottom: '16px' }}>
+            <Progress
+              percent={passwordStrength.score}
+              status="active"
+              strokeColor={passwordStrength.color}
+              format={() => passwordStrength.message}
+            />
+            <div style={{ marginTop: '8px' }}>
+              <PasswordRequirementItem
+                met={form.getFieldValue('password')?.length >= 8}
+                text="At least 8 characters"
+              />
+              <PasswordRequirementItem
+                met={/[A-Z]/.test(form.getFieldValue('password') || '')}
+                text="At least one uppercase letter"
+              />
+              <PasswordRequirementItem
+                met={/[0-9]/.test(form.getFieldValue('password') || '')}
+                text="At least one number"
+              />
+              <PasswordRequirementItem
+                met={/[!@#$%^&*(),.?":{}|<>]/.test(form.getFieldValue('password') || '')}
+                text="At least one special character"
+              />
+            </div>
+          </div>
 
           <Form.Item
             name="confirmPassword"

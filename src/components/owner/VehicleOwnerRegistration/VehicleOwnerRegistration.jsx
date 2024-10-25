@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Form, Input, Button, Row, Col, Upload, Select, message } from 'antd';
-import { EyeInvisibleOutlined, EyeTwoTone, UploadOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Row, Col, Upload, Select, message, Progress } from 'antd';
+import { EyeInvisibleOutlined, EyeTwoTone, UploadOutlined, CheckCircleFilled, CloseCircleFilled } from '@ant-design/icons';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import httpService from '../../../services/httpService'; // Adjust the import path as needed
+import httpService from '../../../services/httpService';
 import { storage } from '../../../config/firebaseconfig';
 import lottie from 'lottie-web';
 import './VehicleOwnerRegistration.css';
+import PropTypes from 'prop-types'
 
 const { Option } = Select;
 
@@ -14,10 +15,16 @@ const districts = [
   "Galle", "Gampaha", "Hambantota", "Jaffna", "Kalutara",
   "Kandy", "Kegalle", "Kilinochchi", "Kurunegala", "Mannar",
   "Matale", "Matara", "Monaragala", "Mullaitivu", "Nuwara Eliya",
-  "Polonnaruwa", "Puttalam", "Ratnapura", "Trincomalee",
-  "Vavuniya"
+  "Polonnaruwa", "Puttalam", "Ratnapura", "Trincomalee", "Vavuniya"
 ];
 
+
+const PasswordRequirementItem = ({ met, text }) => (
+  <div style={{ color: met ? '#52c41a' : '#ff4d4f', marginBottom: '4px' }}>
+    {met ? <CheckCircleFilled /> : <CloseCircleFilled />}
+    <span style={{ marginLeft: '8px' }}>{text}</span>
+  </div>
+);
 const VehicleOwnerRegistration = () => {
   const [form] = Form.useForm();
   const [uploading, setUploading] = useState(false);
@@ -26,6 +33,46 @@ const VehicleOwnerRegistration = () => {
   const container = useRef(null);
   const lottieInstance = useRef(null);
   const [gsCertiUrl, setGsCertiUrl] = useState("");
+  const [passwordStrength, setPasswordStrength] = useState({
+    score: 0,
+    message: '',
+    color: '#ff4d4f'
+  });
+
+  const checkPasswordStrength = (password) => {
+    let score = 0;
+    let checks = {
+      length: password.length >= 8,
+      hasUpperCase: /[A-Z]/.test(password),
+      hasLowerCase: /[a-z]/.test(password),
+      hasNumbers: /\d/.test(password),
+      hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    };
+
+    // Calculate score
+    score += checks.length ? 20 : 0;
+    score += checks.hasUpperCase ? 20 : 0;
+    score += checks.hasLowerCase ? 20 : 0;
+    score += checks.hasNumbers ? 20 : 0;
+    score += checks.hasSpecialChar ? 20 : 0;
+
+    // Determine strength message and color
+    let strengthInfo = {
+      score,
+      message: 'Weak',
+      color: '#ff4d4f'  // red
+    };
+
+    if (score > 60) {
+      strengthInfo.message = 'Strong';
+      strengthInfo.color = '#52c41a';  // green
+    } else if (score > 30) {
+      strengthInfo.message = 'Good';
+      strengthInfo.color = '#faad14';  // yellow
+    }
+
+    return strengthInfo;
+  };
 
   useEffect(() => {
     if (container.current) {
@@ -77,6 +124,13 @@ const VehicleOwnerRegistration = () => {
     }
   };
 
+  const handlePasswordChange = (e) => {
+    const password = e.target.value;
+    setPasswordStrength(checkPasswordStrength(password));
+  };
+
+  
+
   const onFinish = async (values) => {
     const { certificate, ...rest } = values;
 
@@ -88,7 +142,7 @@ const VehicleOwnerRegistration = () => {
 
       uploadTask.on(
         'state_changed',
-        null, // Removed snapshot parameter as it was unused
+        null, 
         (error) => {
           message.error('Upload failed.');
           console.error(error);
@@ -133,6 +187,8 @@ const VehicleOwnerRegistration = () => {
     console.log('Failed:', errorInfo);
     message.error('Please check the form for errors.');
   };
+
+
 
   return (
     <div className="registration-container">
@@ -222,13 +278,48 @@ const VehicleOwnerRegistration = () => {
 
           <Form.Item
             name="password"
-            rules={[{ required: true, message: 'Please input your password!' }]}
+            rules={[
+              { required: true, message: 'Please input your password!' },
+              { min: 8, message: 'Password must be at least 8 characters!' },
+              {
+                pattern: /^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|<>]).*$/,
+                message: 'Password must contain at least one uppercase letter, one number, and one special character!'
+              }
+            ]}
           >
             <Input.Password
               placeholder="Password"
+              onChange={handlePasswordChange}
               iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
             />
           </Form.Item>
+
+          <div style={{ marginBottom: '16px' }}>
+            <Progress
+              percent={passwordStrength.score}
+              status="active"
+              strokeColor={passwordStrength.color}
+              format={() => passwordStrength.message}
+            />
+            <div style={{ marginTop: '8px' }}>
+              <PasswordRequirementItem
+                met={form.getFieldValue('password')?.length >= 8}
+                text="At least 8 characters"
+              />
+              <PasswordRequirementItem
+                met={/[A-Z]/.test(form.getFieldValue('password') || '')}
+                text="At least one uppercase letter"
+              />
+              <PasswordRequirementItem
+                met={/[0-9]/.test(form.getFieldValue('password') || '')}
+                text="At least one number"
+              />
+              <PasswordRequirementItem
+                met={/[!@#$%^&*(),.?":{}|<>]/.test(form.getFieldValue('password') || '')}
+                text="At least one special character"
+              />
+            </div>
+          </div>
 
           <Form.Item
             name="confirmPassword"
@@ -287,5 +378,11 @@ const VehicleOwnerRegistration = () => {
     </div>
   );
 };
+
+PasswordRequirementItem.propTypes = {
+  met: PropTypes.bool.isRequired,
+  text: PropTypes.string.isRequired
+};
+
 
 export default VehicleOwnerRegistration;

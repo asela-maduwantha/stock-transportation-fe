@@ -1,11 +1,23 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { LockOutlined } from '@ant-design/icons';
-import { Button, Input, message } from 'antd';
+import { LockOutlined, CheckCircleFilled, CloseCircleFilled } from '@ant-design/icons';
+import { Button, Input, message, Progress } from 'antd';
 import { useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
 import httpService from '../../../services/httpService';
 import DriverImg from '../../../assets/images/ownersignin.jpg';
 
-// Hook to check screen size for responsiveness
+const PasswordRequirementItem = ({ met, text }) => (
+  <div style={{ color: met ? '#52c41a' : '#ff4d4f', marginBottom: '4px' }}>
+    {met ? <CheckCircleFilled /> : <CloseCircleFilled />}
+    <span style={{ marginLeft: '8px' }}>{text}</span>
+  </div>
+);
+
+PasswordRequirementItem.propTypes = {
+  met: PropTypes.bool.isRequired,
+  text: PropTypes.string.isRequired
+};
+
 const useScreenSize = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
@@ -24,13 +36,73 @@ const useScreenSize = () => {
 const DriverPasswordChange = () => {
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [passwordStrength, setPasswordStrength] = useState({
+    score: 0,
+    message: '',
+    color: '#ff4d4f'
+  });
   const navigate = useNavigate();
   const isMobile = useScreenSize();
-  const driverId = localStorage.getItem('driverId'); // Assuming driverId is stored in localStorage
+  const driverId = localStorage.getItem('driverId');
+
+  const checkPasswordStrength = (password) => {
+    let score = 0;
+    let checks = {
+      length: password.length >= 8,
+      hasUpperCase: /[A-Z]/.test(password),
+      hasLowerCase: /[a-z]/.test(password),
+      hasNumbers: /\d/.test(password),
+      hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    };
+
+    score += checks.length ? 20 : 0;
+    score += checks.hasUpperCase ? 20 : 0;
+    score += checks.hasLowerCase ? 20 : 0;
+    score += checks.hasNumbers ? 20 : 0;
+    score += checks.hasSpecialChar ? 20 : 0;
+
+    let strengthInfo = {
+      score,
+      message: 'Weak',
+      color: '#ff4d4f'
+    };
+
+    if (score > 60) {
+      strengthInfo.message = 'Strong';
+      strengthInfo.color = '#52c41a';
+    } else if (score > 30) {
+      strengthInfo.message = 'Good';
+      strengthInfo.color = '#faad14';
+    }
+
+    return strengthInfo;
+  };
+
+  const handleNewPasswordChange = (e) => {
+    const password = e.target.value;
+    setNewPassword(password);
+    setPasswordStrength(checkPasswordStrength(password));
+  };
+
+  const validateNewPassword = (password) => {
+    const requirements = {
+      minLength: password.length >= 8,
+      hasUpperCase: /[A-Z]/.test(password),
+      hasNumber: /\d/.test(password),
+      hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    };
+
+    return Object.values(requirements).every(req => req);
+  };
 
   const handleChangePassword = async () => {
     if (!oldPassword || !newPassword) {
       message.error('Please fill in both fields.');
+      return;
+    }
+
+    if (!validateNewPassword(newPassword)) {
+      message.error('New password does not meet the requirements.');
       return;
     }
 
@@ -44,7 +116,7 @@ const DriverPasswordChange = () => {
     }
   };
 
-  // Styles (same as in OwnerPasswordChange)
+  // Styles
   const containerStyle = {
     width: '100%',
     display: 'flex',
@@ -135,8 +207,36 @@ const DriverPasswordChange = () => {
             size="large"
             style={inputStyle}
             value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
+            onChange={handleNewPasswordChange}
           />
+          
+          <div style={{ marginBottom: '16px' }}>
+            <Progress
+              percent={passwordStrength.score}
+              status="active"
+              strokeColor={passwordStrength.color}
+              format={() => passwordStrength.message}
+            />
+            <div style={{ marginTop: '8px' }}>
+              <PasswordRequirementItem
+                met={newPassword.length >= 8}
+                text="At least 8 characters"
+              />
+              <PasswordRequirementItem
+                met={/[A-Z]/.test(newPassword)}
+                text="At least one uppercase letter"
+              />
+              <PasswordRequirementItem
+                met={/[0-9]/.test(newPassword)}
+                text="At least one number"
+              />
+              <PasswordRequirementItem
+                met={/[!@#$%^&*(),.?":{}|<>]/.test(newPassword)}
+                text="At least one special character"
+              />
+            </div>
+          </div>
+
           <Button
             type="primary"
             size="large"
